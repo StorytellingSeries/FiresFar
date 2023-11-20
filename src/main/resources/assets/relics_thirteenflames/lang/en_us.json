@@ -1,0 +1,31 @@
+{
+    "itemGroup.relics_thirteenflames": "Relics: Thirteen Flames",
+    "item.relics_thirteenflames.knef_bow": "Knephmtyti's Moonbow",
+
+
+
+    "tooltip.relics.knef_bow.leveling": "Один из \"Огней\", легендарных артефактов, разбросанных по всему Мисру. Созданный богиней Кнефмтити, лук повелевает силой штормов и приливов, насылая грозовые разряды на всякого, кто противится её воле.",
+    "tooltip.relics.knef_bow.ability.shot": "Moonlight Arrows",
+    "tooltip.relics.knef_bow.ability.shot.description": "Shoots out multiple beams of moonlight that track nearest targets. Each shot drains the user's HP.",
+    "tooltip.relics.knef_bow.ability.shot.stat.rays.title": "Number of Arrows",
+    "tooltip.relics.knef_bow.ability.shot.stat.rays.value": "%1$s",
+    "tooltip.relics.knef_bow.ability.shot.stat.dmg.title": "Damage per Arrow",
+    "tooltip.relics.knef_bow.ability.shot.stat.dmg.value": "%1$s",
+    "tooltip.relics.knef_bow.ability.shot.stat.drain.title": "HP Drain per shot",
+    "tooltip.relics.knef_bow.ability.shot.stat.drain.value": "%1$s%% max HP",
+    "tooltip.relics.knef_bow.ability.swim": "Surging Tide",
+    "tooltip.relics.knef_bow.ability.swim.description": "Using the Bow while submerged will send you forward with great speed, damaging enemies in your way. While it's raining, exiting the water won't interrupt this ability",
+    "tooltip.relics.knef_bow.ability.swim.stat.speed.title": "Speed",
+    "tooltip.relics.knef_bow.ability.swim.stat.speed.value": "%1$s blocks/second",
+    "tooltip.relics.knef_bow.ability.swim.stat.dmg.title": "Damage",
+    "tooltip.relics.knef_bow.ability.swim.stat.dmg.value": "%1$s",
+    "tooltip.relics.knef_bow.ability.storm": "Heaven's Wrath",
+    "tooltip.relics.knef_bow.ability.storm.description": "Holding down Shift while charging the shot and shooting the Arrow into the sky will summon an Eye of the Storm, that will send down thunder and rain, damaging targets below and healing the user.",
+    "tooltip.relics.knef_bow.ability.storm.stat.radius.title": "Area of Effect",
+    "tooltip.relics.knef_bow.ability.storm.stat.radius.value": "%1$s blocks",
+    "tooltip.relics.knef_bow.ability.storm.stat.freq.title": "Time between thunder strikes",
+    "tooltip.relics.knef_bow.ability.storm.stat.freq.value": "%1$s seconds",
+    "tooltip.relics.knef_bow.ability.storm.stat.dur.title": "Duration",
+    "tooltip.relics.knef_bow.ability.storm.stat.dur.value": "%1$s seconds"
+
+}
