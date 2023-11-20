@@ -248,9 +248,9 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
                 stormcaller.setOwner(pLivingEntity);
                 stormcaller.shotPos = pos;
                 stormcaller.setBow(pStack);
-                stormcaller.shootFromRotation(pLivingEntity, pLivingEntity.getXRot(), pLivingEntity.getYRot(), 0.8f, 6f, 0);
+                stormcaller.shootFromRotation(pLivingEntity, pLivingEntity.getXRot(), pLivingEntity.getYRot(), 0.75f, 7f, 0);
                 pLevel.addFreshEntity(stormcaller);
-                AbilityUtils.addAbilityCooldown(pStack, "storm", (int) (AbilityUtils.getAbilityValue(pStack, "storm", "cd") * 20));
+                //AbilityUtils.addAbilityCooldown(pStack, "storm", (int) (AbilityUtils.getAbilityValue(pStack, "storm", "cd") * 20));
             }
         }
     }
@@ -299,7 +299,7 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
                     radius += 1.4;
                 }
 
-                Vec3 x = !motion.normalize().equals(new Vec3(0, 1, 0)) ? motion.normalize().cross(new Vec3(0, 1, 0)).normalize().scale(radius) : motion.normalize().cross(new Vec3(1, 0, 0)).normalize().scale(radius);
+                Vec3 x = !( motion.normalize().x < 0.001 && motion.normalize().z < 0.001 ) ? motion.normalize().cross(new Vec3(0, 1, 0)).normalize().scale(radius) : motion.normalize().cross(new Vec3(1, 0, 0)).normalize().scale(radius);
                 Vec3 z = motion.normalize().cross(x).normalize().scale(radius);
 
                 Vec3 pos = player.getPosition(1F)

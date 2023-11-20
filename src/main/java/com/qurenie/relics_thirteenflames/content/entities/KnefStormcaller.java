@@ -64,11 +64,13 @@ public class KnefStormcaller extends ThrowableProjectile
 
 
         //-------------------------GRAPHENE----------------------------//
+
+        pos1 = this.position().add(new Vec3(MathUtils.randomFloat(random) * 0.55, MathUtils.randomFloat(random) * 0.45, MathUtils.randomFloat(random) * 0.55));
+        pos2 = this.position().add(new Vec3(MathUtils.randomFloat(random) * 0.55, MathUtils.randomFloat(random) * 0.45, MathUtils.randomFloat(random) * 0.55));
+        pos4 = this.position().add(new Vec3(MathUtils.randomFloat(random) * 0.55, MathUtils.randomFloat(random) * 0.45, MathUtils.randomFloat(random) * 0.55));
+        pos3 = this.position().add(new Vec3(MathUtils.randomFloat(random) * 0.1, MathUtils.randomFloat(random) * 0.1, MathUtils.randomFloat(random) * 0.1));
+
         if(this.tickCount % 2 == 0 && !this.level.isClientSide) {
-            pos1 = this.position().add(new Vec3(MathUtils.randomFloat(random) * 0.55, MathUtils.randomFloat(random) * 0.45, MathUtils.randomFloat(random) * 0.55));
-            pos2 = this.position().add(new Vec3(MathUtils.randomFloat(random) * 0.55, MathUtils.randomFloat(random) * 0.45, MathUtils.randomFloat(random) * 0.55));
-            pos4 = this.position().add(new Vec3(MathUtils.randomFloat(random) * 0.55, MathUtils.randomFloat(random) * 0.45, MathUtils.randomFloat(random) * 0.55));
-            pos3 = this.position().add(new Vec3(MathUtils.randomFloat(random) * 0.1, MathUtils.randomFloat(random) * 0.1, MathUtils.randomFloat(random) * 0.1));
 
             ParticleHelper.spawnParticleLine(this.level, new CircleTintData(new Color(201, 75, 255), 0.25f, 100, 0.94f, false),
                     prevPos1 == null ? shotPos : prevPos1,
@@ -165,7 +167,7 @@ public class KnefStormcaller extends ThrowableProjectile
         discharge.setPos(pos);
         discharge.setOwner(this.getOwner());
         discharge.shotPos = pos;
-        discharge.shootFromRotation(this, 0, -90, 0.1f, 6f, 0);
+        discharge.shootFromRotation(this, 0, -90, 0.75f, 0.5f, 0);
         this.level.addFreshEntity(discharge);
 
         this.discard();

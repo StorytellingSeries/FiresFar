@@ -64,15 +64,7 @@ public class KnefDischarge extends ThrowableProjectile
 
         //-------------------------GRAPHENE----------------------------//
         if(!this.level.isClientSide) {
-            ParticleHelper.spawnParticleEntity(new CircleTintData(new Color(167, 106, 255), 0.4f, 60, 0.91f, false),
-                    this, 2, 0.04);
-            ParticleHelper.spawnParticleEntity(new CircleTintData(new Color(68, 38, 203), 0.4f, 60, 0.91f, false),
-                    this, 2, 0.04);
-
-            ParticleHelper.spawnParticleEntity(new SparkTintData(new Color(179, 190, 255), 0.4f, 184),
-                    this, 2, 0.04);
-            ParticleHelper.spawnParticleEntity(new SparkTintData(new Color(242, 208, 255), 0.4f, 184),
-                    this, 2, 0.04);
+            spark(2);
         }
         //-----------------------GRAPHENE_END--------------------------//
 
@@ -84,10 +76,28 @@ public class KnefDischarge extends ThrowableProjectile
 
     }
 
+    private void spark(int count) {
+        ParticleHelper.spawnParticleEntity(new CircleTintData(new Color(167, 106, 255), 0.4f, 60, 0.91f, false),
+                this, count, 0.04);
+        ParticleHelper.spawnParticleEntity(new CircleTintData(new Color(68, 38, 203), 0.4f, 60, 0.91f, false),
+                this, count, 0.04);
+
+        ParticleHelper.spawnParticleEntity(new SparkTintData(new Color(179, 190, 255), 0.4f, 184),
+                this, count, 0.04);
+        ParticleHelper.spawnParticleEntity(new SparkTintData(new Color(242, 208, 255), 0.4f, 184),
+                this, count, 0.04);
+    }
+
     @Override
     protected void onHitBlock(BlockHitResult pResult) {
         isExploding = true;
 
+    }
+
+    @Override
+    public void onRemovedFromWorld() {
+        spark(8);
+        super.onRemovedFromWorld();
     }
 
     @SubscribeEvent
