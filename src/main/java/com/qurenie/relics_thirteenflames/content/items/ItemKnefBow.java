@@ -104,7 +104,7 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
                                     .initialValue(6, 10)
                                     .thresholdValue(6, 20)
                                     .upgradeModifier(RelicAbilityStat.Operation.ADD, 2)
-                                    .formatValue(x -> x)
+                                    .formatValue(x -> (int) MathUtils.round(x, 0))
                                     .build()
                             )
                             .stat("dmg", RelicAbilityStat.builder()
@@ -138,6 +138,13 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
                                     .thresholdValue(11, 32)
                                     .upgradeModifier(RelicAbilityStat.Operation.ADD, 4.0)
                                     .formatValue(x -> (int) MathUtils.round(x, 1))
+                                    .build()
+                            )
+                            .stat("cd", RelicAbilityStat.builder()
+                                    .initialValue(50, 40)
+                                    .thresholdValue(30, 50)
+                                    .upgradeModifier(RelicAbilityStat.Operation.ADD, 2)
+                                    .formatValue(x -> (int) MathUtils.round(x, 0))
                                     .build()
                             )
                             .build()
@@ -241,9 +248,9 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
                 stormcaller.setOwner(pLivingEntity);
                 stormcaller.shotPos = pos;
                 stormcaller.setBow(pStack);
-                stormcaller.shootFromRotation(pLivingEntity, pLivingEntity.getXRot(), pLivingEntity.getYRot(), 0.75f, 6f, 0);
+                stormcaller.shootFromRotation(pLivingEntity, pLivingEntity.getXRot(), pLivingEntity.getYRot(), 0.8f, 6f, 0);
                 pLevel.addFreshEntity(stormcaller);
-                //AbilityUtils.addAbilityCooldown(pStack, "storm", (int) (AbilityUtils.getAbilityValue(pStack, "storm", "dur") * 20));
+                AbilityUtils.addAbilityCooldown(pStack, "storm", (int) (AbilityUtils.getAbilityValue(pStack, "storm", "cd") * 20));
             }
         }
     }

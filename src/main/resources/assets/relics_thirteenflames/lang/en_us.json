@@ -26,6 +26,8 @@
     "tooltip.relics.knef_bow.ability.storm.stat.freq.title": "Time between thunder strikes",
     "tooltip.relics.knef_bow.ability.storm.stat.freq.value": "%1$s seconds",
     "tooltip.relics.knef_bow.ability.storm.stat.dur.title": "Duration",
-    "tooltip.relics.knef_bow.ability.storm.stat.dur.value": "%1$s seconds"
+    "tooltip.relics.knef_bow.ability.storm.stat.dur.value": "%1$s seconds",
+    "tooltip.relics.knef_bow.ability.storm.stat.cd.title": "Cooldown",
+    "tooltip.relics.knef_bow.ability.storm.stat.cd.value": "%1$s seconds"
 
 }

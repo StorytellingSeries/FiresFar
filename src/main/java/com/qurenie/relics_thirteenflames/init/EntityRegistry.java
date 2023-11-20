@@ -30,6 +30,11 @@ public class EntityRegistry {
             .sized(0.1F, 0.1F)
             .build("knef_stormcaller");
 
+    @RegistryName("knef_discharge")
+    public static final EntityType<KnefDischarge> KNEF_DISCHARGE = Builder.of(KnefDischarge::new, MobCategory.MISC)
+            .sized(0.1F, 0.1F)
+            .build("knef_discharge");
+
     @RegistryName("knef_storm")
     public static final EntityType<KnefStormEntity> KNEF_STORM = Builder.of(KnefStormEntity::new, MobCategory.MISC)
             .sized(1F, 1F)

@@ -153,24 +153,21 @@ public class KnefStormcaller extends ThrowableProjectile
                     prevPos4 == null ? this.position() : prevPos4,
                     this.position(),
                     25, 0);
-            ParticleHelper.spawnParticleLine(this.level, new CircleTintData(new Color(0, 34, 255), 0.25f, 100, 0.94f, false),
+            ParticleHelper.spawnParticleLine(this.level, new CircleTintData(new Color(0, 34, 255), 0.35f, 100, 0.94f, false),
                     prevPos3 == null ? this.position() : prevPos3,
-                    this.position(),
+                    pos3,
                     25, 0);
 
-            for (int i = 0; i < 60; i++) {
-                Vec3 direction = new Vec3(1,0,0);
-                direction = direction.yRot((float) Math.toRadians(random.nextFloat() * 360f)).normalize().scale(random.nextFloat() * 0.8f);
-                ParticleHelper.spawnDirectedParticle(this.level, new CircleTintData(new Color(0, 24, 80), 4.2f, 130, 0.95f, false),
-                        this.getX(), this.getY(), this.getZ(), direction.x, MathUtils.randomFloat(random) * 0.1, direction.z);
-                direction = direction.yRot((float) Math.toRadians(random.nextFloat() * 360f)).normalize().scale(random.nextFloat() * 0.8f);
-                ParticleHelper.spawnDirectedParticle(this.level, new CircleTintData(new Color(28, 0, 27), 4.2f, 130, 0.95f, false),
-                        this.getX(), this.getY(), this.getZ(), direction.x, MathUtils.randomFloat(random) * 0.1, direction.z);
-            }
         }
-        for (LivingEntity target : this.getLevel().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(5), e -> !(e.equals(this.getOwner()) || e instanceof LocalPlayer))) {
-            target.hurt(DamageSource.thrown(this, this.getOwner()), 10);
-        }
+
+        KnefDischarge discharge = new KnefDischarge(EntityRegistry.KNEF_DISCHARGE, this.level);
+        Vec3 pos = this.position();
+        discharge.setPos(pos);
+        discharge.setOwner(this.getOwner());
+        discharge.shotPos = pos;
+        discharge.shootFromRotation(this, 0, -90, 0.1f, 6f, 0);
+        this.level.addFreshEntity(discharge);
+
         this.discard();
     }
 

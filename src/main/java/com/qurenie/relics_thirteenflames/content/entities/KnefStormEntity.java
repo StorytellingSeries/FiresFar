@@ -129,12 +129,12 @@ public class KnefStormEntity extends Projectile {
 
         if(this.tickCount > 130){
             AABB box = this.getBoundingBox().inflate(radius).inflate(0, 50, 0).move(0, -50, 0);
-            List<LivingEntity> targets = new ArrayList<>(this.getLevel().getEntitiesOfClass(LivingEntity.class, box, e -> !(e.equals(this.getOwner()) || e instanceof LocalPlayer)));
+            List<LivingEntity> targets = new ArrayList<>(this.getLevel().getEntitiesOfClass(LivingEntity.class, box/*, e -> !(e.isAlliedTo(this.getOwner() != null ? this.getOwner() : this) || e instanceof LocalPlayer)*/));
 
             if(this.tickCount % freq == 0){
                 KnefRaindrop drop = new KnefRaindrop(EntityRegistry.KNEF_RAINDROP, this.getLevel());
                 Vec3 pos = this.getPosition(1f).add(MathUtils.randomFloat(random) * radius, -1, MathUtils.randomFloat(random) * radius);
-                if(random.nextFloat() < 0.2 && !targets.isEmpty()){
+                if(random.nextFloat() < 0.25 && !targets.isEmpty()){
                     LivingEntity target = targets.get(random.nextInt(targets.size()));
                     pos = target.getPosition(1f).add(0, this.getY() - target.getY() - 1, 0);
                 }

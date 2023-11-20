@@ -48,6 +48,7 @@ public class ClientModEvents {
         e.registerEntityRenderer(EntityRegistry.KNEF_PROJECTILE_CARRIER, NullRenderer::new);
         e.registerEntityRenderer(EntityRegistry.KNEF_PROJECTILE, NullRenderer::new);
         e.registerEntityRenderer(EntityRegistry.KNEF_STORMCALLER, NullRenderer::new);
+        e.registerEntityRenderer(EntityRegistry.KNEF_DISCHARGE, NullRenderer::new);
         e.registerEntityRenderer(EntityRegistry.KNEF_STORM, NullRenderer::new);
         e.registerEntityRenderer(EntityRegistry.KNEF_RAINDROP, NullRenderer::new);
     }
