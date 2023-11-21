@@ -22,7 +22,7 @@ public interface ItemsRegistry {
 //    public static final RegistryObject<Item> KNEF_BOW;
 
     @RegistryName("knef_bow")
-    ItemKnefBow KNEF_BOW = new ItemKnefBow(props().rarity(Rarity.RARE));
+    ItemKnefBow KNEF_BOW = new ItemKnefBow(props().rarity(Rarity.RARE).stacksTo(1));
 
 
 //    public static void registerItems() {

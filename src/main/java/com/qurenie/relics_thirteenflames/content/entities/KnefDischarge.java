@@ -13,6 +13,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
@@ -90,15 +91,16 @@ public class KnefDischarge extends ThrowableProjectile
     }
 
     private void spark(int count, double speed, float diam) {
-        ParticleHelper.spawnParticleEntity(new CircleTintData(new Color(167, 106, 255), diam, 45, 0.91f, false),
+        ParticleHelper.spawnParticleEntity(new CircleTintData(new Color(175, 117, 245), diam, 45, 0.91f, false),
                 this, count, speed);
-        ParticleHelper.spawnParticleEntity(new CircleTintData(new Color(68, 38, 203), diam, 45, 0.91f, false),
+        ParticleHelper.spawnParticleEntity(new CircleTintData(new Color(10, 46, 203), diam, 45, 0.91f, false),
                 this, count, speed);
 
-        ParticleHelper.spawnParticleEntity(new SparkTintData(new Color(157, 169, 255), diam, 50),
+        ParticleHelper.spawnParticleEntity(new SparkTintData(new Color(115, 110, 255), diam, 50),
                 this, count, speed);
-        ParticleHelper.spawnParticleEntity(new SparkTintData(new Color(242, 208, 255), diam, 50),
+        ParticleHelper.spawnParticleEntity(new SparkTintData(new Color(245, 152, 255), diam, 50),
                 this, count, speed);
+        this.level.playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.AZALEA_FALL, SoundSource.MASTER, 0.5f, 1.4f + random.nextFloat() * 1.6f);
     }
 
     @Override
@@ -123,6 +125,10 @@ public class KnefDischarge extends ThrowableProjectile
                 le.hurt(DamageSource.thrown(this, this.getOwner()), getDmg());
             }
 
+
+            this.getLevel().playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.LIGHTNING_BOLT_IMPACT, SoundSource.PLAYERS, 1, random.nextFloat() * 1.4f + 0.3f);
+            this.getLevel().playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.LIGHTNING_BOLT_THUNDER, SoundSource.PLAYERS, 0.03f, random.nextFloat() * 1.3f + 0.5f);
+
             AABB secondaryBox = new AABB(end, end).inflate(getRadius() * 0.5).move(0, getRadius() * 0.25, 0);
             List<LivingEntity> secondaryTargets = new ArrayList<>(this.getLevel().getEntitiesOfClass(LivingEntity.class, secondaryBox, e -> !(e.equals(this.getOwner()) || e.equals(le))));
             if(!secondaryTargets.isEmpty()) {
@@ -130,9 +136,8 @@ public class KnefDischarge extends ThrowableProjectile
                 if(!this.level.isClientSide()) {
                     Vec3 end2 = secTarget.getBoundingBox().getCenter();
                     int segments2 = (int) Math.round(end.distanceTo(end2));
-                    drawThinLightning(this.level, end, end2, segments2, 0.6, 0.15f, new Color(187, 145, 255), true);
-                    drawThinLightning(this.level, end, end2, segments2, 0.6, 0.15f, new Color(222, 127, 255), true);
-                    drawThinLightning(this.level, end, end2, segments2, 0.3, 0.25f, new Color(154, 96, 255), true);
+                    drawThinLightning(this.level, end, end2, segments2, 0.8, 0.15f, new Color(222, 127, 255), true);
+                    drawThinLightning(this.level, end, end2, segments2, 0.45, 0.25f, new Color(154, 96, 255), true);
 
                     secTarget.hurt(DamageSource.thrown(this, this.getOwner()), getDmg());
                 }

@@ -82,7 +82,7 @@ public class KnefProjCarrier extends ThrowableProjectile
             rays.get(i).setPos(pos);
         }
 
-        if(!this.getLevel().isClientSide() && this.tickCount > 8) {
+        if(!this.getLevel().isClientSide() /*&& this.tickCount > 8*/) {
 
             AABB box = this.getBoundingBox().inflate(7);
 

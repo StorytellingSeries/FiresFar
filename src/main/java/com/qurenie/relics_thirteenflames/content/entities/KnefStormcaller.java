@@ -51,7 +51,7 @@ public class KnefStormcaller extends ThrowableProjectile
 
     public List<KnefProjectileSpecial> rays = new ArrayList<>();
 
-    public double rad = 0.1;
+    public double rad = 0.05;
 
     public KnefStormcaller setRays(List<KnefProjectileSpecial> rays){
         this.rays = rays;

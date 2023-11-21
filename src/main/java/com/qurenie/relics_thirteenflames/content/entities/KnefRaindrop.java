@@ -90,7 +90,7 @@ public class KnefRaindrop extends ThrowableProjectile
         if(level.isClientSide) {
             double distance = this.position().subtract(prevPos == null ? this.position() : prevPos).length();
             ParticleHelper.spawnParticleLine(this.level, new CircleTintData(color, 0.1f, 80, 0.85f, false),
-                    prevPos == null ? this.position() : prevPos, this.position(), (int) Math.round(distance * 8), 0);
+                    prevPos == null ? this.position() : prevPos, this.position(), (int) Math.round(distance * this.tickCount * this.tickCount / 156 + 2), 0);
         }
 
         prevPos = this.position();
@@ -122,7 +122,7 @@ public class KnefRaindrop extends ThrowableProjectile
 
         if (result.getType() == HitResult.Type.BLOCK) {
             ParticleHelper.spawnParticleLine(this.level, new CircleTintData(color, 0.1f, 80, 0.9f, false),
-                    this.position(), result.getLocation(), (int) Math.round(Math.sqrt(this.position().distanceToSqr(result.getLocation())) * 8), 0);
+                    this.position(), result.getLocation(), (int) Math.round(Math.sqrt(this.position().distanceToSqr(result.getLocation())) * this.tickCount * this.tickCount / 156 + 2), 0);
 
             ParticleHelper.spawnParticleAABB(this.level, new CircleTintData(new Color(72, 0, 255), 0.2f, 20, 0.65f, false),
                     new AABB(result.getLocation(), result.getLocation()), 15, 0.1);

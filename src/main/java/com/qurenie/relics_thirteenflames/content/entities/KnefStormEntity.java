@@ -183,7 +183,7 @@ public class KnefStormEntity extends Projectile {
                 drop.setHeal(getHeal());
                 drop.setDmg(getDmg());
                 this.getLevel().addFreshEntity(drop);
-                ParticleHelper.spawnParticleEntity(new CircleTintData(new Color(0, 128, 255), 0.2f, 25, 0.85f, false),
+                ParticleHelper.spawnParticleEntity(new CircleTintData(new Color(0, 128, 255), 0.2f, 15, 0.83f, false),
                         drop, 15, 0.1);
 
                 Vec3 endpos = pos;
@@ -223,13 +223,13 @@ public class KnefStormEntity extends Projectile {
                 Vec3 finalEndpos = endpos;
 
                 if(!this.level.isClientSide()) {
-                    taskQueue.add(new DelayedRunnable(() -> drawThinLightning(this.getLevel(), finalPos, finalEndpos, 8, 0.45, 0.5f, new Color(187, 145, 255), 9),
+                    taskQueue.add(new DelayedRunnable(() -> drawThinLightning(this.getLevel(), finalPos, finalEndpos, 8, 0.45, 0.55f, new Color(187, 145, 255), 14),
                             this.tickCount, 1));
-                    taskQueue.add(new DelayedRunnable(() -> drawThinLightning(this.getLevel(), finalPos, finalEndpos, 20, 0.55, 0.35f, new Color(127, 117, 255), 12),
+                    taskQueue.add(new DelayedRunnable(() -> drawThinLightning(this.getLevel(), finalPos, finalEndpos, 20, 0.55, 0.4f, new Color(127, 117, 255), 13),
                             this.tickCount, 2));
-                    taskQueue.add(new DelayedRunnable(() -> drawThinLightning(this.getLevel(), finalPos, finalEndpos, 20, 0.55, 0.3f, new Color(154, 96, 255), 13),
+                    taskQueue.add(new DelayedRunnable(() -> drawThinLightning(this.getLevel(), finalPos, finalEndpos, 20, 0.55, 0.35f, new Color(154, 96, 255), 13),
                             this.tickCount, 3));
-                    taskQueue.add(new DelayedRunnable(() -> drawThinLightning(this.getLevel(), finalPos, finalEndpos, 16, 0.55, 0.25f, new Color(128, 86, 255), 14),
+                    taskQueue.add(new DelayedRunnable(() -> drawThinLightning(this.getLevel(), finalPos, finalEndpos, 16, 0.55, 0.3f, new Color(128, 86, 255), 14),
                             this.tickCount, 4));
 
 
@@ -281,10 +281,10 @@ public class KnefStormEntity extends Projectile {
             straightPos = straightPos.add(end.subtract(start).scale((double) 1 / segments));
             pos = straightPos.add(new Vec3(MathUtils.randomFloat(random) * jag,  0, MathUtils.randomFloat(random) * jag));
             if(i == segments - 1) pos = end;
-            ParticleHelper.spawnParticleLine(level, new CircleTintData(color, d, 30, 0.88f, false),
+            ParticleHelper.spawnParticleLine(level, new CircleTintData(color, d, 30, 0.89f, false),
                     prevPos,
                     pos,
-                    (int) Math.round(-length * particleCount), 0);
+                    (int) Math.round((-length * particleCount) * (0.2 + (double) i * i / (segments - 1) / (segments - 1)) * 0.8), 0);
             prevPos = pos;
         }
         ParticleHelper.spawnParticleAABB(this.level, new SparkTintData(new Color(179, 190, 255), 0.4f, 50),

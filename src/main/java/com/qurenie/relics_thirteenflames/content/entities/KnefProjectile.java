@@ -168,7 +168,7 @@ public class KnefProjectile extends ThrowableProjectile
             proj.color = new Color(0, 246 - proj.random.nextInt(160), 255 - proj.random.nextInt(120));
             proj.setPowerEnch(powerEnch);
             proj.setBow(bow);
-            proj.setParticleCount( (i % 2 == 0 && count > 7) ? i % 4 == 0 ? 3 : 12 : count <= 7 ? 12 : 6);
+            proj.setParticleCount( (i % 2 == 0 && count > 7) ? (i % 4 == 0 && count > 15) ? 3 : 12 : count <= 7 ? 12 : 6);
             list.add(proj);
         }
         return list;
