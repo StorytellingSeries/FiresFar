@@ -4,7 +4,7 @@
 
 
 
-    "tooltip.relics.knef_bow.leveling": "Один из \"Огней\", легендарных артефактов, разбросанных по всему Мисру. Созданный богиней Кнефмтити, лук повелевает силой штормов и приливов, насылая грозовые разряды на всякого, кто противится её воле.",
+    "tooltip.relics.knef_bow.leveling": "+1 experience point for each «Moonlight Arrows» hit. \n +1 experience point for each point of HP healed by «Heaven's Wrath»",
     "tooltip.relics.knef_bow.ability.shot": "Moonlight Arrows",
     "tooltip.relics.knef_bow.ability.shot.description": "Shoots out multiple beams of moonlight that track nearest targets. Each shot drains the user's HP.",
     "tooltip.relics.knef_bow.ability.shot.stat.rays.title": "Number of Arrows",

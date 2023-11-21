@@ -197,7 +197,7 @@ public class KnefStormEntity extends Projectile {
                 this.getLevel().playSound(null, endpos.x, endpos.y, endpos.z, SoundsRegistry.KNEF_BOW_RAIN.get(), SoundSource.PLAYERS, random.nextFloat() * 0.15f * vol + vol, random.nextFloat() * 0.6f + 0.7f);
 
             }
-            if(this.tickCount % (20 + Math.round(freq * freq * (freq / 2.0))) == 0){
+            if(this.tickCount % (35 + Math.round(freq * freq * (freq / 1.9))) == 0){
                 Vec3 pos = this.getPosition(1f).add(MathUtils.randomFloat(random) * radius, -1, MathUtils.randomFloat(random) * radius);
                 Vec3 endpos = pos;
 
