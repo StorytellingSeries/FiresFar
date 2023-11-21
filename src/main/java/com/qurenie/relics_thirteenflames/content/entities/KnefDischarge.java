@@ -90,14 +90,14 @@ public class KnefDischarge extends ThrowableProjectile
     }
 
     private void spark(int count, double speed, float diam) {
-        ParticleHelper.spawnParticleEntity(new CircleTintData(new Color(167, 106, 255), diam, 60, 0.91f, false),
+        ParticleHelper.spawnParticleEntity(new CircleTintData(new Color(167, 106, 255), diam, 45, 0.91f, false),
                 this, count, speed);
-        ParticleHelper.spawnParticleEntity(new CircleTintData(new Color(68, 38, 203), diam, 60, 0.91f, false),
+        ParticleHelper.spawnParticleEntity(new CircleTintData(new Color(68, 38, 203), diam, 45, 0.91f, false),
                 this, count, speed);
 
-        ParticleHelper.spawnParticleEntity(new SparkTintData(new Color(157, 169, 255), diam, 184),
+        ParticleHelper.spawnParticleEntity(new SparkTintData(new Color(157, 169, 255), diam, 50),
                 this, count, speed);
-        ParticleHelper.spawnParticleEntity(new SparkTintData(new Color(242, 208, 255), diam, 184),
+        ParticleHelper.spawnParticleEntity(new SparkTintData(new Color(242, 208, 255), diam, 50),
                 this, count, speed);
     }
 
@@ -108,7 +108,7 @@ public class KnefDischarge extends ThrowableProjectile
 
     @Override
     public void onRemovedFromWorld() {
-        spark(9, 0.02, 0.8f);
+        spark(9, 0.04, 0.8f);
         AABB box = this.getBoundingBox().inflate(getRadius()).move(0, -getRadius() * 0.5, 0).expandTowards(0, -3, 0);
         List<LivingEntity> targets = new ArrayList<>(this.getLevel().getEntitiesOfClass(LivingEntity.class, box, e -> !(e.equals(this.getOwner()))));
         for(LivingEntity le : targets) {
@@ -130,9 +130,9 @@ public class KnefDischarge extends ThrowableProjectile
                 if(!this.level.isClientSide()) {
                     Vec3 end2 = secTarget.getBoundingBox().getCenter();
                     int segments2 = (int) Math.round(end.distanceTo(end2));
-                    drawThinLightning(this.level, end, end2, segments2, 0.8, 0.15f, new Color(187, 145, 255), true);
-                    drawThinLightning(this.level, end, end2, segments2, 0.8, 0.15f, new Color(222, 127, 255), true);
-                    drawThinLightning(this.level, end, end2, segments2, 0.5, 0.25f, new Color(154, 96, 255), true);
+                    drawThinLightning(this.level, end, end2, segments2, 0.6, 0.15f, new Color(187, 145, 255), true);
+                    drawThinLightning(this.level, end, end2, segments2, 0.6, 0.15f, new Color(222, 127, 255), true);
+                    drawThinLightning(this.level, end, end2, segments2, 0.3, 0.25f, new Color(154, 96, 255), true);
 
                     secTarget.hurt(DamageSource.thrown(this, this.getOwner()), getDmg());
                 }
@@ -146,9 +146,9 @@ public class KnefDischarge extends ThrowableProjectile
         Vec3 straightPos = start;
         Vec3 prevPos = start;
         if(doStartBurst) {
-            ParticleHelper.spawnParticleAABB(this.level, new CircleTintData(new Color(230, 175, 255), 0.6f, 84, 0.68f, false),
+            ParticleHelper.spawnParticleAABB(this.level, new CircleTintData(new Color(230, 175, 255), 0.6f, 15, 0.68f, false),
                     new AABB(start, start), 10, 0.2);
-            ParticleHelper.spawnParticleAABB(this.level, new CircleTintData(new Color(230, 175, 255), 0.3f, 84, 0.82f, false),
+            ParticleHelper.spawnParticleAABB(this.level, new CircleTintData(new Color(230, 175, 255), 0.3f, 30, 0.82f, false),
                     new AABB(start, start), 10, 0.15);
         }
         double length = end.subtract(start).scale((double) 1 / segments).length();
@@ -156,19 +156,19 @@ public class KnefDischarge extends ThrowableProjectile
             straightPos = straightPos.add(end.subtract(start).scale((double) 1 / segments));
             pos = straightPos.add(new Vec3(MathUtils.randomFloat(random) * jag,  0, MathUtils.randomFloat(random) * jag));
             if(i == segments - 1) pos = end;
-            ParticleHelper.spawnParticleLine(level, new CircleTintData(color, d, 100, 0.9f, false),
+            ParticleHelper.spawnParticleLine(level, new CircleTintData(color, d, 40, 0.9f, false),
                     prevPos,
                     pos,
-                    (int) Math.round(length * 8), 0);
+                    (int) Math.round(length * 24), 0);
             prevPos = pos;
         }
-        ParticleHelper.spawnParticleAABB(this.level, new SparkTintData(new Color(179, 190, 255), 0.4f, 184),
+        ParticleHelper.spawnParticleAABB(this.level, new SparkTintData(new Color(179, 190, 255), 0.4f, 50),
                 new AABB(end, end), 10, 0.1);
-        ParticleHelper.spawnParticleAABB(this.level, new SparkTintData(new Color(242, 208, 255), 0.4f, 184),
+        ParticleHelper.spawnParticleAABB(this.level, new SparkTintData(new Color(242, 208, 255), 0.4f, 50),
                 new AABB(end, end), 10, 0.1);
-        ParticleHelper.spawnParticleAABB(this.level, new CircleTintData(new Color(0, 89, 255), 0.4f, 184, 0.8f, false),
+        ParticleHelper.spawnParticleAABB(this.level, new CircleTintData(new Color(0, 89, 255), 0.4f, 30, 0.8f, false),
                 new AABB(end, end), 10, 0.1);
-        ParticleHelper.spawnParticleAABB(this.level, new CircleTintData(new Color(221, 117, 255), 0.4f, 184, 0.8f, false),
+        ParticleHelper.spawnParticleAABB(this.level, new CircleTintData(new Color(221, 117, 255), 0.4f, 30, 0.8f, false),
                 new AABB(end, end), 10, 0.1);
     }
 

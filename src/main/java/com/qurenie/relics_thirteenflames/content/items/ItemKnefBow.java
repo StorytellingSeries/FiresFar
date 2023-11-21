@@ -46,6 +46,9 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import net.minecraftforge.event.entity.living.LivingHurtEvent;
+import net.minecraftforge.event.server.ServerStartingEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -274,9 +277,29 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
         return slotChanged;
     }
 
+    @SubscribeEvent
+    public static void onPlayerHurt(LivingHurtEvent event)
+    {
+        if(event.getEntity() instanceof Player p
+                && p.isUsingItem()
+                && p.getUseItem().getItem() instanceof ItemKnefBow bow
+                && bow.isSurging
+                && event.getSource() == DamageSource.FALL){
+            event.setCanceled(true);
+        }
+    }
+
     @Override
     public void onUsingTick(ItemStack stack, LivingEntity player, int count) {
         if ( (player.isEyeInFluidType(WATER_TYPE.get()) || isSurging) && player instanceof Player p) {
+
+            if (!p.isCreative()) {
+                if (player.getHealth() > 1)
+                    player.setHealth(player.getHealth() - player.getMaxHealth() * (float)AbilityUtils.getAbilityValue(stack, "shot", "drain") * 0.02f);
+                else player.kill();
+            }
+            player.hurtTime = 0;
+            player.hurtDuration = 0;
 
             isSurging = player.isInWaterOrRain();
             player.setSwimming(false);
@@ -316,7 +339,7 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
                     if (i % 4 == 0) pos = pos.subtract(luk.scale(0.8));
                 }
                 pos = pos.add(luk.scale(-0.4));
-                player.getLevel().addParticle(new CircleTintData(new Color(0, (int) (140 + Math.sin(count / 6.0) * 100), (int) (215 - Math.sin(count / 6.0) * 40)), 0.35f, 100, 0.92f, false),
+                player.getLevel().addParticle(new CircleTintData(new Color(0, (int) (140 + Math.sin(count / 6.0) * 100), (int) (215 - Math.sin(count / 6.0) * 40)), 0.35f, 60, 0.92f, false),
                         pos.x(), pos.y(), pos.z(), 0, 0, 0);
             }
         } else if(player instanceof Player p){

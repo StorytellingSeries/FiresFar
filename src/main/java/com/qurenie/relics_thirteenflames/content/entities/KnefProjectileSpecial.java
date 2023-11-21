@@ -50,7 +50,7 @@ public class KnefProjectileSpecial extends ThrowableProjectile
 
         setDeltaMovement(motion);
         if(!level.isClientSide) {
-            ParticleHelper.spawnParticleLine(this.level, new CircleTintData(color, 0.1f, 80, 0.92f, false),
+            ParticleHelper.spawnParticleLine(this.level, new CircleTintData(color, 0.1f, 40, 0.92f, false),
                     prevPos == null ? this.position() : prevPos, this.position(), 25, 0);
         }
 

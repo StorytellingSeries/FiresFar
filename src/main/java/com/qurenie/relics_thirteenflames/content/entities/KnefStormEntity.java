@@ -141,7 +141,7 @@ public class KnefStormEntity extends Projectile {
             direction = direction.yRot((float) Math.toRadians(random.nextFloat() * 360f)).scale(MathUtils.randomFloat(random));
             double x = MathUtils.randomFloat(random) * r;
             double z = MathUtils.randomFloat(random) * Math.sqrt(r * r - x * x);
-            this.getLevel().addParticle(new CircleTintData(colors[random.nextInt(colors.length)], (float) (1 + r / 2), 140, 0.96f, false), true,
+            this.getLevel().addParticle(new CircleTintData(colors[random.nextInt(colors.length)], (float) (1 + r / 2), 80, 0.96f, false), true,
                     this.getX() + x, this.getY() + MathUtils.randomFloat(random) * r / 10, this.getZ() + z, direction.x * 0.46, direction.y * 0.1, direction.z * 0.46);
         }
 
@@ -223,13 +223,13 @@ public class KnefStormEntity extends Projectile {
                 Vec3 finalEndpos = endpos;
 
                 if(!this.level.isClientSide()) {
-                    taskQueue.add(new DelayedRunnable(() -> drawThinLightning(this.getLevel(), finalPos, finalEndpos, 8, 0.45, 0.4f, new Color(187, 145, 255)),
+                    taskQueue.add(new DelayedRunnable(() -> drawThinLightning(this.getLevel(), finalPos, finalEndpos, 8, 0.45, 0.5f, new Color(187, 145, 255), 9),
                             this.tickCount, 1));
-                    taskQueue.add(new DelayedRunnable(() -> drawThinLightning(this.getLevel(), finalPos, finalEndpos, 20, 0.55, 0.25f, new Color(127, 117, 255)),
+                    taskQueue.add(new DelayedRunnable(() -> drawThinLightning(this.getLevel(), finalPos, finalEndpos, 20, 0.55, 0.35f, new Color(127, 117, 255), 12),
                             this.tickCount, 2));
-                    taskQueue.add(new DelayedRunnable(() -> drawThinLightning(this.getLevel(), finalPos, finalEndpos, 20, 0.55, 0.2f, new Color(154, 96, 255)),
+                    taskQueue.add(new DelayedRunnable(() -> drawThinLightning(this.getLevel(), finalPos, finalEndpos, 20, 0.55, 0.3f, new Color(154, 96, 255), 13),
                             this.tickCount, 3));
-                    taskQueue.add(new DelayedRunnable(() -> drawThinLightning(this.getLevel(), finalPos, finalEndpos, 16, 0.55, 0.15f, new Color(128, 86, 255)),
+                    taskQueue.add(new DelayedRunnable(() -> drawThinLightning(this.getLevel(), finalPos, finalEndpos, 16, 0.55, 0.25f, new Color(128, 86, 255), 14),
                             this.tickCount, 4));
 
 
@@ -268,33 +268,33 @@ public class KnefStormEntity extends Projectile {
 
     }
 
-    public void drawThinLightning(Level level, Vec3 start, Vec3 end, int segments, double jag, float d, Color color){
+    public void drawThinLightning(Level level, Vec3 start, Vec3 end, int segments, double jag, float d, Color color, int particleCount){
         Vec3 pos = start;
         Vec3 straightPos = start;
         Vec3 prevPos = start;
-        ParticleHelper.spawnParticleAABB(this.level, new CircleTintData(new Color(230, 175, 255), 0.6f, 84, 0.68f, false),
+        ParticleHelper.spawnParticleAABB(this.level, new CircleTintData(new Color(230, 175, 255), 0.6f, 15, 0.68f, false),
                 new AABB(start, start), 10, 0.2);
-        ParticleHelper.spawnParticleAABB(this.level, new CircleTintData(new Color(230, 175, 255), 0.3f, 84, 0.82f, false),
+        ParticleHelper.spawnParticleAABB(this.level, new CircleTintData(new Color(230, 175, 255), 0.3f, 30, 0.82f, false),
                 new AABB(start, start), 10, 0.15);
         double length = end.subtract(start).scale((double) 1 / segments).y();
         for(int i = 0; i < segments; i++) {
             straightPos = straightPos.add(end.subtract(start).scale((double) 1 / segments));
             pos = straightPos.add(new Vec3(MathUtils.randomFloat(random) * jag,  0, MathUtils.randomFloat(random) * jag));
             if(i == segments - 1) pos = end;
-            ParticleHelper.spawnParticleLine(level, new CircleTintData(color, d, 200, 0.94f, false),
+            ParticleHelper.spawnParticleLine(level, new CircleTintData(color, d, 30, 0.88f, false),
                     prevPos,
                     pos,
-                    (int) Math.round(-length * 8), 0);
+                    (int) Math.round(-length * particleCount), 0);
             prevPos = pos;
         }
-        ParticleHelper.spawnParticleAABB(this.level, new SparkTintData(new Color(179, 190, 255), 0.4f, 184),
+        ParticleHelper.spawnParticleAABB(this.level, new SparkTintData(new Color(179, 190, 255), 0.4f, 50),
                 new AABB(end, end), 10, 0.15);
-        ParticleHelper.spawnParticleAABB(this.level, new SparkTintData(new Color(242, 208, 255), 0.4f, 184),
+        ParticleHelper.spawnParticleAABB(this.level, new SparkTintData(new Color(242, 208, 255), 0.4f, 50),
                 new AABB(end, end), 10, 0.15);
-        ParticleHelper.spawnParticleAABB(this.level, new CircleTintData(new Color(0, 89, 255), 0.4f, 184, 0.8f, false),
-                new AABB(end, end), 10, 0.15);
-        ParticleHelper.spawnParticleAABB(this.level, new CircleTintData(new Color(221, 117, 255), 0.4f, 184, 0.8f, false),
-                new AABB(end, end), 10, 0.15);
+        ParticleHelper.spawnParticleAABB(this.level, new CircleTintData(new Color(0, 89, 255), 0.4f, 30, 0.8f, false),
+                new AABB(end, end), 8, 0.15);
+        ParticleHelper.spawnParticleAABB(this.level, new CircleTintData(new Color(221, 117, 255), 0.4f, 30, 0.8f, false),
+                new AABB(end, end), 8, 0.15);
     }
 
     public void drawThinHorizontalLightning(Level level, Vec3 start, Vec3 end, int segments, double jag, float d, Color color, boolean doStartBurst){
@@ -302,9 +302,9 @@ public class KnefStormEntity extends Projectile {
         Vec3 straightPos = start;
         Vec3 prevPos = start;
         if(doStartBurst) {
-            ParticleHelper.spawnParticleAABB(this.level, new CircleTintData(new Color(230, 175, 255), 0.6f, 84, 0.68f, false),
+            ParticleHelper.spawnParticleAABB(this.level, new CircleTintData(new Color(230, 175, 255), 0.6f, 15, 0.68f, false),
                     new AABB(start, start), 10, 0.2);
-            ParticleHelper.spawnParticleAABB(this.level, new CircleTintData(new Color(230, 175, 255), 0.3f, 84, 0.82f, false),
+            ParticleHelper.spawnParticleAABB(this.level, new CircleTintData(new Color(230, 175, 255), 0.3f, 30, 0.82f, false),
                     new AABB(start, start), 10, 0.15);
         }
         double length = end.subtract(start).scale((double) 1 / segments).length();
@@ -312,19 +312,19 @@ public class KnefStormEntity extends Projectile {
             straightPos = straightPos.add(end.subtract(start).scale((double) 1 / segments));
             pos = straightPos.add(new Vec3(MathUtils.randomFloat(random) * jag,  0, MathUtils.randomFloat(random) * jag));
             if(i == segments - 1) pos = end;
-            ParticleHelper.spawnParticleLine(level, new CircleTintData(color, d, 100, 0.9f, false),
+            ParticleHelper.spawnParticleLine(level, new CircleTintData(color, d, 50, 0.9f, false),
                     prevPos,
                     pos,
                     (int) Math.round(length * 8), 0);
             prevPos = pos;
         }
-        ParticleHelper.spawnParticleAABB(this.level, new SparkTintData(new Color(179, 190, 255), 0.4f, 184),
+        ParticleHelper.spawnParticleAABB(this.level, new SparkTintData(new Color(179, 190, 255), 0.4f, 50),
                 new AABB(end, end), 10, 0.1);
-        ParticleHelper.spawnParticleAABB(this.level, new SparkTintData(new Color(242, 208, 255), 0.4f, 184),
+        ParticleHelper.spawnParticleAABB(this.level, new SparkTintData(new Color(242, 208, 255), 0.4f, 50),
                 new AABB(end, end), 10, 0.1);
-        ParticleHelper.spawnParticleAABB(this.level, new CircleTintData(new Color(0, 89, 255), 0.4f, 184, 0.8f, false),
+        ParticleHelper.spawnParticleAABB(this.level, new CircleTintData(new Color(0, 89, 255), 0.4f, 30, 0.8f, false),
                 new AABB(end, end), 10, 0.1);
-        ParticleHelper.spawnParticleAABB(this.level, new CircleTintData(new Color(221, 117, 255), 0.4f, 184, 0.8f, false),
+        ParticleHelper.spawnParticleAABB(this.level, new CircleTintData(new Color(221, 117, 255), 0.4f, 30, 0.8f, false),
                 new AABB(end, end), 10, 0.1);
     }
 

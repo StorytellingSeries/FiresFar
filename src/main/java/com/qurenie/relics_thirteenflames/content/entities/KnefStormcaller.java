@@ -119,7 +119,7 @@ public class KnefStormcaller extends ThrowableProjectile
 //                    prevPos4 == null ? shotPos : prevPos4,
 //                    pos4,
 //                    25, 0);
-            ParticleHelper.spawnParticleLine(this.level, new CircleTintData(new Color(0, 34, 255), 0.3f, 100, 0.94f, false),
+            ParticleHelper.spawnParticleLine(this.level, new CircleTintData(new Color(0, 34, 255), 0.3f, 40, 0.91f, false),
                     prevPos3 == null ? shotPos : prevPos3,
                     pos3,
                     25, 0);
@@ -131,17 +131,17 @@ public class KnefStormcaller extends ThrowableProjectile
         }
         //-----------------------GRAPHENE_END--------------------------//
 
-        if(this.getY() > this.shotPos.y + 100){
+        if(this.getY() > this.shotPos.y + 90){
 
             //-------------------------GRAPHENE----------------------------//
             if(!this.level.isClientSide()) {
                 for (int i = 0; i < 120; i++) {
                     Vec3 direction = new Vec3(1,0,0);
                     direction = direction.yRot((float) Math.toRadians(random.nextFloat() * 360f)).scale(random.nextFloat() * 0.8f);
-                    ParticleHelper.spawnDirectedParticle(this.level, new CircleTintData(new Color(0, 15, 49), 4.2f, 130, 0.95f, false),
+                    ParticleHelper.spawnDirectedParticle(this.level, new CircleTintData(new Color(0, 15, 49), 4.2f, 80, 0.95f, false),
                             this.getX(), this.getY(), this.getZ(), direction.x, MathUtils.randomFloat(random) * 0.1, direction.z);
                     direction = direction.yRot((float) Math.toRadians(random.nextFloat() * 360f)).normalize().scale(random.nextFloat() * 0.8f);
-                    ParticleHelper.spawnDirectedParticle(this.level, new CircleTintData(new Color(28, 0, 27), 4.2f, 130, 0.95f, false),
+                    ParticleHelper.spawnDirectedParticle(this.level, new CircleTintData(new Color(28, 0, 27), 4.2f, 80, 0.95f, false),
                             this.getX(), this.getY(), this.getZ(), direction.x, MathUtils.randomFloat(random) * 0.1, direction.z);
 //                    this.level.addParticle(new CircleTintData(new Color(0, 24, 80), 4.2f, 130, 0.95f, false),
 //                            this.getX(), this.getY(), this.getZ(), MathUtils.randomFloat(random), MathUtils.randomFloat(random) * 0.1, MathUtils.randomFloat(random));

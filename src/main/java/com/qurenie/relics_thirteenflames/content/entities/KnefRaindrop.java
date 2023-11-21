@@ -88,8 +88,9 @@ public class KnefRaindrop extends ThrowableProjectile
 
         setDeltaMovement(movement);
         if(level.isClientSide) {
-            ParticleHelper.spawnParticleLine(this.level, new CircleTintData(color, 0.1f, 80, 0.9f, false),
-                    prevPos == null ? this.position() : prevPos, this.position(), 15, 0);
+            double distance = this.position().subtract(prevPos == null ? this.position() : prevPos).length();
+            ParticleHelper.spawnParticleLine(this.level, new CircleTintData(color, 0.1f, 80, 0.85f, false),
+                    prevPos == null ? this.position() : prevPos, this.position(), (int) Math.round(distance * 8), 0);
         }
 
         prevPos = this.position();

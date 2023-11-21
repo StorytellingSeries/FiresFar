@@ -71,6 +71,16 @@ public class KnefProjectile extends ThrowableProjectile
         return this.getEntityData().get(BASE_DMG);
     }
 
+    private static final EntityDataAccessor<Integer> PARTICLE_COUNT = SynchedEntityData.defineId(KnefProjectile.class, EntityDataSerializers.INT);
+
+    public void setParticleCount(int particles){
+        this.getEntityData().set(PARTICLE_COUNT, particles);
+    }
+
+    public int getParticleCount() {
+        return this.getEntityData().get(PARTICLE_COUNT);
+    }
+
     public KnefProjectile(EntityType<? extends KnefProjectile> type, Level world) {
         super(type, world);
         this.color = new Color(0, 246 - this.random.nextInt(100), 255 - this.random.nextInt(120));
@@ -85,8 +95,8 @@ public class KnefProjectile extends ThrowableProjectile
 
         setDeltaMovement(motion);
         if(!level.isClientSide) {
-            ParticleHelper.spawnParticleLine(this.level, new CircleTintData(color, 0.1f, 80, 0.9f, false),
-                    prevPos == null ? this.position() : prevPos, this.position(), 15, 0);
+            ParticleHelper.spawnParticleLine(this.level, new CircleTintData(color, 0.1f, 35, 0.89f, false),
+                    prevPos == null ? this.position() : prevPos, this.position(), getParticleCount(), 0);
         }
         if(this.target != null && target.hasLineOfSight(this)){
             this.setDeltaMovement(getDeltaMovement().add(target.getBoundingBox().getCenter().subtract(this.position()).normalize().scale(0.1f)));
@@ -158,6 +168,7 @@ public class KnefProjectile extends ThrowableProjectile
             proj.color = new Color(0, 246 - proj.random.nextInt(160), 255 - proj.random.nextInt(120));
             proj.setPowerEnch(powerEnch);
             proj.setBow(bow);
+            proj.setParticleCount( (i % 2 == 0 && count > 7) ? i % 4 == 0 ? 3 : 12 : count <= 7 ? 12 : 6);
             list.add(proj);
         }
         return list;
@@ -178,6 +189,7 @@ public class KnefProjectile extends ThrowableProjectile
 
         this.entityData.define(POWER_ENCH, 0);
         this.entityData.define(BASE_DMG, 2);
+        this.entityData.define(PARTICLE_COUNT, 12);
     }
 
     @Override
@@ -185,6 +197,7 @@ public class KnefProjectile extends ThrowableProjectile
         super.readAdditionalSaveData(compound);
         setPowerEnch(compound.getInt("powerench"));
         setBaseDmg(compound.getInt("basedmg"));
+        setParticleCount(compound.getInt("particles"));
     }
 
     @Override
@@ -192,6 +205,7 @@ public class KnefProjectile extends ThrowableProjectile
         super.addAdditionalSaveData(compound);
         compound.putInt("powerench", getPowerEnch());
         compound.putInt("basedmg", getBaseDmg());
+        compound.putInt("particles", getParticleCount());
     }
 
     @Override
