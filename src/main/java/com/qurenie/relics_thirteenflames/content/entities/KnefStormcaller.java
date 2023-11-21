@@ -21,9 +21,11 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ThrowableProjectile;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -47,6 +49,15 @@ public class KnefStormcaller extends ThrowableProjectile
         return this.getEntityData().get(BOW);
     }
 
+    public List<KnefProjectileSpecial> rays = new ArrayList<>();
+
+    public double rad = 0.1;
+
+    public KnefStormcaller setRays(List<KnefProjectileSpecial> rays){
+        this.rays = rays;
+        return this;
+    }
+
     public Vec3 prevPos1, prevPos2, prevPos3, prevPos4, pos1, pos2, pos3, pos4, shotPos;
 
     public KnefStormcaller(EntityType<? extends KnefStormcaller> type, Level world) {
@@ -59,32 +70,56 @@ public class KnefStormcaller extends ThrowableProjectile
         Vec3 motion = this.getDeltaMovement();
         super.tick();
         setDeltaMovement(motion);
+
         if(shotPos == null) shotPos = this.getPosition(1F);
 
 
 
         //-------------------------GRAPHENE----------------------------//
 
-        pos1 = this.position().add(new Vec3(MathUtils.randomFloat(random) * 0.55, MathUtils.randomFloat(random) * 0.45, MathUtils.randomFloat(random) * 0.55));
-        pos2 = this.position().add(new Vec3(MathUtils.randomFloat(random) * 0.55, MathUtils.randomFloat(random) * 0.45, MathUtils.randomFloat(random) * 0.55));
-        pos4 = this.position().add(new Vec3(MathUtils.randomFloat(random) * 0.55, MathUtils.randomFloat(random) * 0.45, MathUtils.randomFloat(random) * 0.55));
-        pos3 = this.position().add(new Vec3(MathUtils.randomFloat(random) * 0.1, MathUtils.randomFloat(random) * 0.1, MathUtils.randomFloat(random) * 0.1));
+        for (int i = 0; i < rays.size(); i++){
+
+            double a = 360.0 / rays.size() * i - this.tickCount * 20.0;
+            double radius = rad + Math.sin(Math.toRadians(this.tickCount * 20.0) - 90) * 0.04;
+
+            if(i % 2 == 0){
+                radius += 0.1;
+            }
+
+            Vec3 x = !( motion.normalize().x < 0.001 && motion.normalize().z < 0.001 ) ? motion.normalize().cross(new Vec3(0,1,0)).normalize().scale(radius) : motion.normalize().cross(new Vec3(1,0,0)).normalize().scale(radius);
+            Vec3 z = motion.normalize().cross(x).normalize().scale(radius);
+
+            Vec3 pos = this.getPosition(1F)
+                    .add(x.scale(Math.cos(Math.toRadians(a))))
+                    .add(z.scale(Math.sin(Math.toRadians(a))))
+                    ;
+            if(i % 2 == 0){
+                pos = pos.add(motion.scale(-0.3));
+            }
+
+            rays.get(i).setPos(pos);
+        }
+
+        pos1 = this.position().add(new Vec3(MathUtils.randomFloat(random) * 0.15, MathUtils.randomFloat(random) * 0.15, MathUtils.randomFloat(random) * 0.15));
+        pos2 = this.position().add(new Vec3(MathUtils.randomFloat(random) * 0.15, MathUtils.randomFloat(random) * 0.15, MathUtils.randomFloat(random) * 0.15));
+        pos4 = this.position().add(new Vec3(MathUtils.randomFloat(random) * 0.15, MathUtils.randomFloat(random) * 0.15, MathUtils.randomFloat(random) * 0.15));
+        pos3 = this.position();
 
         if(this.tickCount % 2 == 0 && !this.level.isClientSide) {
 
-            ParticleHelper.spawnParticleLine(this.level, new CircleTintData(new Color(201, 75, 255), 0.25f, 100, 0.94f, false),
-                    prevPos1 == null ? shotPos : prevPos1,
-                    pos1,
-                    25, 0);
-            ParticleHelper.spawnParticleLine(this.level, new CircleTintData(new Color(143, 82, 255), 0.25f, 100, 0.94f, false),
-                    prevPos2 == null ? shotPos : prevPos2,
-                    pos2,
-                    25, 0);
-            ParticleHelper.spawnParticleLine(this.level, new CircleTintData(new Color(167, 106, 255), 0.25f, 100, 0.94f, false),
-                    prevPos4 == null ? shotPos : prevPos4,
-                    pos4,
-                    25, 0);
-            ParticleHelper.spawnParticleLine(this.level, new CircleTintData(new Color(0, 34, 255), 0.35f, 100, 0.94f, false),
+//            ParticleHelper.spawnParticleLine(this.level, new CircleTintData(new Color(201, 75, 255), 0.25f, 100, 0.94f, false),
+//                    prevPos1 == null ? shotPos : prevPos1,
+//                    pos1,
+//                    25, 0);
+//            ParticleHelper.spawnParticleLine(this.level, new CircleTintData(new Color(143, 82, 255), 0.25f, 100, 0.94f, false),
+//                    prevPos2 == null ? shotPos : prevPos2,
+//                    pos2,
+//                    25, 0);
+//            ParticleHelper.spawnParticleLine(this.level, new CircleTintData(new Color(167, 106, 255), 0.25f, 100, 0.94f, false),
+//                    prevPos4 == null ? shotPos : prevPos4,
+//                    pos4,
+//                    25, 0);
+            ParticleHelper.spawnParticleLine(this.level, new CircleTintData(new Color(0, 34, 255), 0.3f, 100, 0.94f, false),
                     prevPos3 == null ? shotPos : prevPos3,
                     pos3,
                     25, 0);
@@ -125,7 +160,10 @@ public class KnefStormcaller extends ThrowableProjectile
                 storm.setRadius((float) AbilityUtils.getAbilityValue(getBow(),"storm", "radius"));
                 storm.setLifeTime((int) (AbilityUtils.getAbilityValue(getBow(),"storm", "dur") * 20));
                 storm.setOwner(player);
-                storm.setFreq( (int)Math.round(AbilityUtils.getAbilityValue(getBow(),"storm", "freq")));
+                storm.setFreq( (int)Math.round(4 - AbilityUtils.getAbilityPoints(getBow(), "storm") * 0.6));
+                storm.setBow(getBow());
+                storm.setDmg((float) AbilityUtils.getAbilityValue(getBow(),"storm", "dmg") + getBow().getEnchantmentLevel(Enchantments.POWER_ARROWS) / 2.5f);
+                storm.setHeal((float) AbilityUtils.getAbilityValue(getBow(),"storm", "heal") / 100);
                 this.getLevel().addFreshEntity(storm);
                 if(!this.getLevel().isClientSide()) this.getLevel().playSound(null, this.getOwner(),
                         AbilityUtils.getAbilityValue(getBow(),"storm", "radius") > 5 ? SoundsRegistry.KNEF_BOW_STORM.get() : SoundsRegistry.KNEF_BOW_STORM_SHORT.get(),
@@ -142,34 +180,41 @@ public class KnefStormcaller extends ThrowableProjectile
 
     @Override
     protected void onHitBlock(BlockHitResult pResult) {
-        if(!this.level.isClientSide()) {
-            ParticleHelper.spawnParticleLine(this.level, new CircleTintData(new Color(201, 75, 255), 0.25f, 100, 0.94f, false),
-                    prevPos1 == null ? this.position() : prevPos1,
-                    this.position(),
-                    25, 0);
-            ParticleHelper.spawnParticleLine(this.level, new CircleTintData(new Color(143, 82, 255), 0.25f, 100, 0.94f, false),
-                    prevPos2 == null ? this.position() : prevPos2,
-                    this.position(),
-                    25, 0);
-            ParticleHelper.spawnParticleLine(this.level, new CircleTintData(new Color(167, 106, 255), 0.25f, 100, 0.94f, false),
-                    prevPos4 == null ? this.position() : prevPos4,
-                    this.position(),
-                    25, 0);
-            ParticleHelper.spawnParticleLine(this.level, new CircleTintData(new Color(0, 34, 255), 0.35f, 100, 0.94f, false),
-                    prevPos3 == null ? this.position() : prevPos3,
-                    pos3,
-                    25, 0);
-
-        }
 
         KnefDischarge discharge = new KnefDischarge(EntityRegistry.KNEF_DISCHARGE, this.level);
         Vec3 pos = this.position();
         discharge.setPos(pos);
         discharge.setOwner(this.getOwner());
         discharge.shotPos = pos;
-        discharge.shootFromRotation(this, 0, -90, 0.75f, 0.5f, 0);
+        discharge.setRadius((float) (AbilityUtils.getAbilityValue(getBow(),"storm", "radius") * 0.8f));
+        discharge.setDmg((float) (AbilityUtils.getAbilityValue(getBow(),"storm", "dmg") + getBow().getEnchantmentLevel(Enchantments.POWER_ARROWS) / 2.5f) * 6);
+        discharge.shootFromRotation(this, 0, -90, 0.0f, 0.0f, 0);
         this.level.addFreshEntity(discharge);
 
+        this.discard();
+    }
+
+    @Override
+    public void onRemovedFromWorld() {
+        for(Entity e : rays) e.discard();
+        rays.clear();
+        super.onRemovedFromWorld();
+    }
+
+    @Override
+    protected void onHitEntity(EntityHitResult result) {
+        this.setPos(result.getEntity().getBoundingBox().getCenter());
+        if(!this.level.isClientSide()) {
+            KnefDischarge discharge = new KnefDischarge(EntityRegistry.KNEF_DISCHARGE, this.level);
+            Vec3 pos = result.getEntity().getBoundingBox().getCenter();
+            discharge.setPos(pos);
+            discharge.setOwner(this.getOwner());
+            discharge.shotPos = pos;
+            discharge.setRadius((float) (AbilityUtils.getAbilityValue(getBow(),"storm", "radius") * 0.8f));
+            discharge.setDmg((float) (AbilityUtils.getAbilityValue(getBow(),"storm", "dmg") + getBow().getEnchantmentLevel(Enchantments.POWER_ARROWS) / 2.5f) * 6);
+            discharge.shootFromRotation(this, 0, -90, 0.0f, 0.0f, 0);
+            this.level.addFreshEntity(discharge);
+        }
         this.discard();
     }
 
@@ -187,7 +232,7 @@ public class KnefStormcaller extends ThrowableProjectile
 
     @Override
     public boolean canCollideWith(Entity pEntity) {
-        return false;
+        return (pEntity instanceof LivingEntity && pEntity.equals(this.getOwner()));
     }
 
     @Override

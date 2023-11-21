@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableMultimap;
 import com.qurenie.relics_thirteenflames.client.render.item.KnefBowItemRenderer;
 import com.qurenie.relics_thirteenflames.content.entities.KnefProjCarrier;
 import com.qurenie.relics_thirteenflames.content.entities.KnefProjectile;
+import com.qurenie.relics_thirteenflames.content.entities.KnefProjectileSpecial;
 import com.qurenie.relics_thirteenflames.content.entities.KnefStormcaller;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
 import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
@@ -101,10 +102,10 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
                     .ability("swim", RelicAbilityEntry.builder()
                             .maxLevel(5)
                             .stat("speed", RelicAbilityStat.builder()
-                                    .initialValue(6, 10)
-                                    .thresholdValue(6, 20)
-                                    .upgradeModifier(RelicAbilityStat.Operation.ADD, 2)
-                                    .formatValue(x -> (int) MathUtils.round(x, 0))
+                                    .initialValue(4, 6)
+                                    .thresholdValue(4, 11)
+                                    .upgradeModifier(RelicAbilityStat.Operation.ADD, 1)
+                                    .formatValue(x -> MathUtils.round(x, 1))
                                     .build()
                             )
                             .stat("dmg", RelicAbilityStat.builder()
@@ -126,13 +127,6 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
                                     .formatValue(x -> MathUtils.round(x, 1))
                                     .build()
                             )
-                            .stat("freq", RelicAbilityStat.builder()
-                                    .initialValue(5.0, 4.0)
-                                    .thresholdValue(1, 5)
-                                    .upgradeModifier(RelicAbilityStat.Operation.ADD, -0.6)
-                                    .formatValue(x -> MathUtils.round( (20 + Math.round(x * x * (x / 2))) / 20.0, 2))
-                                    .build()
-                            )
                             .stat("dur", RelicAbilityStat.builder()
                                     .initialValue(11, 16)
                                     .thresholdValue(11, 32)
@@ -140,11 +134,18 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
                                     .formatValue(x -> (int) MathUtils.round(x, 1))
                                     .build()
                             )
-                            .stat("cd", RelicAbilityStat.builder()
-                                    .initialValue(50, 40)
-                                    .thresholdValue(30, 50)
-                                    .upgradeModifier(RelicAbilityStat.Operation.ADD, 2)
-                                    .formatValue(x -> (int) MathUtils.round(x, 0))
+                            .stat("dmg", RelicAbilityStat.builder()
+                                    .initialValue(6, 8)
+                                    .thresholdValue(6, 13)
+                                    .upgradeModifier(RelicAbilityStat.Operation.ADD, 1)
+                                    .formatValue(x -> (int) MathUtils.round(x, 1))
+                                    .build()
+                            )
+                            .stat("heal", RelicAbilityStat.builder()
+                                    .initialValue(2, 3)
+                                    .thresholdValue(2, 10)
+                                    .upgradeModifier(RelicAbilityStat.Operation.ADD, 1.4)
+                                    .formatValue(x -> MathUtils.round(x, 1))
                                     .build()
                             )
                             .build()
@@ -206,7 +207,6 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
                             );
                     carrier.setPos(pos);
                     carrier.setOwner(pLivingEntity);
-                    //carrier.setDeltaMovement(pLivingEntity.getLookAngle().scale(0.3));
                     carrier.shootFromRotation(pLivingEntity, pLivingEntity.getXRot(), pLivingEntity.getYRot(), 0.75f, 1f, 0);
                     pLevel.addFreshEntity(carrier);
                     for (KnefProjectile proj : carrier.rays) pLevel.addFreshEntity(proj);
@@ -248,9 +248,13 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
                 stormcaller.setOwner(pLivingEntity);
                 stormcaller.shotPos = pos;
                 stormcaller.setBow(pStack);
-                stormcaller.shootFromRotation(pLivingEntity, pLivingEntity.getXRot(), pLivingEntity.getYRot(), 0.75f, 7f, 0);
+                stormcaller.setRays(
+                        KnefProjectileSpecial.makeList(6, pLevel, pLivingEntity, pos, pLivingEntity.getLookAngle().scale(0.3))
+                );
+                stormcaller.shootFromRotation(pLivingEntity, pLivingEntity.getXRot(), pLivingEntity.getYRot(), 0.75f, 2.5f, 0);
+                for (KnefProjectileSpecial proj : stormcaller.rays) pLevel.addFreshEntity(proj);
                 pLevel.addFreshEntity(stormcaller);
-                //AbilityUtils.addAbilityCooldown(pStack, "storm", (int) (AbilityUtils.getAbilityValue(pStack, "storm", "cd") * 20));
+                AbilityUtils.addAbilityCooldown(pStack, "storm", 600);
             }
         }
     }

@@ -28,10 +28,6 @@ public class KnefProjCarrier extends ThrowableProjectile
 {
 
 
-//    public LivingEntity owner = Minecraft.getInstance().player;
-
-    private static final EntityDataAccessor<String> FREQ = SynchedEntityData.defineId(KnefProjCarrier.class, EntityDataSerializers.STRING);
-
     public List<KnefProjectile> rays = new ArrayList<>();
 
     public double rad = 0.06;
@@ -45,9 +41,6 @@ public class KnefProjCarrier extends ThrowableProjectile
         return this;
     }
 
-//    public void setOwner(LivingEntity owner) {
-//        this.owner = owner;
-//    }
 
     @Override
     protected void defineSynchedData() {

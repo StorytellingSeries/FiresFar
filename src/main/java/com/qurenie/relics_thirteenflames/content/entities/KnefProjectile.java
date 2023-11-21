@@ -44,7 +44,7 @@ public class KnefProjectile extends ThrowableProjectile
     private ItemStack bow = ItemStack.EMPTY;
 
     public void setBow(ItemStack bow){
-        bow = bow;
+        this.bow = bow;
     }
 
     public ItemStack getBow(){

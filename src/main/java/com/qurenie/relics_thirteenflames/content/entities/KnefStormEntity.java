@@ -22,6 +22,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
@@ -60,6 +61,26 @@ public class KnefStormEntity extends Projectile {
     public void setRadius(float radius) {
         this.getEntityData().set(RADIUS, radius);
     }
+
+    private static final EntityDataAccessor<Float> DMG = SynchedEntityData.defineId(KnefStormEntity.class, EntityDataSerializers.FLOAT);
+
+    public float getDmg() {
+        return this.getEntityData().get(DMG);
+    }
+
+    public void setDmg(float damage) {
+        this.getEntityData().set(DMG, damage);
+    }
+
+    private static final EntityDataAccessor<Float> HEAL = SynchedEntityData.defineId(KnefStormEntity.class, EntityDataSerializers.FLOAT);
+
+    public float getHeal() {
+        return this.getEntityData().get(HEAL);
+    }
+
+    public void setHeal(float heal) {
+        this.getEntityData().set(HEAL, heal);
+    }
     private static final EntityDataAccessor<Integer> FREQ = SynchedEntityData.defineId(KnefStormEntity.class, EntityDataSerializers.INT);
 
     public void setFreq(int freq){
@@ -68,6 +89,16 @@ public class KnefStormEntity extends Projectile {
 
     public int getFreq() {
         return this.getEntityData().get(FREQ);
+    }
+
+    private ItemStack bow = ItemStack.EMPTY;
+
+    public void setBow(ItemStack bow){
+        this.bow = bow;
+    }
+
+    public ItemStack getBow(){
+        return  bow;
     }
     private double r = 1;
 
@@ -129,18 +160,28 @@ public class KnefStormEntity extends Projectile {
 
         if(this.tickCount > 130){
             AABB box = this.getBoundingBox().inflate(radius).inflate(0, 50, 0).move(0, -50, 0);
-            List<LivingEntity> targets = new ArrayList<>(this.getLevel().getEntitiesOfClass(LivingEntity.class, box/*, e -> !(e.isAlliedTo(this.getOwner() != null ? this.getOwner() : this) || e instanceof LocalPlayer)*/));
+            List<LivingEntity> targets = new ArrayList<>(this.getLevel().getEntitiesOfClass(LivingEntity.class, box, e -> !(e.equals(this.getOwner()))));
 
             if(this.tickCount % freq == 0){
                 KnefRaindrop drop = new KnefRaindrop(EntityRegistry.KNEF_RAINDROP, this.getLevel());
                 Vec3 pos = this.getPosition(1f).add(MathUtils.randomFloat(random) * radius, -1, MathUtils.randomFloat(random) * radius);
-                if(random.nextFloat() < 0.25 && !targets.isEmpty()){
+                if(random.nextFloat() < 0.2 && !targets.isEmpty()){
                     LivingEntity target = targets.get(random.nextInt(targets.size()));
                     pos = target.getPosition(1f).add(0, this.getY() - target.getY() - 1, 0);
                 }
+//                else if(random.nextFloat() < 0.2){
+//                    List<LivingEntity> allies = new ArrayList<>(this.getLevel().getEntitiesOfClass(LivingEntity.class, box, e -> (e.equals(this.getOwner()))));
+//                    if(!allies.isEmpty()) {
+//                        LivingEntity target = allies.get(random.nextInt(allies.size()));
+//                        pos = target.getPosition(1f).add(0, this.getY() - target.getY() - 1, 0);
+//                    }
+//                }
                 drop.setPos(pos);
                 drop.setDeltaMovement(0, -3, 0);
                 drop.setOwner(this.getOwner());
+                drop.setBow(getBow());
+                drop.setHeal(getHeal());
+                drop.setDmg(getDmg());
                 this.getLevel().addFreshEntity(drop);
                 ParticleHelper.spawnParticleEntity(new CircleTintData(new Color(0, 128, 255), 0.2f, 25, 0.85f, false),
                         drop, 15, 0.1);
@@ -160,10 +201,16 @@ public class KnefStormEntity extends Projectile {
                 Vec3 pos = this.getPosition(1f).add(MathUtils.randomFloat(random) * radius, -1, MathUtils.randomFloat(random) * radius);
                 Vec3 endpos = pos;
 
+//                AABB secondaryBox;
+//                List<LivingEntity> secondaryTargets = List.of();
+//                Vec3 targetCenter = Vec3.ZERO;
                 if(!targets.isEmpty()){
                     LivingEntity target = targets.get(random.nextInt(targets.size()));
                     pos = target.getPosition(1F).add(0,this.getY() - target.getY(),0);
                     endpos = target.getPosition(1f);
+//                    secondaryBox = new AABB(endpos, endpos).inflate(5, 2, 5).move(0,1,0);
+//                    secondaryTargets = new ArrayList<>(this.getLevel().getEntitiesOfClass(LivingEntity.class, secondaryBox, e -> !(e.equals(this.getOwner()) || e.equals(target))));
+//                    targetCenter = target.getBoundingBox().getCenter();
                 }
                 else{
                     HitResult result = this.level.clip(new ClipContext(pos, pos.add(0, -160, 0),
@@ -185,6 +232,23 @@ public class KnefStormEntity extends Projectile {
                     taskQueue.add(new DelayedRunnable(() -> drawThinLightning(this.getLevel(), finalPos, finalEndpos, 16, 0.55, 0.15f, new Color(128, 86, 255)),
                             this.tickCount, 4));
 
+
+//                    if(!secondaryTargets.isEmpty()) {
+//                        //LivingEntity secTarget = secondaryTargets.get(this.random.nextInt(secondaryTargets.size()));
+//                        if(!this.level.isClientSide()) {
+//                            for(LivingEntity secTarget : secondaryTargets) {
+//                                Vec3 end2 = secTarget.getBoundingBox().getCenter();
+//                                int segments2 = (int) Math.round(targetCenter.distanceTo(end2) / 2);
+//                                drawThinHorizontalLightning(this.level, targetCenter, end2, segments2, 0.8, 0.15f, new Color(187, 145, 255), true);
+//                                drawThinHorizontalLightning(this.level, targetCenter, end2, segments2, 0.8, 0.15f, new Color(222, 127, 255), true);
+//                                drawThinHorizontalLightning(this.level, targetCenter, end2, segments2, 0.5, 0.25f, new Color(154, 96, 255), true);
+//
+//                                secTarget.hurt(DamageSource.thrown(this, this.getOwner()), 10);
+//                            }
+//                        }
+//                        secondaryTargets.clear();
+//                    }
+
                     float vol = (float) (20 / (this.getOwner() != null ? this.getOwner().distanceToSqr(endpos) : 20));
                     if(this.getOwner() == null) {
                         this.getLevel().playSound(null, endpos.x, endpos.y, endpos.z, SoundEvents.LIGHTNING_BOLT_IMPACT, SoundSource.PLAYERS, vol, random.nextFloat() * 0.2f + 0.3f);
@@ -194,7 +258,7 @@ public class KnefStormEntity extends Projectile {
                         this.getLevel().playSound(null, this.getOwner(), SoundEvents.LIGHTNING_BOLT_THUNDER, SoundSource.PLAYERS, vol, random.nextFloat() * 0.3f + 1.5f);
                     }
                     for(LivingEntity e : this.getLevel().getEntitiesOfClass(LivingEntity.class, new AABB(finalEndpos,finalEndpos).inflate(2.2, 4, 2.2), e -> !(e.equals(this.getOwner()) || e instanceof LocalPlayer))){
-                        e.hurt(DamageSource.thrown(this, this.getOwner()), 45);
+                        e.hurt(DamageSource.thrown(this, this.getOwner()), getDmg() * 5);
                     }
                 }
 
@@ -233,52 +297,35 @@ public class KnefStormEntity extends Projectile {
                 new AABB(end, end), 10, 0.15);
     }
 
-    public void drawThinLightning(Level level, Vec3 start, Vec3 end, int segments, double jag, float d, Color color, Vec3 firstStartPos){
+    public void drawThinHorizontalLightning(Level level, Vec3 start, Vec3 end, int segments, double jag, float d, Color color, boolean doStartBurst){
         Vec3 pos = start;
         Vec3 straightPos = start;
-        Vec3 prevPos = firstStartPos;
-        ParticleHelper.spawnParticleAABB(this.level, new CircleTintData(new Color(230, 175, 255), 0.6f, 84, 0.68f, false),
-                new AABB(prevPos, prevPos), 10, 0.2);
-        ParticleHelper.spawnParticleAABB(this.level, new CircleTintData(new Color(230, 175, 255), 0.3f, 84, 0.82f, false),
-                new AABB(prevPos, prevPos), 10, 0.15);
-        double length = end.subtract(start).scale((double) 1 / segments).y();
+        Vec3 prevPos = start;
+        if(doStartBurst) {
+            ParticleHelper.spawnParticleAABB(this.level, new CircleTintData(new Color(230, 175, 255), 0.6f, 84, 0.68f, false),
+                    new AABB(start, start), 10, 0.2);
+            ParticleHelper.spawnParticleAABB(this.level, new CircleTintData(new Color(230, 175, 255), 0.3f, 84, 0.82f, false),
+                    new AABB(start, start), 10, 0.15);
+        }
+        double length = end.subtract(start).scale((double) 1 / segments).length();
         for(int i = 0; i < segments; i++) {
-            if(i == 1){
-                Vec3 v1 = new Vec3(start.x + MathUtils.randomFloat(random), start.y, start.z + MathUtils.randomFloat(random));
-                ParticleHelper.spawnParticles(this.level, new CircleTintData(new Color(230, 175, 255), 0.6f, 84, 0.68f, false),
-                        v1.x, start.y, v1.z, 10, 0, 0, 0, 0.2);
-                ParticleHelper.spawnParticles(this.level, new CircleTintData(new Color(230, 175, 255), 0.3f, 84, 0.82f, false),
-                        v1.x, start.y, v1.z, 10, 0, 0, 0, 0.2);
-                ParticleHelper.spawnParticleLine(level, new CircleTintData(color, d, 200, 0.94f, false),
-                        v1,
-                        pos,
-                        (int) Math.round(-length * 8), 0);
-
-            }
-            if(i == 2){
-                Vec3 v2 = new Vec3(start.x + MathUtils.randomFloat(random) * 3, start.y, start.z + MathUtils.randomFloat(random) * 3);
-                ParticleHelper.spawnParticles(this.level, new CircleTintData(new Color(230, 175, 255), 0.6f, 84, 0.68f, false),
-                        v2.x, start.y, v2.z, 10, 0, 0, 0, 0.2);
-                ParticleHelper.spawnParticles(this.level, new CircleTintData(new Color(230, 175, 255), 0.3f, 84, 0.82f, false),
-                        v2.x, start.y, v2.z, 10, 0, 0, 0, 0.2);
-                ParticleHelper.spawnParticleLine(level, new CircleTintData(color, d, 200, 0.94f, false),
-                        v2,
-                        pos,
-                        (int) Math.round(-length * 8), 0);
-            }
             straightPos = straightPos.add(end.subtract(start).scale((double) 1 / segments));
             pos = straightPos.add(new Vec3(MathUtils.randomFloat(random) * jag,  0, MathUtils.randomFloat(random) * jag));
             if(i == segments - 1) pos = end;
-            ParticleHelper.spawnParticleLine(level, new CircleTintData(color, d, 200, 0.94f, false),
+            ParticleHelper.spawnParticleLine(level, new CircleTintData(color, d, 100, 0.9f, false),
                     prevPos,
                     pos,
-                    (int) Math.round(-length * 8), 0);
+                    (int) Math.round(length * 8), 0);
             prevPos = pos;
         }
+        ParticleHelper.spawnParticleAABB(this.level, new SparkTintData(new Color(179, 190, 255), 0.4f, 184),
+                new AABB(end, end), 10, 0.1);
+        ParticleHelper.spawnParticleAABB(this.level, new SparkTintData(new Color(242, 208, 255), 0.4f, 184),
+                new AABB(end, end), 10, 0.1);
         ParticleHelper.spawnParticleAABB(this.level, new CircleTintData(new Color(0, 89, 255), 0.4f, 184, 0.8f, false),
-                new AABB(end, end), 10, 0.15);
+                new AABB(end, end), 10, 0.1);
         ParticleHelper.spawnParticleAABB(this.level, new CircleTintData(new Color(221, 117, 255), 0.4f, 184, 0.8f, false),
-                new AABB(end, end), 10, 0.15);
+                new AABB(end, end), 10, 0.1);
     }
 
     public void drawFrame(){
@@ -410,12 +457,16 @@ public class KnefStormEntity extends Projectile {
         this.entityData.define(RADIUS, 5F);
         this.entityData.define(FREQ, 5);
         this.entityData.define(LIFETIME, 100);
+        this.entityData.define(DMG, 8F);
+        this.entityData.define(HEAL, 1F);
     }
 
     @Override
     protected void readAdditionalSaveData(CompoundTag compound) {
         super.readAdditionalSaveData(compound);
         setRadius(compound.getFloat("radius"));
+        setDmg(compound.getFloat("dmg"));
+        setHeal(compound.getFloat("heal"));
         setFreq(compound.getInt("freq"));
         setLifeTime(compound.getInt("lifetime"));
     }
@@ -424,6 +475,8 @@ public class KnefStormEntity extends Projectile {
     protected void addAdditionalSaveData(CompoundTag compound) {
         super.addAdditionalSaveData(compound);
         compound.putFloat("radius", getRadius());
+        compound.putFloat("dmg", getDmg());
+        compound.putFloat("heal", getHeal());
         compound.putInt("freq", getFreq());
         compound.putInt("lifetime", getLifeTime());
     }

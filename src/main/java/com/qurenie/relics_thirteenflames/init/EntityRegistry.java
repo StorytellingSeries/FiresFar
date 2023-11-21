@@ -20,6 +20,11 @@ public class EntityRegistry {
             .sized(0.1F, 0.1F)
             .build("knef_projectile");
 
+    @RegistryName("knef_projectile_special")
+    public static final EntityType<KnefProjectileSpecial> KNEF_PROJECTILE_SPECIAL = Builder.of(KnefProjectileSpecial::new, MobCategory.MISC)
+            .sized(0.1F, 0.1F)
+            .build("knef_projectile_special");
+
     @RegistryName("knef_proj_carrier")
     public static final EntityType<KnefProjCarrier> KNEF_PROJECTILE_CARRIER = Builder.of(KnefProjCarrier::new, MobCategory.MISC)
             .sized(0.1F, 0.1F)

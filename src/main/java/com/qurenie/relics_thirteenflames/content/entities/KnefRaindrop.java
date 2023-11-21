@@ -4,6 +4,10 @@ import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import it.hurts.sskirillss.relics.client.particles.circle.CircleTintData;
 import it.hurts.sskirillss.relics.items.relics.base.utils.LevelingUtils;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.damagesource.DamageSource;
@@ -34,20 +38,40 @@ public class KnefRaindrop extends ThrowableProjectile
     private ItemStack bow = ItemStack.EMPTY;
 
     public void setBow(ItemStack bow){
-        bow = bow;
+        this.bow = bow;
     }
 
     public ItemStack getBow(){
         return  bow;
     }
-    private float heal;
+    private float heal = 0;
 
     public void setHeal(float heal){
-        heal = heal;
+        this.heal = heal;
     }
 
     public float getHeal(){
         return  heal;
+    }
+
+    private float dmg = 0;
+
+    public void setDmg(float dmg){
+        this.dmg = dmg;
+    }
+
+    public float getDmg(){
+        return  dmg;
+    }
+
+    private static final EntityDataAccessor<Integer> BASE_DMG = SynchedEntityData.defineId(KnefRaindrop.class, EntityDataSerializers.INT);
+
+    public void setBaseDmg(int baseDmg){
+        this.getEntityData().set(BASE_DMG, baseDmg);
+    }
+
+    public int getBaseDmg() {
+        return this.getEntityData().get(BASE_DMG);
     }
 
     public KnefRaindrop(EntityType<? extends KnefRaindrop> type, Level world) {
@@ -56,10 +80,6 @@ public class KnefRaindrop extends ThrowableProjectile
 
     }
 
-    @Override
-    protected void defineSynchedData() {
-
-    }
 
     @Override
     public void tick() {
@@ -78,11 +98,11 @@ public class KnefRaindrop extends ThrowableProjectile
     @Override
     protected void onHitEntity(EntityHitResult pResult) {
         if(pResult.getEntity() instanceof LivingEntity living) {
-            if (this.getOwner() != null && pResult.getEntity().isAlliedTo(this.getOwner())) {
+            if (this.getOwner() != null && pResult.getEntity().equals(this.getOwner())) {
                 living.heal(living.getMaxHealth() * getHeal());
-                if(!bow.isEmpty()) LevelingUtils.addExperience(bow, Math.round(Math.min(living.getMaxHealth() * getHeal(), living.getMaxHealth() - living.getHealth())));
+                if(!getBow().isEmpty()) LevelingUtils.addExperience(getBow(), Math.round(Math.min(living.getMaxHealth() * getHeal(), living.getMaxHealth() - living.getHealth())));
             } else {
-                pResult.getEntity().hurt(DamageSource.thrown(this, this.getOwner()), 8);
+                pResult.getEntity().hurt(DamageSource.thrown(this, this.getOwner()), getDmg());
                 pResult.getEntity().invulnerableTime = 0;
             }
 
@@ -127,5 +147,23 @@ public class KnefRaindrop extends ThrowableProjectile
     @SubscribeEvent
     public void onLevelUnload(PlayerEvent.PlayerLoggedOutEvent event) {
         this.discard();
+    }
+
+    @Override
+    protected void defineSynchedData() {
+
+        this.entityData.define(BASE_DMG, 2);
+    }
+
+    @Override
+    protected void readAdditionalSaveData(CompoundTag compound) {
+        super.readAdditionalSaveData(compound);
+        setBaseDmg(compound.getInt("basedmg"));
+    }
+
+    @Override
+    protected void addAdditionalSaveData(CompoundTag compound) {
+        super.addAdditionalSaveData(compound);
+        compound.putInt("basedmg", getBaseDmg());
     }
 }

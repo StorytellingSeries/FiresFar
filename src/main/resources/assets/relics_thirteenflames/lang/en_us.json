@@ -23,11 +23,11 @@
     "tooltip.relics.knef_bow.ability.storm.description": "Holding down Shift while charging the shot and shooting the Arrow into the sky will summon an Eye of the Storm, that will send down thunder and rain, damaging targets below and healing the user.",
     "tooltip.relics.knef_bow.ability.storm.stat.radius.title": "Area of Effect",
     "tooltip.relics.knef_bow.ability.storm.stat.radius.value": "%1$s blocks",
-    "tooltip.relics.knef_bow.ability.storm.stat.freq.title": "Time between thunder strikes",
-    "tooltip.relics.knef_bow.ability.storm.stat.freq.value": "%1$s seconds",
+    "tooltip.relics.knef_bow.ability.storm.stat.dmg.title": "Rainfall DMG",
+    "tooltip.relics.knef_bow.ability.storm.stat.dmg.value": "%1$s",
     "tooltip.relics.knef_bow.ability.storm.stat.dur.title": "Duration",
     "tooltip.relics.knef_bow.ability.storm.stat.dur.value": "%1$s seconds",
-    "tooltip.relics.knef_bow.ability.storm.stat.cd.title": "Cooldown",
-    "tooltip.relics.knef_bow.ability.storm.stat.cd.value": "%1$s seconds"
+    "tooltip.relics.knef_bow.ability.storm.stat.heal.title": "Rainfall healing",
+    "tooltip.relics.knef_bow.ability.storm.stat.heal.value": "%1$s%% max HP"
 
 }
