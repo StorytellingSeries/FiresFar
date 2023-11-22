@@ -9,10 +9,12 @@ import it.hurts.sskirillss.relics.client.particles.spark.SparkTintData;
 import it.hurts.sskirillss.relics.items.relics.base.utils.AbilityUtils;
 import it.hurts.sskirillss.relics.utils.MathUtils;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.damagesource.DamageSource;
@@ -26,13 +28,17 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
+@Mod.EventBusSubscriber
 public class KnefDischarge extends ThrowableProjectile
 {
 
@@ -61,6 +67,8 @@ public class KnefDischarge extends ThrowableProjectile
     public Vec3 shotPos;
 
     private boolean isExploding = false;
+
+    public static Random rng = new Random();
 
     public KnefDischarge(EntityType<? extends KnefDischarge> type, Level world) {
         super(type, world);
@@ -116,11 +124,10 @@ public class KnefDischarge extends ThrowableProjectile
         for(LivingEntity le : targets) {
             Vec3 start = this.position();
             Vec3 end = le.getBoundingBox().getCenter();
-            int segments = (int) Math.round(start.distanceTo(end) / 2);
             if(!this.level.isClientSide()) {
-                drawThinLightning(this.level, start, end, segments, 1, 0.15f, new Color(187, 145, 255), true);
-                drawThinLightning(this.level, start, end, segments, 1, 0.15f, new Color(222, 127, 255), true);
-                drawThinLightning(this.level, start, end, segments, 0.5, 0.25f, new Color(154, 96, 255), true);
+                drawJaggedLightning(this.level, start, end, 2, 0.3, 0.15f, new Color(187, 145, 255), true);
+                drawJaggedLightning(this.level, start, end, 2, 0.3, 0.15f, new Color(222, 127, 255), true);
+                drawJaggedLightning(this.level, start, end, 2, 0.3, 0.25f, new Color(154, 96, 255), true);
 
                 le.hurt(DamageSource.thrown(this, this.getOwner()), getDmg());
             }
@@ -134,10 +141,14 @@ public class KnefDischarge extends ThrowableProjectile
             if(!secondaryTargets.isEmpty()) {
                 LivingEntity secTarget = secondaryTargets.get(this.random.nextInt(secondaryTargets.size()));
                 if(!this.level.isClientSide()) {
-                    Vec3 end2 = secTarget.getBoundingBox().getCenter();
+                    AABB box2 = secTarget.getBoundingBox();
+                    Vec3 end2 = box2.getCenter()
+                            .add(MathUtils.randomFloat(random) * box2.getXsize() * 0.4,
+                                    MathUtils.randomFloat(random) * box2.getYsize() * 0.4,
+                                    MathUtils.randomFloat(random) * box2.getZsize() * 0.4);
                     int segments2 = (int) Math.round(end.distanceTo(end2));
-                    drawThinLightning(this.level, end, end2, segments2, 0.8, 0.15f, new Color(222, 127, 255), true);
-                    drawThinLightning(this.level, end, end2, segments2, 0.45, 0.25f, new Color(154, 96, 255), true);
+                    drawJaggedLightning(this.level, end, end2, 2, 0.3, 0.15f, new Color(222, 127, 255), true);
+                    drawJaggedLightning(this.level, end, end2, 2, 0.3, 0.25f, new Color(154, 96, 255), true);
 
                     secTarget.hurt(DamageSource.thrown(this, this.getOwner()), getDmg());
                 }
@@ -177,10 +188,27 @@ public class KnefDischarge extends ThrowableProjectile
                 new AABB(end, end), 10, 0.1);
     }
 
-    @SubscribeEvent
-    public void onLevelUnload(PlayerEvent.PlayerLoggedOutEvent event) {
-        this.discard();
+    public void drawJaggedLightning(Level level, Vec3 start, Vec3 end, int sliceIterations, double maxJagMultiplier, float d, Color color, boolean doStartBurst){
+
+        if(doStartBurst) {
+            ParticleHelper.spawnParticleAABB(this.level, new CircleTintData(new Color(230, 175, 255), 0.6f, 15, 0.68f, false),
+                    new AABB(start, start), 10, 0.2);
+            ParticleHelper.spawnParticleAABB(this.level, new CircleTintData(new Color(230, 175, 255), 0.3f, 30, 0.82f, false),
+                    new AABB(start, start), 10, 0.15);
+        }
+
+        ParticleHelper.spawnRandomJaggedParticleLine(level, start, end, maxJagMultiplier, new CircleTintData(color, d, 35, 0.89f, false), 16, sliceIterations);
+
+        ParticleHelper.spawnParticleAABB(this.level, new SparkTintData(new Color(179, 190, 255), 0.4f, 50),
+                new AABB(end, end), 10, 0.06);
+        ParticleHelper.spawnParticleAABB(this.level, new SparkTintData(new Color(242, 208, 255), 0.4f, 50),
+                new AABB(end, end), 10, 0.06);
+        ParticleHelper.spawnParticleAABB(this.level, new CircleTintData(new Color(0, 89, 255), 0.4f, 30, 0.8f, false),
+                new AABB(end, end), 10, 0.08);
+        ParticleHelper.spawnParticleAABB(this.level, new CircleTintData(new Color(221, 117, 255), 0.4f, 30, 0.8f, false),
+                new AABB(end, end), 10, 0.08);
     }
+
 
     @Override
     public void checkDespawn() {
