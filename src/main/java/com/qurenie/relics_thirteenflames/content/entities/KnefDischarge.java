@@ -99,9 +99,9 @@ public class KnefDischarge extends ThrowableProjectile
     }
 
     private void spark(int count, double speed, float diam) {
-        ParticleHelper.spawnParticleEntity(new CircleTintData(new Color(175, 117, 245), diam, 45, 0.91f, false),
+        ParticleHelper.spawnParticleEntity(new CircleTintData(new Color(175, 117, 245), diam, 45, 0.9f, false),
                 this, count, speed);
-        ParticleHelper.spawnParticleEntity(new CircleTintData(new Color(10, 46, 203), diam, 45, 0.91f, false),
+        ParticleHelper.spawnParticleEntity(new CircleTintData(new Color(10, 46, 203), diam, 45, 0.9f, false),
                 this, count, speed);
 
         ParticleHelper.spawnParticleEntity(new SparkTintData(new Color(115, 110, 255), diam, 50),
@@ -118,16 +118,17 @@ public class KnefDischarge extends ThrowableProjectile
 
     @Override
     public void onRemovedFromWorld() {
-        spark(9, 0.04, 0.8f);
+        spark(10, 0.04, 0.15f);
+        spark(15, 0.01, 0.15f);
         AABB box = this.getBoundingBox().inflate(getRadius()).move(0, -getRadius() * 0.5, 0).expandTowards(0, -3, 0);
         List<LivingEntity> targets = new ArrayList<>(this.getLevel().getEntitiesOfClass(LivingEntity.class, box, e -> !(e.equals(this.getOwner()))));
         for(LivingEntity le : targets) {
             Vec3 start = this.position();
             Vec3 end = le.getBoundingBox().getCenter();
             if(!this.level.isClientSide()) {
-                drawJaggedLightning(this.level, start, end, 2, 0.3, 0.15f, new Color(187, 145, 255), true);
-                drawJaggedLightning(this.level, start, end, 2, 0.3, 0.15f, new Color(222, 127, 255), true);
-                drawJaggedLightning(this.level, start, end, 2, 0.3, 0.25f, new Color(154, 96, 255), true);
+                drawJaggedLightning(this.level, start, end, 3, 0.2, 0.15f, new Color(187, 145, 255), true);
+                drawJaggedLightning(this.level, start, end, 3, 0.2, 0.15f, new Color(222, 127, 255), true);
+                drawJaggedLightning(this.level, start, end, 3, 0.2, 0.25f, new Color(154, 96, 255), true);
 
                 le.hurt(DamageSource.thrown(this, this.getOwner()), getDmg());
             }
@@ -146,46 +147,18 @@ public class KnefDischarge extends ThrowableProjectile
                             .add(MathUtils.randomFloat(random) * box2.getXsize() * 0.4,
                                     MathUtils.randomFloat(random) * box2.getYsize() * 0.4,
                                     MathUtils.randomFloat(random) * box2.getZsize() * 0.4);
-                    int segments2 = (int) Math.round(end.distanceTo(end2));
-                    drawJaggedLightning(this.level, end, end2, 2, 0.3, 0.15f, new Color(222, 127, 255), true);
-                    drawJaggedLightning(this.level, end, end2, 2, 0.3, 0.25f, new Color(154, 96, 255), true);
+                    drawJaggedLightning(this.level, end, end2, 3, 0.3, 0.15f, new Color(222, 127, 255), true);
+                    end2 = box2.getCenter()
+                            .add(MathUtils.randomFloat(random) * box2.getXsize() * 0.4,
+                                    MathUtils.randomFloat(random) * box2.getYsize() * 0.4,
+                                    MathUtils.randomFloat(random) * box2.getZsize() * 0.4);
+                    drawJaggedLightning(this.level, end, end2, 3, 0.3, 0.25f, new Color(154, 96, 255), true);
 
                     secTarget.hurt(DamageSource.thrown(this, this.getOwner()), getDmg());
                 }
             }
         }
         super.onRemovedFromWorld();
-    }
-
-    public void drawThinLightning(Level level, Vec3 start, Vec3 end, int segments, double jag, float d, Color color, boolean doStartBurst){
-        Vec3 pos = start;
-        Vec3 straightPos = start;
-        Vec3 prevPos = start;
-        if(doStartBurst) {
-            ParticleHelper.spawnParticleAABB(this.level, new CircleTintData(new Color(230, 175, 255), 0.6f, 15, 0.68f, false),
-                    new AABB(start, start), 10, 0.2);
-            ParticleHelper.spawnParticleAABB(this.level, new CircleTintData(new Color(230, 175, 255), 0.3f, 30, 0.82f, false),
-                    new AABB(start, start), 10, 0.15);
-        }
-        double length = end.subtract(start).scale((double) 1 / segments).length();
-        for(int i = 0; i < segments; i++) {
-            straightPos = straightPos.add(end.subtract(start).scale((double) 1 / segments));
-            pos = straightPos.add(new Vec3(MathUtils.randomFloat(random) * jag,  0, MathUtils.randomFloat(random) * jag));
-            if(i == segments - 1) pos = end;
-            ParticleHelper.spawnParticleLine(level, new CircleTintData(color, d, 40, 0.9f, false),
-                    prevPos,
-                    pos,
-                    (int) Math.round(length * 24), 0);
-            prevPos = pos;
-        }
-        ParticleHelper.spawnParticleAABB(this.level, new SparkTintData(new Color(179, 190, 255), 0.4f, 50),
-                new AABB(end, end), 10, 0.1);
-        ParticleHelper.spawnParticleAABB(this.level, new SparkTintData(new Color(242, 208, 255), 0.4f, 50),
-                new AABB(end, end), 10, 0.1);
-        ParticleHelper.spawnParticleAABB(this.level, new CircleTintData(new Color(0, 89, 255), 0.4f, 30, 0.8f, false),
-                new AABB(end, end), 10, 0.1);
-        ParticleHelper.spawnParticleAABB(this.level, new CircleTintData(new Color(221, 117, 255), 0.4f, 30, 0.8f, false),
-                new AABB(end, end), 10, 0.1);
     }
 
     public void drawJaggedLightning(Level level, Vec3 start, Vec3 end, int sliceIterations, double maxJagMultiplier, float d, Color color, boolean doStartBurst){
@@ -197,7 +170,7 @@ public class KnefDischarge extends ThrowableProjectile
                     new AABB(start, start), 10, 0.15);
         }
 
-        ParticleHelper.spawnRandomJaggedParticleLine(level, start, end, maxJagMultiplier, new CircleTintData(color, d, 35, 0.89f, false), 16, sliceIterations);
+        ParticleHelper.spawnRandomJaggedParticleLine(level, start, end, maxJagMultiplier, new CircleTintData(color, d, 35, 0.9f, false), 16, sliceIterations);
 
         ParticleHelper.spawnParticleAABB(this.level, new SparkTintData(new Color(179, 190, 255), 0.4f, 50),
                 new AABB(end, end), 10, 0.06);

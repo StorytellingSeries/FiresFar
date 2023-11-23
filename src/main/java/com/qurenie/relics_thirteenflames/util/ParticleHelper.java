@@ -84,7 +84,7 @@ public class ParticleHelper {
 
     public static void spawnRandomJaggedParticleLine(Level level, Vec3 begin, Vec3 end, double maxJagMultiplier, ParticleOptions options, int particlesPerBlock, int sliceIterations){
         List<Vec3> locs = new ArrayList<>(List.of(begin));
-        locs.addAll(getJagged(begin, end, new ArrayList<Vec3>(List.of()), sliceIterations, maxJagMultiplier));
+        locs.addAll(getJagged(begin, end, sliceIterations, maxJagMultiplier));
         locs.add(end);
         for (int i = 1; i < locs.size(); i++) {
             double distance = locs.get(i).subtract(locs.get(i-1)).length();
@@ -97,12 +97,12 @@ public class ParticleHelper {
 
 
 
-    private static ArrayList<Vec3> getJagged(Vec3 begin, Vec3 end, ArrayList<Vec3> buf, int slicesLeft, double maxJagMultiplier){
+    private static ArrayList<Vec3> getJagged(Vec3 begin, Vec3 end, int slicesLeft, double maxJagMultiplier){
         float a = 0.4f + rng.nextFloat(0.2f);
         Vec3 mid = begin.add(end.subtract(begin).scale(a)).add(getRandomRotNormal(end.subtract(begin)).normalize().scale(rng.nextDouble(end.subtract(begin).length() * maxJagMultiplier)));
         if(slicesLeft > 0) {
-            ArrayList<Vec3> left = getJagged(begin, mid, buf, slicesLeft - 1, maxJagMultiplier);
-            ArrayList<Vec3> right = getJagged(mid, end, buf, slicesLeft - 1, maxJagMultiplier);
+            ArrayList<Vec3> left = getJagged(begin, mid, slicesLeft - 1, maxJagMultiplier);
+            ArrayList<Vec3> right = getJagged(mid, end, slicesLeft - 1, maxJagMultiplier);
             left.add(mid);
             left.addAll(right);
             return left;
