@@ -52,5 +52,7 @@ public class ClientModEvents {
         e.registerEntityRenderer(EntityRegistry.KNEF_DISCHARGE, NullRenderer::new);
         e.registerEntityRenderer(EntityRegistry.KNEF_STORM, NullRenderer::new);
         e.registerEntityRenderer(EntityRegistry.KNEF_RAINDROP, NullRenderer::new);
+        e.registerEntityRenderer(EntityRegistry.FARTCLOUD, NullRenderer::new);
+        e.registerEntityRenderer(EntityRegistry.POISON_WAVE, NullRenderer::new);
     }
 }

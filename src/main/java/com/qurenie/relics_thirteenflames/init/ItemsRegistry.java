@@ -3,6 +3,7 @@ package com.qurenie.relics_thirteenflames.init;
 import com.qurenie.relics_thirteenflames.ThirteenFlames;
 import com.qurenie.relics_thirteenflames.content.entities.KnefProjectile;
 import com.qurenie.relics_thirteenflames.content.items.ItemKnefBow;
+import com.qurenie.relics_thirteenflames.content.items.ItemRonasSword;
 import it.hurts.sskirillss.relics.items.SolidSnowballItem;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EntityType.Builder;
@@ -23,6 +24,9 @@ public interface ItemsRegistry {
 
     @RegistryName("knef_bow")
     ItemKnefBow KNEF_BOW = new ItemKnefBow(props().rarity(Rarity.RARE).stacksTo(1));
+
+    @RegistryName("ronas_sword")
+    ItemRonasSword RONAS_SWORD = new ItemRonasSword(props().rarity(Rarity.RARE).stacksTo(1));
 
 
 //    public static void registerItems() {
