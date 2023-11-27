@@ -66,13 +66,16 @@ public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
         super(properties);
     }
 
-//    @Override
-//    public Multimap<Attribute, AttributeModifier> getDefaultAttributeModifiers(EquipmentSlot slot)
-//    {
-//        return slot == EquipmentSlot.MAINHAND
-//                ? this.defaultModifiers
-//                : super.getDefaultAttributeModifiers(slot);
-//    }
+    @Override
+    public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
+        ImmutableMultimap.Builder<Attribute, AttributeModifier> builder = ImmutableMultimap.builder();
+        if (slot == EquipmentSlot.MAINHAND) {
+            float atkspd = (float)AbilityUtils.getAbilityValue(stack, "anemia", "atkspd");
+            builder.put(Attributes.ATTACK_DAMAGE, new AttributeModifier(BASE_ATTACK_DAMAGE_UUID, "DMG modifier", 3, AttributeModifier.Operation.ADDITION));
+            builder.put(Attributes.ATTACK_SPEED, new AttributeModifier(BASE_ATTACK_SPEED_UUID, "Tool modifier", -2.6F + atkspd, AttributeModifier.Operation.ADDITION));
+        }
+        return builder.build();
+    }
 
     @Override
     public boolean canPerformAction(ItemStack stack, net.minecraftforge.common.ToolAction toolAction) {
@@ -85,22 +88,22 @@ public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
                     .ability("spit", RelicAbilityEntry.builder()
                             .maxLevel(5)
                             .stat("range", RelicAbilityStat.builder()
-                                    .initialValue(2, 2.5)
-                                    .thresholdValue(2, 4)
-                                    .upgradeModifier(RelicAbilityStat.Operation.ADD, 0.3)
+                                    .initialValue(3, 3.2)
+                                    .thresholdValue(3, 5)
+                                    .upgradeModifier(RelicAbilityStat.Operation.ADD, 0.36)
                                     .formatValue(x -> (float) MathUtils.round(x, 2))
                                     .build()
                             )
                             .stat("poisondur", RelicAbilityStat.builder()
-                                    .initialValue(2.0, 5.0)
-                                    .thresholdValue(2.0, 15.0)
-                                    .upgradeModifier(RelicAbilityStat.Operation.ADD, 2.0)
+                                    .initialValue(2.0, 2.5)
+                                    .thresholdValue(2.0, 4.5)
+                                    .upgradeModifier(RelicAbilityStat.Operation.ADD, 0.4)
                                     .formatValue(x -> (int) MathUtils.round(x, 1))
                                     .build()
                             )
-                            .stat("poisonstrength", RelicAbilityStat.builder()
-                                    .initialValue(1.0, 3.0)
-                                    .thresholdValue(1.0, 8.0)
+                            .stat("maxstacks", RelicAbilityStat.builder()
+                                    .initialValue(1.0, 1.0)
+                                    .thresholdValue(1.0, 6.0)
                                     .upgradeModifier(RelicAbilityStat.Operation.ADD, 1)
                                     .formatValue(x -> (int) MathUtils.round(x, 1))
                                     .build()
@@ -108,36 +111,44 @@ public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
                             .build()
                     )
                     .ability("fart", RelicAbilityEntry.builder()
-                            .maxLevel(5)
+                            .maxLevel(3)
                             .stat("radius", RelicAbilityStat.builder()
                                     .initialValue(1.0, 2.0)
                                     .thresholdValue(1.0, 4.0)
-                                    .upgradeModifier(RelicAbilityStat.Operation.ADD, 0.4)
-                                    .formatValue(x -> (float) MathUtils.round(x, 2))
+                                    .upgradeModifier(RelicAbilityStat.Operation.ADD, 0.67)
+                                    .formatValue(x -> (float) MathUtils.round(x, 1))
                                     .build()
                             )
                             .stat("duration", RelicAbilityStat.builder()
-                                    .initialValue(4.0, 10.0)
-                                    .thresholdValue(4.0, 25.0)
-                                    .upgradeModifier(RelicAbilityStat.Operation.ADD, 3.0)
+                                    .initialValue(6.0, 10.0)
+                                    .thresholdValue(6.0, 25.0)
+                                    .upgradeModifier(RelicAbilityStat.Operation.ADD, 5.0)
                                     .formatValue(x -> (int) MathUtils.round(x, 1))
                                     .build()
                             )
                             .stat("cooldown", RelicAbilityStat.builder()
                                     .initialValue(30, 40)
-                                    .thresholdValue(5, 40)
-                                    .upgradeModifier(RelicAbilityStat.Operation.ADD, -5)
+                                    .thresholdValue(12, 40)
+                                    .upgradeModifier(RelicAbilityStat.Operation.ADD, -6)
                                     .formatValue(x -> (int) MathUtils.round(x, 1))
                                     .build()
                             )
                             .build()
                     )
                     .ability("anemia", RelicAbilityEntry.builder()
-                            .maxLevel(0)
-                            .stat("yes", RelicAbilityStat.builder()
-                                    .initialValue(0.0, 5.0)
-                                    .upgradeModifier(RelicAbilityStat.Operation.ADD, 1.0)
-                                    .formatValue(x -> (int) MathUtils.round(x, 1))
+                            .maxLevel(2)
+                            .stat("amp", RelicAbilityStat.builder()
+                                    .initialValue(2, 2)
+                                    .thresholdValue(0, 2)
+                                    .upgradeModifier(RelicAbilityStat.Operation.ADD, -1.0)
+                                    .formatValue(x -> MathUtils.round((0.8f / x) * 100, 0))
+                                    .build()
+                            )
+                            .stat("atkspd", RelicAbilityStat.builder()
+                                    .initialValue(0, 0.2)
+                                    .thresholdValue(0, 1.4)
+                                    .upgradeModifier(RelicAbilityStat.Operation.ADD, 0.6)
+                                    .formatValue(x -> MathUtils.round(4 - 2.6 + x, 0))
                                     .build()
                             )
                             .build()
@@ -170,6 +181,9 @@ public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
             FartCloudEntity cloud = new FartCloudEntity(EntityRegistry.FARTCLOUD, pLevel);
             cloud.setRadius(radius);
             cloud.setLifeTime(lifetime);
+            cloud.setMaxAmp((int)Math.round(AbilityUtils.getAbilityValue(sword, "spit", "maxstacks") - 1));
+            cloud.setDuration((int) Math.round(AbilityUtils.getAbilityValue(sword, "spit", "poisondur")));
+            cloud.setOwner(pPlayer);
             Vec3 pos = pPlayer.getEyePosition(1).add(
                     pPlayer.getLookAngle().scale(radius + 1)
             );
@@ -182,16 +196,13 @@ public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
 
     @SubscribeEvent
     public static void onAttack(AttackEntityEvent event) {
-        if (event.getEntity().getItemInHand(InteractionHand.MAIN_HAND).getItem() instanceof ItemRonasSword
-                && event.getEntity().getAttackStrengthScale(0.5F) > 0.9F
-                && !event.getEntity().getLevel().isClientSide())
-            poisonSwipe(event.getEntity(), event.getEntity().getItemInHand(InteractionHand.MAIN_HAND));
-
-    }
-
-    @Override
-    public boolean canFitInsideContainerItems() {
-        return false;
+        if (event.getEntity().getItemInHand(InteractionHand.MAIN_HAND).getItem() instanceof ItemRonasSword && !event.getEntity().getLevel().isClientSide()) {
+            if(event.getEntity().getAttackStrengthScale(0.5F) > 0.9F) {
+                poisonSwipe(event.getEntity(), event.getEntity().getItemInHand(InteractionHand.MAIN_HAND));
+            } else{
+                event.getEntity().addEffect(new MobEffectInstance(EffectsRegistry.POISSON, 100, 0, false, true, false));
+            }
+        }
     }
 
     @Override
@@ -199,27 +210,6 @@ public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
         return !pPlayer.isCreative();
     }
 
-//    static int tick = 0;
-//    @SubscribeEvent
-//    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
-//        if(event.phase == TickEvent.Phase.START || event.side == LogicalSide.CLIENT) return;
-//        tick++;
-//        ScriptUtils.sendMessageToPlayers(String.valueOf(tick));
-//        ((ServerLevel)event.player.getLevel()).sendParticles(new CircleTintData(new Color(85, 255, 0), 0.25F,
-//                        40, 0.94F, false, true, new ScatterController()),
-//                event.player.getX(), event.player.getY(), event.player.getZ(), 4, 0.015, 0.015, 0.015, 0.02);
-//    }
-
-
-    @Override
-    public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
-        ImmutableMultimap.Builder<Attribute, AttributeModifier> builder = ImmutableMultimap.builder();
-        if (slot == EquipmentSlot.MAINHAND) {
-            builder.put(Attributes.ATTACK_DAMAGE, new AttributeModifier(BASE_ATTACK_DAMAGE_UUID, "Worship DMG modifier", 4, AttributeModifier.Operation.ADDITION));
-            builder.put(Attributes.ATTACK_SPEED, new AttributeModifier(BASE_ATTACK_SPEED_UUID, "Tool modifier", -2.4F, AttributeModifier.Operation.ADDITION));
-        }
-        return builder.build();
-    }
 
     @Override
     public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
@@ -230,12 +220,10 @@ public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
     public void inventoryTick(ItemStack stack, Level level, Entity entity, int slot, boolean isSelected) {
         super.inventoryTick(stack, level, entity, slot, isSelected);
         if (entity instanceof Player player && stack.is(this) && (!player.hasEffect(EffectsRegistry.ANEMIA)
-                || (player.hasEffect(EffectsRegistry.ANEMIA) && player.getEffect(EffectsRegistry.ANEMIA).getDuration() < 20))
-                && QualityUtils.getAbilityQuality(stack, "anemia") < 10) {
-            player.addEffect(new MobEffectInstance(EffectsRegistry.ANEMIA, 39, 0, true, false, true));
+                || (player.hasEffect(EffectsRegistry.ANEMIA) && player.getEffect(EffectsRegistry.ANEMIA).getDuration() < 20))) {
+            int amp = (int)AbilityUtils.getAbilityValue(stack, "anemia", "amp");
+            player.addEffect(new MobEffectInstance(EffectsRegistry.ANEMIA, 39, amp, true, false, true));
         }
-
-
     }
 
     public static void poisonSwipe(LivingEntity p, ItemStack sword) {
@@ -246,7 +234,7 @@ public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
         p.level.playSound(null, p, SoundEvents.AZALEA_LEAVES_FALL, SoundSource.MASTER, 1f, 1.8f);
         double spreadAngle = 20 + (AbilityUtils.getAbilityValue(sword, "spit", "range") * 4);
         double range = AbilityUtils.getAbilityValue(sword, "spit", "range");
-        int maxAmp = 5 + (int) Math.round(AbilityUtils.getAbilityValue(sword, "spit", "poisonstrength") - 1);
+        int maxAmp = (int) Math.round(AbilityUtils.getAbilityValue(sword, "spit", "maxstacks") - 1);
 
         Vec3 startVec = p.getEyePosition(1F)
                 .add(0, -0.2, 0);
@@ -284,17 +272,17 @@ public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
         }
         List<LivingEntity> entities = level.getEntitiesOfClass(LivingEntity.class, eBox, e -> !(e.equals(p)));
         int duration = (int) Math.round(AbilityUtils.getAbilityValue(sword, "spit", "poisondur") * 20);
-        int amplifier = (int) Math.round(AbilityUtils.getAbilityValue(sword, "spit", "poisonstrength") - 1);
         for (LivingEntity e : entities) {
             e.hurt(DamageSource.mobAttack(p), 1);
             if (e.hasEffect(EffectsRegistry.POISSON)) {
-                if (e.getEffect(EffectsRegistry.POISSON).getAmplifier() + amplifier + 1 < maxAmp) {
-                    e.addEffect(new MobEffectInstance(EffectsRegistry.POISSON, duration, e.getEffect(EffectsRegistry.POISSON).getAmplifier() + amplifier + 1, false, true, false));
+                int appliedAmplifier = e.getEffect(EffectsRegistry.POISSON).getAmplifier() + 1;
+                if (appliedAmplifier <= maxAmp) {
+                    e.addEffect(new MobEffectInstance(EffectsRegistry.POISSON, duration + appliedAmplifier, appliedAmplifier, false, true, false));
                 }
-                if (e.getEffect(EffectsRegistry.POISSON).getAmplifier() + amplifier + 1 >= maxAmp) {
-                    e.addEffect(new MobEffectInstance(EffectsRegistry.POISSON, duration, maxAmp, false, true, false));
+                else {
+                    e.addEffect(new MobEffectInstance(EffectsRegistry.POISSON, duration + maxAmp, maxAmp, false, true, false));
                 }
-            } else e.addEffect(new MobEffectInstance(EffectsRegistry.POISSON, duration, amplifier, false, true, false));
+            } else e.addEffect(new MobEffectInstance(EffectsRegistry.POISSON, duration, 0, false, true, false));
         }
     }
 
@@ -312,7 +300,7 @@ public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
 
     @Override
     public int getFoilColor(@NotNull ItemStack stack) {
-        return /*0xFA9FEB7D*/ new Color(31, 110, 0).getRGB(); //хекс коды люблю невероятно
+        return /*0xFA9FEB7D*/ new Color(31, 110, 0).getRGB();
     }
 
 }

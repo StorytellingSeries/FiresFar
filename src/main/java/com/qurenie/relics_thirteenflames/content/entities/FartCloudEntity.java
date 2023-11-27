@@ -1,21 +1,22 @@
 package com.qurenie.relics_thirteenflames.content.entities;
 
 import com.qurenie.relics_thirteenflames.init.EffectsRegistry;
+import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import it.hurts.sskirillss.relics.client.particles.circle.CircleTintData;
 import it.hurts.sskirillss.relics.client.particles.spark.SparkTintData;
+import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.level.Level;
@@ -45,6 +46,26 @@ public class FartCloudEntity extends Projectile {
     public int getLifeTime() {
         return this.getEntityData().get(LIFETIME);
     }
+
+    private static final EntityDataAccessor<Integer> MAX_AMP = SynchedEntityData.defineId(FartCloudEntity.class, EntityDataSerializers.INT);
+
+    public void setMaxAmp(int maxAmp){
+        this.getEntityData().set(MAX_AMP, maxAmp);
+    }
+
+    public int getMaxAmp() {
+        return this.getEntityData().get(MAX_AMP);
+    }
+
+    private static final EntityDataAccessor<Integer> DURATION = SynchedEntityData.defineId(FartCloudEntity.class, EntityDataSerializers.INT);
+
+    public void setDuration(int duration){
+        this.getEntityData().set(DURATION, duration);
+    }
+
+    public int getDuration() {
+        return this.getEntityData().get(DURATION);
+    }
     private static final EntityDataAccessor<Float> RADIUS = SynchedEntityData.defineId(FartCloudEntity.class, EntityDataSerializers.FLOAT);
 
     public float getRadius() {
@@ -64,34 +85,33 @@ public class FartCloudEntity extends Projectile {
     public void tick() {
         super.tick();
         if(this.tickCount > getLifeTime()) this.discard();
-        float radius = getRadius();
+        float radius = getRadius() * (1 - (float) this.tickCount / getLifeTime());
         if(!this.getLevel().isClientSide()){
             ServerLevel level = (ServerLevel) this.getLevel();
-            level.sendParticles(new CircleTintData(new Color(85 - rng.nextInt(80) + rng.nextInt(80), 255 - rng.nextInt(160), 0),
-                            radius / 5.0f,80, 0.94F, false),
-                    this.getX(), this.getY(), this.getZ(), Math.round(radius * radius * 2f), radius, radius, radius, 0.01 * radius);
-            level.sendParticles(new SparkTintData(new Color(85 - rng.nextInt(80), 255 - rng.nextInt(160), 0), radius / 5.0f, 60),
-                    this.getX(), this.getY(), this.getZ(), Math.round(radius * radius), radius, radius, radius, 0);
-//            level.sendParticles(ParticleTypes.ENTITY_EFFECT,
-//                    this.getX(), this.getY(), this.getZ(), (int) (radius * 2), radius, radius, radius, 0.01);
+            AABB box = new AABB(this.getPosition(1), this.getPosition(1)).inflate(radius);
+            ParticleHelper.spawnParticleAABB(this.getLevel(), new CircleTintData(new Color(85 - rng.nextInt(80) + rng.nextInt(80), 255 - rng.nextInt(160), 0),
+                    radius / 6.0f + 0.1f,80, 0.94F, false), box, Math.round(radius * radius * 2f) + 1, 0.01 * radius);
 
-            AABB box = new AABB(this.getX(), this.getY(), this.getZ(),this.getX(), this.getY(), this.getZ()).inflate(radius);
-            List<LivingEntity> entities = level.getEntitiesOfClass(LivingEntity.class, box, e -> !(e instanceof Player));
+            ParticleHelper.spawnParticleAABB(this.getLevel(),
+                    new SparkTintData(new Color(85 - rng.nextInt(80), 255 - rng.nextInt(160), 0), radius / 5.0f, 60),
+                    box, Math.round(radius * radius) + 1, 0);
+
+            //AABB box = new AABB(this.getX(), this.getY(), this.getZ(),this.getX(), this.getY(), this.getZ()).inflate(radius);
+            List<LivingEntity> entities = level.getEntitiesOfClass(LivingEntity.class, box, e -> !e.equals(this.getOwner()));
             if(dmgCD == 0) {
                 for (LivingEntity e : entities) {
                     e.hurt(DamageSource.MAGIC, (float) (2 + radius));
-                    if(e.hasEffect(EffectsRegistry.POISSON)) {
-                        if (e.getEffect(EffectsRegistry.POISSON).getAmplifier() < 5) {
-                            e.addEffect(new MobEffectInstance(EffectsRegistry.POISSON, 60, e.getEffect(EffectsRegistry.POISSON).getAmplifier()+ 1, false, true, false));
+                    int maxAmp = getMaxAmp();
+                    int duration = getDuration();
+                    if (e.hasEffect(EffectsRegistry.POISSON)) {
+                        int appliedAmplifier = e.getEffect(EffectsRegistry.POISSON).getAmplifier() + 1;
+                        if (appliedAmplifier <= maxAmp) {
+                            e.addEffect(new MobEffectInstance(EffectsRegistry.POISSON, duration + appliedAmplifier, appliedAmplifier, false, true, false));
                         }
-                        if (e.getEffect(EffectsRegistry.POISSON).getAmplifier() == 5) {
-                            e.addEffect(new MobEffectInstance(EffectsRegistry.POISSON, 60, 5, false, true, false));
+                        else {
+                            e.addEffect(new MobEffectInstance(EffectsRegistry.POISSON, duration + maxAmp, maxAmp, false, true, false));
                         }
-                        if (e.getEffect(EffectsRegistry.POISSON).getAmplifier() > 5) {
-                            e.addEffect(new MobEffectInstance(EffectsRegistry.POISSON, 60, e.getEffect(EffectsRegistry.POISSON).getAmplifier(), false, true, false));
-                        }
-                    }
-                    else e.addEffect(new MobEffectInstance(EffectsRegistry.POISSON, 60, 0,false, true, false));
+                    } else e.addEffect(new MobEffectInstance(EffectsRegistry.POISSON, duration, 0, false, true, false));
                 }
                 dmgCD = 20;
             }
@@ -111,9 +131,10 @@ public class FartCloudEntity extends Projectile {
 
     @Override
     protected void defineSynchedData() {
-
         this.entityData.define(RADIUS, 5F);
         this.entityData.define(LIFETIME, 20);
+        this.entityData.define(MAX_AMP, 0);
+        this.entityData.define(DURATION, 2);
     }
 
     @Override
@@ -121,6 +142,8 @@ public class FartCloudEntity extends Projectile {
         super.readAdditionalSaveData(compound);
         setRadius(compound.getFloat("radius"));
         setLifeTime(compound.getInt("lifetime"));
+        setMaxAmp(compound.getInt("maxamp"));
+        setDuration(compound.getInt("duration"));
     }
 
     @Override
@@ -128,6 +151,8 @@ public class FartCloudEntity extends Projectile {
         super.addAdditionalSaveData(compound);
         compound.putFloat("radius", getRadius());
         compound.putInt("lifetime", getLifeTime());
+        compound.putInt("maxamp", getMaxAmp());
+        compound.putInt("duration", getDuration());
     }
 
     @Override

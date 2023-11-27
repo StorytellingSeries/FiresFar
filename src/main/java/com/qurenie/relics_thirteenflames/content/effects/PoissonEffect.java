@@ -17,8 +17,9 @@ public class PoissonEffect extends MobEffect {
     @Override
     public void applyEffectTick(LivingEntity pLivingEntity, int pAmplifier) {
         super.applyEffectTick(pLivingEntity, pAmplifier);
-        pLivingEntity.hurt(DamageSource.MAGIC, 1.0f + pAmplifier * 0.5f);
-        pLivingEntity.invulnerableTime = 0;
+        int invulTime = pLivingEntity.invulnerableTime;
+        pLivingEntity.hurt(DamageSource.MAGIC, 1.0f + pAmplifier * 0.2f);
+        pLivingEntity.invulnerableTime = invulTime;
     }
 
     @Override
