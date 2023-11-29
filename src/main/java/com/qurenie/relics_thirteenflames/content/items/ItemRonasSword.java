@@ -4,10 +4,11 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import com.qurenie.relics_thirteenflames.client.render.item.EmissiveItemRenderer;
+import com.qurenie.relics_thirteenflames.content.effects.PoisonEffectInstance;
 import com.qurenie.relics_thirteenflames.content.entities.FartCloudEntity;
-import com.qurenie.relics_thirteenflames.content.entities.PoisonWaveEntity;
 import com.qurenie.relics_thirteenflames.init.EffectsRegistry;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
+import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
 import it.hurts.sskirillss.relics.client.particles.circle.CircleTintData;
 import it.hurts.sskirillss.relics.client.particles.spark.SparkTintData;
 import it.hurts.sskirillss.relics.client.tooltip.base.RelicStyleData;
@@ -18,8 +19,9 @@ import it.hurts.sskirillss.relics.items.relics.base.data.leveling.RelicAbilityEn
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.RelicAbilityStat;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.RelicLevelingData;
 import it.hurts.sskirillss.relics.items.relics.base.utils.AbilityUtils;
-import it.hurts.sskirillss.relics.items.relics.base.utils.QualityUtils;
+import it.hurts.sskirillss.relics.items.relics.base.utils.LevelingUtils;
 import it.hurts.sskirillss.relics.utils.MathUtils;
+import it.hurts.sskirillss.relics.utils.Scheduler;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -36,6 +38,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
@@ -45,6 +48,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -52,7 +56,8 @@ import org.jetbrains.annotations.NotNull;
 import org.zeith.hammerlib.api.items.IColoredFoilItem;
 
 import java.awt.*;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Random;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -66,6 +71,7 @@ public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
         super(properties);
     }
 
+    private static Random rng = new Random();
     @Override
     public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
         ImmutableMultimap.Builder<Attribute, AttributeModifier> builder = ImmutableMultimap.builder();
@@ -88,9 +94,9 @@ public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
                     .ability("spit", RelicAbilityEntry.builder()
                             .maxLevel(5)
                             .stat("range", RelicAbilityStat.builder()
-                                    .initialValue(3, 3.2)
-                                    .thresholdValue(3, 5)
-                                    .upgradeModifier(RelicAbilityStat.Operation.ADD, 0.36)
+                                    .initialValue(4, 4.2)
+                                    .thresholdValue(4, 8)
+                                    .upgradeModifier(RelicAbilityStat.Operation.ADD, 0.76)
                                     .formatValue(x -> (float) MathUtils.round(x, 2))
                                     .build()
                             )
@@ -171,7 +177,7 @@ public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
 
     @Override
     public InteractionResultHolder<ItemStack> use(Level pLevel, Player pPlayer, InteractionHand pUsedHand) {
-        if (pPlayer.isCrouching() && !AbilityUtils.isAbilityOnCooldown(pPlayer.getItemInHand(pUsedHand), "fart") && !pLevel.isClientSide()) {
+        if (pPlayer.isCrouching() && !AbilityUtils.isAbilityOnCooldown(pPlayer.getItemInHand(pUsedHand), "fart")) {
             pLevel.playSound(null, pPlayer, SoundEvents.CHORUS_FLOWER_DEATH, SoundSource.MASTER, 1.2f, 0.1f);
             pLevel.playSound(null, pPlayer, SoundEvents.SCULK_BLOCK_BREAK, SoundSource.MASTER, 1f, 1f);
             pLevel.playSound(null, pPlayer, SoundEvents.AZALEA_FALL, SoundSource.MASTER, 1f, 0.01f);
@@ -182,8 +188,9 @@ public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
             cloud.setRadius(radius);
             cloud.setLifeTime(lifetime);
             cloud.setMaxAmp((int)Math.round(AbilityUtils.getAbilityValue(sword, "spit", "maxstacks") - 1));
-            cloud.setDuration((int) Math.round(AbilityUtils.getAbilityValue(sword, "spit", "poisondur")));
+            cloud.setDuration((int) Math.round(AbilityUtils.getAbilityValue(sword, "spit", "poisondur") * 20));
             cloud.setOwner(pPlayer);
+            cloud.setSword(pPlayer.getItemInHand(pUsedHand));
             Vec3 pos = pPlayer.getEyePosition(1).add(
                     pPlayer.getLookAngle().scale(radius + 1)
             );
@@ -196,11 +203,11 @@ public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
 
     @SubscribeEvent
     public static void onAttack(AttackEntityEvent event) {
-        if (event.getEntity().getItemInHand(InteractionHand.MAIN_HAND).getItem() instanceof ItemRonasSword && !event.getEntity().getLevel().isClientSide()) {
+        if (event.getEntity().getItemInHand(InteractionHand.MAIN_HAND).getItem() instanceof ItemRonasSword /*&& !event.getEntity().getLevel().isClientSide()*/) {
             if(event.getEntity().getAttackStrengthScale(0.5F) > 0.9F) {
                 poisonSwipe(event.getEntity(), event.getEntity().getItemInHand(InteractionHand.MAIN_HAND));
             } else{
-                event.getEntity().addEffect(new MobEffectInstance(EffectsRegistry.POISSON, 100, 0, false, true, false));
+                event.getEntity().addEffect(new PoisonEffectInstance(EffectsRegistry.POISSON, 100, 0, false, true, false, event.getEntity().getItemInHand(InteractionHand.MAIN_HAND)));
             }
         }
     }
@@ -219,70 +226,96 @@ public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
     @Override
     public void inventoryTick(ItemStack stack, Level level, Entity entity, int slot, boolean isSelected) {
         super.inventoryTick(stack, level, entity, slot, isSelected);
-        if (entity instanceof Player player && stack.is(this) && (!player.hasEffect(EffectsRegistry.ANEMIA)
-                || (player.hasEffect(EffectsRegistry.ANEMIA) && player.getEffect(EffectsRegistry.ANEMIA).getDuration() < 20))) {
-            int amp = (int)AbilityUtils.getAbilityValue(stack, "anemia", "amp");
-            player.addEffect(new MobEffectInstance(EffectsRegistry.ANEMIA, 39, amp, true, false, true));
+        if (entity instanceof Player player && stack.is(this)) {
+
+            //if(player instanceof LocalPlayer lp) lp.chatSigned(String.valueOf(lp.getXRot()), null);
+
+            if ((!player.hasEffect(EffectsRegistry.ANEMIA)
+                    || (player.hasEffect(EffectsRegistry.ANEMIA) && player.getEffect(EffectsRegistry.ANEMIA).getDuration() < 20))) {
+                int amp = (int) AbilityUtils.getAbilityValue(stack, "anemia", "amp");
+                player.addEffect(new MobEffectInstance(EffectsRegistry.ANEMIA, 39, amp, true, false, true));
+            }
         }
     }
 
     public static void poisonSwipe(LivingEntity p, ItemStack sword) {
-        if (!(p.level instanceof ServerLevel level)) return;
+
 
         p.level.playSound(null, p, SoundEvents.AZALEA_FALL, SoundSource.MASTER, 1f, 0.02f);
         p.level.playSound(null, p, SoundEvents.SCULK_BLOCK_BREAK, SoundSource.MASTER, 1f, 1f);
         p.level.playSound(null, p, SoundEvents.AZALEA_LEAVES_FALL, SoundSource.MASTER, 1f, 1.8f);
-        double spreadAngle = 20 + (AbilityUtils.getAbilityValue(sword, "spit", "range") * 4);
+        double spreadAngle = 20 + (AbilityUtils.getAbilityValue(sword, "spit", "range") * 1.8);
         double range = AbilityUtils.getAbilityValue(sword, "spit", "range");
         int maxAmp = (int) Math.round(AbilityUtils.getAbilityValue(sword, "spit", "maxstacks") - 1);
 
         Vec3 startVec = p.getEyePosition(1F)
                 .add(0, -0.2, 0);
-        Vec3 luk = p.getLookAngle();
+        Vec3 luk = Vec3.directionFromRotation(0, p.getYHeadRot());
+        Vec3 down = p.getLookAngle().subtract(luk);
+
+
+
+
+        if (p.level instanceof ServerLevel level) {
+            for (int i = 0; i < range * 1.8; i++) {
+                int dark = RandomSource.create().nextInt(80);
+                int yellowness = RandomSource.create().nextInt(80);
+                int finalI = i;
+                //PoisonWaveEntity wave = new PoisonWaveEntity(EntityRegistry.POISON_WAVE, p.getLevel());
+
+                Scheduler.schedule(i, () -> {
+                    for (int j = 0; j < range * 4 + 1; j++) {
+                        Vec3 vec = startVec.add(luk
+                                .yRot((float) Math.toRadians(-spreadAngle + j * (spreadAngle * 2 / range / 4)))
+                                .add(down)
+                                .normalize()
+                                .scale(0.7 + finalI / 1.8/* * (range / 10.0) * 2 */)
+                        );
+                        level.sendParticles(new CircleTintData(new Color(85 - dark + yellowness, 255 - dark - RandomSource.create().nextInt(100), 0),
+                                        (float) (0.2F + 0.025f * range), 20, 0.83F, false),
+                                vec.x, vec.y, vec.z, 1, 0.018 * range, 0.018 * range, 0.018 * range, 0.005 + finalI * 0.008);
+                        if (j % 3 == 0)
+                            level.sendParticles(new SparkTintData(new Color(85 - RandomSource.create().nextInt(80), 255 - RandomSource.create().nextInt(100), 0),
+                                            (float) (0.2F + 0.025f * range), 20),
+                                    vec.x, vec.y, vec.z, 1, 0.018 * range, 0.018 * range, 0.018 * range, 0.005 + finalI * 0.008);
+                    }
+                });
+                //wave.setPos(startVec);
+                //p.getLevel().addFreshEntity(wave);
+            }
+        }
 
         AABB eBox = new AABB(
-                startVec.add(luk
-                        .scale(0.7 * range * 0.5)),
-                startVec.add(luk
-                        .scale(0.7 + range * 0.5))
-        ).inflate(range * 0.5, range * 0.5, range * 0.5);
+                startVec.add(p.getLookAngle()
+                        .scale(range * 0.6)),
+                startVec.add(p.getLookAngle()
+                        .scale(range * 0.6))
+        ).inflate(range * 0.3);
+        HashSet<LivingEntity> entitySet = new HashSet<>(p.level.getEntitiesOfClass(LivingEntity.class, eBox, e -> !(e.equals(p))));
+        eBox = new AABB(
+                startVec.add(p.getLookAngle()
+                        .scale(range * 0.2)),
+                startVec.add(p.getLookAngle()
+                        .scale(range * 0.2))
+        ).inflate(range * 0.1);
+        entitySet.addAll(p.level.getEntitiesOfClass(LivingEntity.class, eBox, e -> !(e.equals(p))));
 
-        for (int i = 0; i < range * 3; i++) {
-            int dark = RandomSource.create().nextInt(80);
-            int yellowness = RandomSource.create().nextInt(80);
-            int finalI = i;
-            PoisonWaveEntity wave = new PoisonWaveEntity(EntityRegistry.POISON_WAVE, p.getLevel());
-            wave.addTask(i + 1, () -> {
-                for (int j = 0; j < range * 5 + 1; j++) {
-                    Vec3 vec = startVec.add(luk
-                            .scale(0.7 + finalI * (range / 10.0) * 2)
-                            .yRot((float) Math.toRadians(-spreadAngle + j * (spreadAngle * 2 / range / 5)))
-                    );
-                    level.sendParticles(new CircleTintData(new Color(85 - dark + yellowness, 255 - dark - RandomSource.create().nextInt(100), 0),
-                                    (float) (0.2F + 0.025f * range), 20, 0.83F, false),
-                            vec.x, vec.y, vec.z, 1, 0.018 * range, 0.018 * range, 0.018 * range, 0.005 + finalI * 0.008);
-                    if (j % 3 == 0)
-                        level.sendParticles(new SparkTintData(new Color(85 - RandomSource.create().nextInt(80), 255 - RandomSource.create().nextInt(100), 0),
-                                        (float) (0.2F + 0.025f * range), 20),
-                                vec.x, vec.y, vec.z, 1, 0.018 * range, 0.018 * range, 0.018 * range, 0.005 + finalI * 0.008);
-                }
-            });
-            wave.setPos(startVec);
-            p.getLevel().addFreshEntity(wave);
-        }
-        List<LivingEntity> entities = level.getEntitiesOfClass(LivingEntity.class, eBox, e -> !(e.equals(p)));
         int duration = (int) Math.round(AbilityUtils.getAbilityValue(sword, "spit", "poisondur") * 20);
-        for (LivingEntity e : entities) {
+        for (LivingEntity e : entitySet) {
             e.hurt(DamageSource.mobAttack(p), 1);
             if (e.hasEffect(EffectsRegistry.POISSON)) {
                 int appliedAmplifier = e.getEffect(EffectsRegistry.POISSON).getAmplifier() + 1;
                 if (appliedAmplifier <= maxAmp) {
-                    e.addEffect(new MobEffectInstance(EffectsRegistry.POISSON, duration + appliedAmplifier, appliedAmplifier, false, true, false));
+                    e.addEffect(new PoisonEffectInstance(EffectsRegistry.POISSON, duration + appliedAmplifier * 20, appliedAmplifier, false, true, false, sword));
+                    if(rng.nextFloat() < 0.25f) LevelingUtils.addExperience(sword, 1);
                 }
                 else {
-                    e.addEffect(new MobEffectInstance(EffectsRegistry.POISSON, duration + maxAmp, maxAmp, false, true, false));
+                    e.addEffect(new PoisonEffectInstance(EffectsRegistry.POISSON, duration + maxAmp * 20, maxAmp, false, true, false, sword));
                 }
-            } else e.addEffect(new MobEffectInstance(EffectsRegistry.POISSON, duration, 0, false, true, false));
+            } else {
+                e.addEffect(new PoisonEffectInstance(EffectsRegistry.POISSON, duration, 0, false, true, false, sword));
+                if(rng.nextFloat() < 0.25f) LevelingUtils.addExperience(sword, 1);
+            }
         }
     }
 
@@ -297,6 +330,22 @@ public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
             }
         });
     }
+
+    @SubscribeEvent
+    public static void onLivingDeath(LivingDeathEvent event) {
+
+        if(event.getEntity().getLevel().isClientSide()) return;
+        int stacks = event.getEntity().hasEffect(EffectsRegistry.POISSON) ? event.getEntity().getEffect(EffectsRegistry.POISSON).getAmplifier() + 1 : 0;
+
+
+        if(event.getEntity().getEffect(EffectsRegistry.POISSON) instanceof PoisonEffectInstance pei && pei.getOriginSword().is(ItemsRegistry.RONAS_SWORD)){
+
+            for (int i = 0; i < stacks; i++) {
+                LevelingUtils.addExperience(pei.getOriginSword(), rng.nextInt(3) + 1);
+            }
+        }
+    }
+
 
     @Override
     public int getFoilColor(@NotNull ItemStack stack) {

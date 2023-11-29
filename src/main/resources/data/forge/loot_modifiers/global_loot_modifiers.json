@@ -1,6 +1,7 @@
 {
   "replace": false,
   "entries": [
-    "relics_thirteenflames:relics/knef_bow"
+    "relics_thirteenflames:relics/knef_bow",
+    "relics_thirteenflames:relics/thonas_sword"
   ]
 }

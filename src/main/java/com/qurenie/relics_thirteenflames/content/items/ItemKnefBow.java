@@ -159,7 +159,7 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
                     )
                     .build()
             )
-            .levelingData(new RelicLevelingData(100, 18, 100))
+            .levelingData(new RelicLevelingData(100, 20, 100))
             .styleData(RelicStyleData.builder().borders("#fffd75", "#ffbe00").build())
             .build();
 

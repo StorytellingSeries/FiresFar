@@ -1,9 +1,11 @@
 package com.qurenie.relics_thirteenflames.content.entities;
 
+import com.qurenie.relics_thirteenflames.content.effects.PoisonEffectInstance;
 import com.qurenie.relics_thirteenflames.init.EffectsRegistry;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import it.hurts.sskirillss.relics.client.particles.circle.CircleTintData;
 import it.hurts.sskirillss.relics.client.particles.spark.SparkTintData;
+import it.hurts.sskirillss.relics.items.relics.base.utils.LevelingUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -19,6 +21,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraftforge.network.NetworkHooks;
@@ -26,6 +29,7 @@ import net.minecraftforge.network.NetworkHooks;
 import java.awt.Color;
 import java.util.List;
 import java.util.Random;
+import java.util.UUID;
 
 public class FartCloudEntity extends Projectile {
 
@@ -76,6 +80,16 @@ public class FartCloudEntity extends Projectile {
         this.getEntityData().set(RADIUS, radius);
     }
 
+    private ItemStack sword = ItemStack.EMPTY;
+
+    public void setSword(ItemStack swort){
+        this.sword = swort;
+    }
+
+    public ItemStack getSword(){
+        return  sword;
+    }
+
     @Override
     public boolean isAlwaysTicking() {
         return true;
@@ -86,37 +100,42 @@ public class FartCloudEntity extends Projectile {
         super.tick();
         if(this.tickCount > getLifeTime()) this.discard();
         float radius = getRadius() * (1 - (float) this.tickCount / getLifeTime());
-        if(!this.getLevel().isClientSide()){
-            ServerLevel level = (ServerLevel) this.getLevel();
-            AABB box = new AABB(this.getPosition(1), this.getPosition(1)).inflate(radius);
+        AABB box = new AABB(this.getPosition(1), this.getPosition(1)).inflate(radius);
+        if(this.getLevel() instanceof ServerLevel){
+
             ParticleHelper.spawnParticleAABB(this.getLevel(), new CircleTintData(new Color(85 - rng.nextInt(80) + rng.nextInt(80), 255 - rng.nextInt(160), 0),
                     radius / 6.0f + 0.1f,80, 0.94F, false), box, Math.round(radius * radius * 2f) + 1, 0.01 * radius);
 
             ParticleHelper.spawnParticleAABB(this.getLevel(),
                     new SparkTintData(new Color(85 - rng.nextInt(80), 255 - rng.nextInt(160), 0), radius / 5.0f, 60),
                     box, Math.round(radius * radius) + 1, 0);
-
-            //AABB box = new AABB(this.getX(), this.getY(), this.getZ(),this.getX(), this.getY(), this.getZ()).inflate(radius);
-            List<LivingEntity> entities = level.getEntitiesOfClass(LivingEntity.class, box, e -> !e.equals(this.getOwner()));
-            if(dmgCD == 0) {
-                for (LivingEntity e : entities) {
-                    e.hurt(DamageSource.MAGIC, (float) (2 + radius));
-                    int maxAmp = getMaxAmp();
-                    int duration = getDuration();
-                    if (e.hasEffect(EffectsRegistry.POISSON)) {
-                        int appliedAmplifier = e.getEffect(EffectsRegistry.POISSON).getAmplifier() + 1;
-                        if (appliedAmplifier <= maxAmp) {
-                            e.addEffect(new MobEffectInstance(EffectsRegistry.POISSON, duration + appliedAmplifier, appliedAmplifier, false, true, false));
-                        }
-                        else {
-                            e.addEffect(new MobEffectInstance(EffectsRegistry.POISSON, duration + maxAmp, maxAmp, false, true, false));
-                        }
-                    } else e.addEffect(new MobEffectInstance(EffectsRegistry.POISSON, duration, 0, false, true, false));
-                }
-                dmgCD = 20;
-            }
-            if(dmgCD > 0) dmgCD--;
         }
+
+        //AABB box = new AABB(this.getX(), this.getY(), this.getZ(),this.getX(), this.getY(), this.getZ()).inflate(radius);
+        List<LivingEntity> entities = level.getEntitiesOfClass(LivingEntity.class, box, e -> !e.equals(this.getOwner()));
+
+        if(dmgCD == 0) {
+            for (LivingEntity e : entities) {
+                e.hurt(DamageSource.MAGIC, (float) (2 + radius));
+                int maxAmp = getMaxAmp();
+                int duration = getDuration();
+                if (e.hasEffect(EffectsRegistry.POISSON)) {
+                    int appliedAmplifier = e.getEffect(EffectsRegistry.POISSON).getAmplifier() + 1;
+                    if (appliedAmplifier <= maxAmp) {
+                        e.addEffect(new PoisonEffectInstance(EffectsRegistry.POISSON, duration + appliedAmplifier * 20, appliedAmplifier, false, true, false, getSword()));
+                        if(rng.nextFloat() < 0.25f) LevelingUtils.addExperience(getSword(), 1);
+                    }
+                    else {
+                        e.addEffect(new PoisonEffectInstance(EffectsRegistry.POISSON, duration + maxAmp * 20, maxAmp, false, true, false, getSword()));
+                    }
+                } else {
+                    e.addEffect(new PoisonEffectInstance(EffectsRegistry.POISSON, duration, 0, false, true, false, getSword()));
+                    if(rng.nextFloat() < 0.25f) LevelingUtils.addExperience(getSword(), 1);
+                }
+            }
+            dmgCD = 20;
+        }
+        if(dmgCD > 0) dmgCD--;
     }
 
     @Override

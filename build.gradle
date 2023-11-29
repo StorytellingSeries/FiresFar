@@ -3,6 +3,7 @@ plugins {
     id 'maven-publish'
     id 'net.minecraftforge.gradle' version '5.1.+'
     id 'org.spongepowered.mixin' version '0.7.+'
+    id 'org.parchmentmc.librarian.forgegradle' version '1.+'
 }
 
 version = '1.0'
@@ -16,7 +17,7 @@ println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty '
 
 mixin {
     // MixinGradle Settings
-    add sourceSets.main, 'mixins.mymod.refmap.json'
+    add sourceSets.main, 'mixins.relics_thirteenflames.refmap.json'
     config 'mixins.relics_thirteenflames.json'
 
     debug.verbose = true
@@ -37,7 +38,7 @@ minecraft {
     //
     // Use non-default mappings at your own risk. They may not always work.
     // Simply re-run your setup task after changing the mappings to update your workspace.
-    mappings channel: 'official', version: '1.19.2'
+    mappings channel: 'parchment', version: '2022.11.06-1.19.2'
 
     // accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg') // Currently, this location cannot be changed from the default.
 

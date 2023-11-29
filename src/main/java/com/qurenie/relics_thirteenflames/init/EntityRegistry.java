@@ -55,8 +55,4 @@ public class EntityRegistry {
             .sized(1F, 1F)
             .build("fartcloud");
 
-    @RegistryName("poison_wave")
-    public static final EntityType<PoisonWaveEntity> POISON_WAVE = Builder.of(PoisonWaveEntity::new, MobCategory.MISC)
-            .build("poison_wave");
-
 }
