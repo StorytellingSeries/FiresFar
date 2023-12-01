@@ -37,7 +37,7 @@ public class ThirteenFlames
     public static final CreativeModeTab ITEM_TAB = new CreativeModeTab("relics_thirteenflames") {
         @Override
         public ItemStack makeIcon() {
-            return Items.FIRE_CORAL.getDefaultInstance();
+            return ItemsRegistry.KNEF_BOW.getDefaultInstance();
         }
     };
     public ThirteenFlames()

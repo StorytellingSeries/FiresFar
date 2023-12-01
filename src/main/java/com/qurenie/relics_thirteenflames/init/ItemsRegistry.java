@@ -19,25 +19,13 @@ import org.zeith.hammerlib.annotations.SimplyRegister;
 
 @SimplyRegister
 public interface ItemsRegistry {
-//    private static final DeferredRegister<Item> ITEMS;
-//    public static final RegistryObject<Item> KNEF_BOW;
 
     @RegistryName("knef_bow")
     ItemKnefBow KNEF_BOW = new ItemKnefBow(props().rarity(Rarity.RARE).stacksTo(1));
 
-    @RegistryName("ronas_sword")
-    ItemRonasSword RONAS_SWORD = new ItemRonasSword(props().rarity(Rarity.RARE).stacksTo(1));
+//    @RegistryName("ronas_sword")
+//    ItemRonasSword RONAS_SWORD = new ItemRonasSword(props().rarity(Rarity.RARE).stacksTo(1));
 
-
-//    public static void registerItems() {
-//        ITEMS.register(FMLJavaModLoadingContext.get().getModEventBus());
-//    }
-//
-//    static {
-//        ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, "relics_thirteenflames");
-//
-//        KNEF_BOW = ITEMS.register("knef_bow", () -> new ItemKnefBow(props().rarity(Rarity.RARE)));
-//    }
 
     static Item.Properties props()
     {

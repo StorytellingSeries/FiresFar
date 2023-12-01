@@ -5,6 +5,7 @@ import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import it.hurts.sskirillss.relics.client.particles.circle.CircleTintData;
 import it.hurts.sskirillss.relics.items.relics.base.utils.LevelingUtils;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -32,6 +33,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 
 public class KnefProjectile extends ThrowableProjectile
@@ -40,6 +42,8 @@ public class KnefProjectile extends ThrowableProjectile
     public LivingEntity target;
 
     public Color color;
+
+    Random rng = new Random();
 
     private ItemStack bow = ItemStack.EMPTY;
 
@@ -81,6 +85,16 @@ public class KnefProjectile extends ThrowableProjectile
         return this.getEntityData().get(PARTICLE_COUNT);
     }
 
+    private static final EntityDataAccessor<Boolean> FREE = SynchedEntityData.defineId(KnefProjectile.class, EntityDataSerializers.BOOLEAN);
+
+    public boolean isFree() {
+        return this.getEntityData().get(FREE);
+    }
+
+    public void setFree(boolean free) {
+        this.getEntityData().set(FREE, free);
+    }
+
     public KnefProjectile(EntityType<? extends KnefProjectile> type, Level world) {
         super(type, world);
         this.color = new Color(0, 246 - this.random.nextInt(100), 255 - this.random.nextInt(120));
@@ -98,9 +112,17 @@ public class KnefProjectile extends ThrowableProjectile
             ParticleHelper.spawnParticleLine(this.level, new CircleTintData(color, 0.1f, 35, 0.89f, false),
                     prevPos == null ? this.position() : prevPos, this.position(), getParticleCount(), 0);
         }
-        if(this.target != null && target.hasLineOfSight(this)){
-            this.setDeltaMovement(getDeltaMovement().add(target.getBoundingBox().getCenter().subtract(this.position()).normalize().scale(0.1f)));
+
+        if(isFree()){
+            if(this.target != null && target.hasLineOfSight(this)){
+                this.setDeltaMovement(getDeltaMovement().add(target.getBoundingBox().getCenter().subtract(this.position()).normalize().scale(0.1f)));
+            } else if(target == null){
+                List<LivingEntity> targets = new ArrayList<>(this.getLevel().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(7), e -> !(e.equals(this.getOwner()) || e instanceof LocalPlayer) && e.hasLineOfSight(this)));
+                if(!targets.isEmpty()) this.target = targets.get(rng.nextInt(targets.size()));
+            }
         }
+
+
 
         prevPos = this.position();
     }
@@ -145,7 +167,7 @@ public class KnefProjectile extends ThrowableProjectile
 //            ParticleHelper.spawnParticleEntity(new CircleTintData(new Color(0, 60, 255), 0.2f, 10, 0.55f, false),
 //                    this, 10, 0.1);
         }
-        float vol = (float) (10 / this.getOwner().distanceToSqr(this.position()));
+        float vol = getOwner() == null ? 10 : (float) (10 / this.getOwner().distanceToSqr(this.position()));
         this.getLevel().playSound(null, this.getOwner(), SoundsRegistry.KNEF_BOW_SPLASH.get(), SoundSource.PLAYERS, random.nextFloat() * 0.05f * vol + vol, random.nextFloat() * 0.1f + 0.6f);
 
         this.discard();
@@ -190,6 +212,7 @@ public class KnefProjectile extends ThrowableProjectile
         this.entityData.define(POWER_ENCH, 0);
         this.entityData.define(BASE_DMG, 2);
         this.entityData.define(PARTICLE_COUNT, 12);
+        this.entityData.define(FREE, false);
     }
 
     @Override
@@ -198,6 +221,7 @@ public class KnefProjectile extends ThrowableProjectile
         setPowerEnch(compound.getInt("powerench"));
         setBaseDmg(compound.getInt("basedmg"));
         setParticleCount(compound.getInt("particles"));
+        setFree(compound.getBoolean("free"));
     }
 
     @Override
@@ -206,6 +230,7 @@ public class KnefProjectile extends ThrowableProjectile
         compound.putInt("powerench", getPowerEnch());
         compound.putInt("basedmg", getBaseDmg());
         compound.putInt("particles", getParticleCount());
+        compound.putBoolean("free", isFree());
     }
 
     @Override

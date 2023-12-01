@@ -170,8 +170,8 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
 
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag isAdvanced) {
+        tooltip.add(Component.literal("One of the \"Flames\", legendary artifacts scattered across the world.\nCreated by Knephmtyti, goddess of Death\n").withStyle(ChatFormatting.GOLD).withStyle(ChatFormatting.ITALIC));
         super.appendHoverText(stack, level, tooltip, isAdvanced);
-        tooltip.add(Component.literal("One of the \"Flames\", legendary artifacts scattered across the world.\nCreated by Knephmtyti, goddess of Death").withStyle(ChatFormatting.GOLD).withStyle(ChatFormatting.ITALIC));
     }
 
     @Override
@@ -264,6 +264,7 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
                 AbilityUtils.addAbilityCooldown(pStack, "storm", 600);
             }
         }
+        isShitting = false;
     }
 
     @Override
@@ -357,9 +358,6 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
                 player.hurtDuration = 0;
             }
 
-            if (!player.isCrouching() && isShitting) {
-                isShitting = false;
-            }
         }
     }
 
@@ -367,7 +365,7 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
     public InteractionResultHolder<ItemStack> use(Level pLevel, Player pPlayer, InteractionHand pHand) {
         ItemStack itemstack = pPlayer.getItemInHand(pHand);
         pPlayer.startUsingItem(pHand);
-        isShitting = pPlayer.isCrouching();
+        isShitting = pPlayer.isShiftKeyDown();
         return InteractionResultHolder.consume(itemstack);
     }
 

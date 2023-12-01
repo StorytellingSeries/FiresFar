@@ -15,7 +15,7 @@ public class PoisonEffectInstance extends MobEffectInstance {
         return this.originSword;
     }
 
-    public void setLivingSource(ItemStack sword){
+    public void setOriginSword(ItemStack sword){
         this.originSword = sword;
     }
 

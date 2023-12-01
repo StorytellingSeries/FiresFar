@@ -121,7 +121,7 @@ public class KnefDischarge extends ThrowableProjectile
         spark(10, 0.04, 0.15f);
         spark(15, 0.01, 0.15f);
         AABB box = this.getBoundingBox().inflate(getRadius()).move(0, -getRadius() * 0.5, 0).expandTowards(0, -3, 0);
-        List<LivingEntity> targets = new ArrayList<>(this.getLevel().getEntitiesOfClass(LivingEntity.class, box, e -> !(e.equals(this.getOwner()))));
+        List<LivingEntity> targets = new ArrayList<>(this.getLevel().getEntitiesOfClass(LivingEntity.class, box, e -> !(e.equals(this.getOwner())) && e.hasLineOfSight(this)));
         for(LivingEntity le : targets) {
             Vec3 start = this.position();
             Vec3 end = le.getBoundingBox().getCenter();
