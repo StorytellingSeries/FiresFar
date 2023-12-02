@@ -3,7 +3,7 @@
     "item.relics_thirteenflames.knef_bow": "Knephmtyti's Moonbow",
 
 
-
+    "tooltip.relics.knef_bow.lore": "One of the «Flames», legendary artifacts scattered across the world.\nCreated by Knephmtyti, goddess of Death",
     "tooltip.relics.knef_bow.leveling": "+1 experience point for each «Moonlight Arrows» hit. \n +1 experience point for each point of HP healed by «Heaven's Wrath»",
     "tooltip.relics.knef_bow.ability.shot": "Moonlight Arrows",
     "tooltip.relics.knef_bow.ability.shot.description": "Shoots out multiple beams of moonlight that track nearest targets. Each shot drains the user's HP.",
@@ -20,7 +20,7 @@
     "tooltip.relics.knef_bow.ability.swim.stat.dmg.title": "Damage",
     "tooltip.relics.knef_bow.ability.swim.stat.dmg.value": "%1$s",
     "tooltip.relics.knef_bow.ability.storm": "Heaven's Wrath",
-    "tooltip.relics.knef_bow.ability.storm.description": "Holding down Shift while charging the shot and shooting the Arrow into the sky will summon an Eye of the Storm, that will send down thunder and rain, damaging targets below and healing the user.",
+    "tooltip.relics.knef_bow.ability.storm.description": "Holding down Shift while charging the shot and shooting the Arrow into the sky will summon an Eye of the Storm, that will send down thunder and rain, damaging targets below and healing the user. A shot into the ground will create a powerful discharge, striking enemies with chain lightning.\nCooldown: 30 seconds",
     "tooltip.relics.knef_bow.ability.storm.stat.radius.title": "Area of Effect",
     "tooltip.relics.knef_bow.ability.storm.stat.radius.value": "%1$s blocks",
     "tooltip.relics.knef_bow.ability.storm.stat.dmg.title": "Rainfall DMG",

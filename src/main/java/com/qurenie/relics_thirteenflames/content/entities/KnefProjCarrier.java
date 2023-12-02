@@ -100,17 +100,21 @@ public class KnefProjCarrier extends ThrowableProjectile
                 if (cap == 0) {
                     for (int i = 0; i < rays.size(); i++) {
                         rays.get(i).target = targets.get(i);
+                        rays.get(i).setFree(true);
                     }
                     rays.clear();
                     this.discard();
                 } else {
                     for (LivingEntity target : targets) {
                         for (int i = 0; i < cap; i++) {
-                            rays.remove(0).target = target;
+                            KnefProjectile proj = rays.remove(0);
+                            proj.target = target;
+                            proj.setFree(true);
                         }
                     }
                     for (int i = 0; i < rays.size(); i++) {
                         rays.get(i).target = targets.get(i);
+                        rays.get(i).setFree(true);
                     }
                     rays.clear();
                     this.discard();

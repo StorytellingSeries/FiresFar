@@ -22,6 +22,7 @@ import it.hurts.sskirillss.relics.utils.MathUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.client.resources.language.LanguageManager;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.PlayerChatMessage;
 import net.minecraft.network.chat.Style;
@@ -78,6 +79,9 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
     }
 
     RandomSource random = RandomSource.create();
+
+    public static final DamageSource SUCC = new DamageSource("relics_thirteenflames:succ").bypassArmor().bypassEnchantments().bypassMagic().bypassInvul();
+
 
     protected final RelicData data = RelicData.builder()
             .abilityData(RelicAbilityData.builder()
@@ -170,7 +174,7 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
 
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag isAdvanced) {
-        tooltip.add(Component.literal("One of the \"Flames\", legendary artifacts scattered across the world.\nCreated by Knephmtyti, goddess of Death\n").withStyle(ChatFormatting.GOLD).withStyle(ChatFormatting.ITALIC));
+        tooltip.add(Component.translatable("tooltip.relics.knef_bow.lore").withStyle(ChatFormatting.GOLD).withStyle(ChatFormatting.ITALIC));
         super.appendHoverText(stack, level, tooltip, isAdvanced);
     }
 
@@ -190,7 +194,6 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
     public void releaseUsing(@NotNull ItemStack pStack, @NotNull Level pLevel, LivingEntity pLivingEntity, int pTimeCharged) {
         if (!pLivingEntity.isEyeInFluidType(WATER_TYPE.get()) && pLivingEntity instanceof Player p) {
 
-            isSurging = false;
 
             if (!isShitting || !AbilityUtils.canUseAbility(pStack, "storm") || AbilityUtils.isAbilityOnCooldown(pStack, "storm")) {
                 if (this.getUseDuration(pStack) - pTimeCharged > 19) {
@@ -262,9 +265,31 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
                 for (KnefProjectileSpecial proj : stormcaller.rays) pLevel.addFreshEntity(proj);
                 pLevel.addFreshEntity(stormcaller);
                 AbilityUtils.addAbilityCooldown(pStack, "storm", 600);
+            } else if (this.getUseDuration(pStack) - pTimeCharged > 5) {
+                if (!pLevel.isClientSide()) {
+                    float fl = random.nextFloat();
+                    pLevel.playSound(null, pLivingEntity.getX(), pLivingEntity.getY(), pLivingEntity.getZ(), SoundsRegistry.KNEF_BOW_SHOT.get(), SoundSource.MASTER, 0.5f, 1.75f + fl * 0.1f);
+                }
+                Vec3 pos = pLivingEntity.getEyePosition(1f).add(pLivingEntity.getLookAngle().scale(0.3))
+                        .add(pLivingEntity.getLookAngle()
+                                .cross( (pLivingEntity.getLookAngle().x < 0.001 && pLivingEntity.getLookAngle().z < 0.001) ?
+                                        Vec3.directionFromRotation(0, pLivingEntity.getYHeadRot()).scale(pLivingEntity.getLookAngle().y > 0 ? -1 : 1).normalize() :
+                                        new Vec3(0,1,0)
+                                ).normalize().scale(0.2)
+                        )
+                        .add(0, -0.13, 0).subtract(pLivingEntity.getLookAngle().scale(1.4));
+                KnefProjectile proj = new KnefProjectile(EntityRegistry.KNEF_PROJECTILE, pLevel);
+                proj.setPos(pos);
+                proj.setOwner(pLivingEntity);
+                proj.setPowerEnch(pStack.getEnchantmentLevel(Enchantments.POWER_ARROWS));
+                proj.setBow(pStack);
+                proj.setFree(false);
+                proj.shootFromRotation(pLivingEntity, pLivingEntity.getXRot(), pLivingEntity.getYRot(), 0.75f, 1f, 0);
+                pLevel.addFreshEntity(proj);
             }
         }
         isShitting = false;
+        isSurging = false;
     }
 
     @Override
@@ -300,7 +325,7 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
 
             if (!p.isCreative()) {
                 if (player.getHealth() > 1)
-                    player.setHealth(player.getHealth() - player.getMaxHealth() * (float)AbilityUtils.getAbilityValue(stack, "shot", "drain") * 0.02f);
+                    player.hurt(SUCC, player.getMaxHealth() * (float) AbilityUtils.getAbilityValue(stack, "shot", "drain") * 0.02f);
                 else player.kill();
             }
             player.hurtTime = 0;
@@ -350,8 +375,10 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
         } else if(player instanceof Player p){
             if (this.getUseDuration(stack) - count < 19) {
                 if (!p.isCreative()) {
-                    if (player.getHealth() > 1)
-                        player.setHealth(player.getHealth() - player.getMaxHealth() * (float)AbilityUtils.getAbilityValue(stack, "shot", "drain") * (isShitting ? 0.1f : 0.05f));
+                    if (player.getHealth() > 1) {
+                        //player.setHealth(player.getHealth() - player.getMaxHealth() * (float)AbilityUtils.getAbilityValue(stack, "shot", "drain") * (isShitting ? 0.1f : 0.05f));
+                        player.hurt(SUCC, player.getMaxHealth() * (float) AbilityUtils.getAbilityValue(stack, "shot", "drain") * (isShitting ? 0.1f : 0.05f));
+                    }
                     else player.kill();
                 }
                 player.hurtTime = 0;
@@ -384,7 +411,17 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
 
     @Override
     public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-        return enchantment.category == EnchantmentCategory.BOW;
+        return enchantment == Enchantments.POWER_ARROWS;
+    }
+
+    @Override
+    public int getEnchantmentValue(ItemStack stack) {
+        return 20;
+    }
+
+    @Override
+    public boolean isEnchantable(ItemStack pStack) {
+        return true;
     }
 
     @Override

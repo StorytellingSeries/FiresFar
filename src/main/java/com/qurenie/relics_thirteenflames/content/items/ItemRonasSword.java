@@ -337,13 +337,14 @@ public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
         if(event.getEntity().getLevel().isClientSide()) return;
         int stacks = event.getEntity().hasEffect(EffectsRegistry.POISSON) ? event.getEntity().getEffect(EffectsRegistry.POISSON).getAmplifier() + 1 : 0;
 
-
+/*
         if(event.getEntity().getEffect(EffectsRegistry.POISSON) instanceof PoisonEffectInstance pei && pei.getOriginSword().is(ItemsRegistry.RONAS_SWORD)){
 
             for (int i = 0; i < stacks; i++) {
                 LevelingUtils.addExperience(pei.getOriginSword(), rng.nextInt(3) + 1);
             }
         }
+        */
     }
 
 

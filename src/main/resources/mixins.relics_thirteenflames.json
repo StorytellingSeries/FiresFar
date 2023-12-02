@@ -9,7 +9,11 @@
   },
   "mixins": [
     "client.BakedOverrideAccessor",
-    "GameRendererMixin"
+    "GameRendererMixin",
+    "PlayerMixin",
+    "LivingEntityMixin",
+    "LocalPlayerMixin",
+    "LivingEntityRendererMixin"
   ],
   "client": [
   ],

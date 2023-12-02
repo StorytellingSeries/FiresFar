@@ -114,9 +114,9 @@ public class KnefProjectile extends ThrowableProjectile
         }
 
         if(isFree()){
-            if(this.target != null && target.hasLineOfSight(this)){
+            if(this.target != null && target.hasLineOfSight(this) && this.target.isAlive()){
                 this.setDeltaMovement(getDeltaMovement().add(target.getBoundingBox().getCenter().subtract(this.position()).normalize().scale(0.1f)));
-            } else if(target == null){
+            } else if(target == null || !target.isAlive()){
                 List<LivingEntity> targets = new ArrayList<>(this.getLevel().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(7), e -> !(e.equals(this.getOwner()) || e instanceof LocalPlayer) && e.hasLineOfSight(this)));
                 if(!targets.isEmpty()) this.target = targets.get(rng.nextInt(targets.size()));
             }
@@ -143,7 +143,7 @@ public class KnefProjectile extends ThrowableProjectile
             pResult.getEntity().invulnerableTime = 0;
 
             float vol = (float) (10 / this.getOwner().distanceToSqr(this.position()));
-            this.getLevel().playSound(null, this.getOwner(), SoundsRegistry.KNEF_BOW_SPLASH.get(), SoundSource.PLAYERS, random.nextFloat() * 0.05f * vol + vol, random.nextFloat() * 0.1f + 0.6f);
+            this.getLevel().playSound(null, this.getOwner() == null ? this : this.getOwner(), SoundsRegistry.KNEF_BOW_SPLASH.get(), SoundSource.PLAYERS, random.nextFloat() * 0.05f * vol + vol, random.nextFloat() * 0.1f + 0.6f);
 
             this.discard();
         }
@@ -168,7 +168,7 @@ public class KnefProjectile extends ThrowableProjectile
 //                    this, 10, 0.1);
         }
         float vol = getOwner() == null ? 10 : (float) (10 / this.getOwner().distanceToSqr(this.position()));
-        this.getLevel().playSound(null, this.getOwner(), SoundsRegistry.KNEF_BOW_SPLASH.get(), SoundSource.PLAYERS, random.nextFloat() * 0.05f * vol + vol, random.nextFloat() * 0.1f + 0.6f);
+        this.getLevel().playSound(null, this.getOwner() == null ? this : this.getOwner(), SoundsRegistry.KNEF_BOW_SPLASH.get(), SoundSource.PLAYERS, random.nextFloat() * 0.05f * vol + vol, random.nextFloat() * 0.1f + 0.6f);
 
         this.discard();
     }

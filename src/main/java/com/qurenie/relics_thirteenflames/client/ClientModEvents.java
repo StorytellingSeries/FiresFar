@@ -83,6 +83,7 @@ public class ClientModEvents {
             Minecraft MC = Minecraft.getInstance();
             LocalPlayer player = MC.player;
             Entity looked = MC.crosshairPickEntity;
+            /*
             if (player != null && player.getMainHandItem().is(ItemsRegistry.RONAS_SWORD) && looked instanceof LivingEntity livin) {
                 int stacks = livin.hasEffect(EffectsRegistry.POISSON) ? livin.getEffect(EffectsRegistry.POISSON).getAmplifier() + 1 : 0;
                 TextureManager manager = MC.getTextureManager();
@@ -130,6 +131,7 @@ public class ClientModEvents {
                 Gui.disableScissor();
 
             }
+            */
         }
 
     }

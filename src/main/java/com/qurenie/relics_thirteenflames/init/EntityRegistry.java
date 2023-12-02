@@ -47,7 +47,7 @@ public class EntityRegistry {
 
     @RegistryName("knef_raindrop")
     public static final EntityType<KnefRaindrop> KNEF_RAINDROP = Builder.of(KnefRaindrop::new, MobCategory.MISC)
-            .sized(0.2F, 0.2F)
+            .sized(0.6F, 0.5F)
             .build("knef_raindrop");
 
     @RegistryName("fartcloud")
