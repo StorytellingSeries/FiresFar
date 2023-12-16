@@ -106,14 +106,14 @@ public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
                                     .initialValue(4, 4.2)
                                     .thresholdValue(4, 8)
                                     .upgradeModifier(RelicAbilityStat.Operation.ADD, 0.76)
-                                    .formatValue(x -> (float) MathUtils.round(x, 2))
+                                    .formatValue(x -> MathUtils.round(x, 2))
                                     .build()
                             )
                             .stat("poisondur", RelicAbilityStat.builder()
                                     .initialValue(2.0, 2.5)
                                     .thresholdValue(2.0, 4.5)
                                     .upgradeModifier(RelicAbilityStat.Operation.ADD, 0.4)
-                                    .formatValue(x -> (int) MathUtils.round(x, 1))
+                                    .formatValue(x -> MathUtils.round(x, 1))
                                     .build()
                             )
                             .stat("maxstacks", RelicAbilityStat.builder()
@@ -131,21 +131,21 @@ public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
                                     .initialValue(2.0, 3.5)
                                     .thresholdValue(2.0, 5.0)
                                     .upgradeModifier(RelicAbilityStat.Operation.ADD, 0.5)
-                                    .formatValue(x -> (float) MathUtils.round(x, 1))
+                                    .formatValue(x -> MathUtils.round(x, 1))
                                     .build()
                             )
                             .stat("duration", RelicAbilityStat.builder()
                                     .initialValue(6.0, 10.0)
                                     .thresholdValue(6.0, 20.0)
                                     .upgradeModifier(RelicAbilityStat.Operation.ADD, 3.33)
-                                    .formatValue(x -> (int) MathUtils.round(x, 1))
+                                    .formatValue(x -> MathUtils.round(x, 1))
                                     .build()
                             )
                             .stat("cooldown", RelicAbilityStat.builder()
                                     .initialValue(40, 30)
                                     .thresholdValue(12, 40)
                                     .upgradeModifier(RelicAbilityStat.Operation.ADD, -6)
-                                    .formatValue(x -> (int) MathUtils.round(x, 0))
+                                    .formatValue(x -> MathUtils.round(x, 1))
                                     .build()
                             )
                             .build()
@@ -156,7 +156,7 @@ public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
                                     .initialValue(2, 2)
                                     .thresholdValue(0, 2)
                                     .upgradeModifier(RelicAbilityStat.Operation.ADD, -1.0)
-                                    .formatValue(x -> (int)MathUtils.round((1 - 0.8f / (x + 1)) * 100, 0))
+                                    .formatValue(x -> (int) MathUtils.round((1 - 0.8f / (x + 1)) * 100, 0))
                                     .build()
                             )
                             .stat("atkspd", RelicAbilityStat.builder()
@@ -220,10 +220,10 @@ public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
 
     @SubscribeEvent
     public static void onAttack(AttackEntityEvent event) {
-        if (event.getEntity().getItemInHand(InteractionHand.MAIN_HAND).getItem() instanceof ItemRonasSword /*&& !event.getEntity().getLevel().isClientSide()*/) {
+        if (event.getEntity().getItemInHand(InteractionHand.MAIN_HAND).getItem() instanceof ItemRonasSword && !event.getEntity().getLevel().isClientSide()) {
             if(event.getEntity().getAttackStrengthScale(0.5F) > 0.9F) {
                 poisonSwipe(event.getEntity(), event.getEntity().getItemInHand(InteractionHand.MAIN_HAND));
-            } else if(!event.getEntity().getLevel().isClientSide()){
+            } else{
                 event.getEntity().addEffect(new PoisonEffectInstance(EffectsRegistry.POISSON, 100, 0, false, true, false, event.getEntity().getItemInHand(InteractionHand.MAIN_HAND)));
             }
         }

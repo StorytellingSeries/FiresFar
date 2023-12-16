@@ -27,6 +27,7 @@ import net.minecraft.world.item.*;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentCategory;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.*;
 import net.minecraft.world.level.block.*;
@@ -238,7 +239,7 @@ public class ItemMontuHammer
 
         if(player == null
                 || player.isShiftKeyDown()
-                || !player.getMainHandItem().canPerformAction(ToolActions.PICKAXE_DIG)
+                || !stack.canPerformAction(ToolActions.PICKAXE_DIG)
         ) return false;
 
         Vec3 view = player.getViewVector(0);
@@ -262,7 +263,9 @@ public class ItemMontuHammer
             state = world.getBlockState(target);
             if(state.canHarvestBlock(world, target, player) && state.getDestroySpeed(world, pos) >= 0)
             {
-                world.destroyBlock(target, true, player);
+                state.getBlock().playerDestroy(world, player, target, state, world.getBlockEntity(target), stack);
+
+                world.destroyBlock(target, false);
             }
         }
         blocksMined++;
