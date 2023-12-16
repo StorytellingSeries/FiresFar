@@ -6,6 +6,7 @@ import com.google.common.collect.Multimap;
 import com.qurenie.relics_thirteenflames.client.render.item.EmissiveItemRenderer;
 import com.qurenie.relics_thirteenflames.content.effects.PoisonEffectInstance;
 import com.qurenie.relics_thirteenflames.content.entities.FartCloudEntity;
+import com.qurenie.relics_thirteenflames.content.entities.PoisonWaveProjectile;
 import com.qurenie.relics_thirteenflames.init.EffectsRegistry;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
@@ -252,7 +253,7 @@ public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
 
             //if(player instanceof LocalPlayer lp) lp.chatSigned(String.valueOf(lp.getXRot()), null);
 
-            if ((!player.hasEffect(EffectsRegistry.ANEMIA)
+            if ( !level.isClientSide() && (!player.hasEffect(EffectsRegistry.ANEMIA)
                     || (player.hasEffect(EffectsRegistry.ANEMIA) && player.getEffect(EffectsRegistry.ANEMIA).getDuration() < 20))) {
                 int amp = (int) AbilityUtils.getAbilityValue(stack, "anemia", "amp");
                 player.addEffect(new MobEffectInstance(EffectsRegistry.ANEMIA, 39, amp, true, false, true));
@@ -266,78 +267,61 @@ public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
         p.level.playSound(null, p, SoundEvents.AZALEA_FALL, SoundSource.MASTER, 1f, 0.02f);
         p.level.playSound(null, p, SoundEvents.SCULK_BLOCK_BREAK, SoundSource.MASTER, 1f, 1f);
         p.level.playSound(null, p, SoundEvents.AZALEA_LEAVES_FALL, SoundSource.MASTER, 1f, 1.8f);
-        double spreadAngle = 20 + (AbilityUtils.getAbilityValue(sword, "spit", "range") * 1.8);
+//        double spreadAngle = 20 + (AbilityUtils.getAbilityValue(sword, "spit", "range") * 1.8);
+//        int maxAmp = (int) Math.round(AbilityUtils.getAbilityValue(sword, "spit", "maxstacks") - 1);
+
         double range = AbilityUtils.getAbilityValue(sword, "spit", "range");
-        int maxAmp = (int) Math.round(AbilityUtils.getAbilityValue(sword, "spit", "maxstacks") - 1);
 
         Vec3 startVec = p.getEyePosition(1F)
                 .add(0, -0.2, 0);
-        Vec3 luk = Vec3.directionFromRotation(0, p.getYHeadRot());
-        Vec3 down = p.getLookAngle().subtract(luk);
 
 
 
 
         if (p.level instanceof ServerLevel level) {
-            for (int i = 0; i < range * 1.8; i++) {
-                int dark = RandomSource.create().nextInt(80);
-                int yellowness = RandomSource.create().nextInt(80);
-                int finalI = i;
-                //PoisonWaveEntity wave = new PoisonWaveEntity(EntityRegistry.POISON_WAVE, p.getLevel());
 
-                Scheduler.schedule(i, () -> {
-                    for (int j = 0; j < range * 4 + 1; j++) {
-                        Vec3 vec = startVec.add(luk
-                                .yRot((float) Math.toRadians(-spreadAngle + j * (spreadAngle * 2 / range / 4)))
-                                .add(down)
-                                .normalize()
-                                .scale(0.7 + finalI / 1.8/* * (range / 10.0) * 2 */)
-                        );
-                        level.sendParticles(new CircleTintData(new Color(85 - dark + yellowness, 255 - dark - RandomSource.create().nextInt(100), 0),
-                                        (float) (0.2F + 0.025f * range), 20, 0.83F, false),
-                                vec.x, vec.y, vec.z, 1, 0.018 * range, 0.018 * range, 0.018 * range, 0.005 + finalI * 0.008);
-                        if (j % 3 == 0)
-                            level.sendParticles(new SparkTintData(new Color(85 - RandomSource.create().nextInt(80), 255 - RandomSource.create().nextInt(100), 0),
-                                            (float) (0.2F + 0.025f * range), 20),
-                                    vec.x, vec.y, vec.z, 1, 0.018 * range, 0.018 * range, 0.018 * range, 0.005 + finalI * 0.008);
-                    }
-                });
-                //wave.setPos(startVec);
-                //p.getLevel().addFreshEntity(wave);
-            }
-        }
+            PoisonWaveProjectile wave = new PoisonWaveProjectile(EntityRegistry.POISONWAVE, level);
+            wave.setPos(startVec);
+            wave.startVec = startVec;
+            wave.flatluk = Vec3.directionFromRotation(0, p.getYHeadRot());
+            wave.spreadAngle = 20 + (range * 1.2);
+            wave.setDeltaMovement(p.getLookAngle().scale(AbilityUtils.getAbilityValue(sword, "spit", "range") * 0.1 + 0.06));
+            wave.setMaxRange((float) range);
+            wave.setOwner(p);
+            wave.setSword(sword);
+            level.addFreshEntity(wave);
 
-        AABB eBox = new AABB(
-                startVec.add(p.getLookAngle()
-                        .scale(range * 0.6)),
-                startVec.add(p.getLookAngle()
-                        .scale(range * 0.6))
-        ).inflate(range * 0.3);
-        HashSet<LivingEntity> entitySet = new HashSet<>(p.level.getEntitiesOfClass(LivingEntity.class, eBox, e -> !(e.equals(p))));
-        eBox = new AABB(
-                startVec.add(p.getLookAngle()
-                        .scale(range * 0.2)),
-                startVec.add(p.getLookAngle()
-                        .scale(range * 0.2))
-        ).inflate(range * 0.1);
-        entitySet.addAll(p.level.getEntitiesOfClass(LivingEntity.class, eBox, e -> !(e.equals(p))));
+            AABB eBox = new AABB(
+                    startVec.add(p.getLookAngle()
+                            .scale(range * 0.6)),
+                    startVec.add(p.getLookAngle()
+                            .scale(range * 0.6))
+            ).inflate(range * 0.3);
+            HashSet<LivingEntity> entitySet = new HashSet<>(p.level.getEntitiesOfClass(LivingEntity.class, eBox, e -> !(e.equals(p))));
+            eBox = new AABB(
+                    startVec.add(p.getLookAngle()
+                            .scale(range * 0.2)),
+                    startVec.add(p.getLookAngle()
+                            .scale(range * 0.2))
+            ).inflate(range * 0.1);
+            entitySet.addAll(p.level.getEntitiesOfClass(LivingEntity.class, eBox, e -> !(e.equals(p))));
 
-        int duration = (int) Math.round(AbilityUtils.getAbilityValue(sword, "spit", "poisondur") * 20);
-        for (LivingEntity e : entitySet) {
-            e.hurt(DamageSource.mobAttack(p), 1);
-            if (e.hasEffect(EffectsRegistry.POISSON)) {
-                int appliedAmplifier = e.getEffect(EffectsRegistry.POISSON).getAmplifier() + 1;
-                if (appliedAmplifier <= maxAmp) {
-                    e.addEffect(new PoisonEffectInstance(EffectsRegistry.POISSON, duration + appliedAmplifier * 20, appliedAmplifier, false, true, false, sword));
-                    if(rng.nextFloat() < 0.25f) LevelingUtils.addExperience(sword, 1);
-                }
-                else {
-                    e.addEffect(new PoisonEffectInstance(EffectsRegistry.POISSON, duration + maxAmp * 20, maxAmp, false, true, false, sword));
-                }
-            } else {
-                e.addEffect(new PoisonEffectInstance(EffectsRegistry.POISSON, duration, 0, false, true, false, sword));
-                if(rng.nextFloat() < 0.25f) LevelingUtils.addExperience(sword, 1);
-            }
+//            int duration = (int) Math.round(AbilityUtils.getAbilityValue(sword, "spit", "poisondur") * 20);
+//            for (LivingEntity e : entitySet) {
+//                e.hurt(DamageSource.mobAttack(p), 1);
+//                if (e.hasEffect(EffectsRegistry.POISSON)) {
+//                    int appliedAmplifier = e.getEffect(EffectsRegistry.POISSON).getAmplifier() + 1;
+//                    if (appliedAmplifier <= maxAmp) {
+//                        e.addEffect(new PoisonEffectInstance(EffectsRegistry.POISSON, duration + appliedAmplifier * 20, appliedAmplifier, false, true, false, sword));
+//                        if (rng.nextFloat() < 0.25f) LevelingUtils.addExperience(sword, 1);
+//                    } else {
+//                        e.addEffect(new PoisonEffectInstance(EffectsRegistry.POISSON, duration + maxAmp * 20, maxAmp, false, true, false, sword));
+//                    }
+//                } else {
+//                    e.addEffect(new PoisonEffectInstance(EffectsRegistry.POISSON, duration, 0, false, true, false, sword));
+//                    if (rng.nextFloat() < 0.25f) LevelingUtils.addExperience(sword, 1);
+//                }
+//            }
         }
     }
 

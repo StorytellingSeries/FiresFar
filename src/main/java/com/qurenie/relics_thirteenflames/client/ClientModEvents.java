@@ -68,6 +68,7 @@ public class ClientModEvents {
         e.registerEntityRenderer(EntityRegistry.KNEF_STORM, NullRenderer::new);
         e.registerEntityRenderer(EntityRegistry.KNEF_RAINDROP, NullRenderer::new);
         e.registerEntityRenderer(EntityRegistry.FARTCLOUD, NullRenderer::new);
+        e.registerEntityRenderer(EntityRegistry.POISONWAVE, NullRenderer::new);
         e.registerEntityRenderer(EntityRegistry.USABLE_FALLING, FallingRenderer::new);
     }
 
