@@ -1,0 +1,47 @@
+package com.qurenie.relics_thirteenflames.net;
+
+import com.qurenie.relics_thirteenflames.content.effects.PoisonEffectInstance;
+import com.qurenie.relics_thirteenflames.content.items.ItemRonasSword;
+import com.qurenie.relics_thirteenflames.init.EffectsRegistry;
+import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.ItemStack;
+import org.zeith.hammerlib.net.IPacket;
+import org.zeith.hammerlib.net.MainThreaded;
+import org.zeith.hammerlib.net.PacketContext;
+
+@MainThreaded
+public class RhonasSweepPacket implements IPacket {
+
+    private ItemStack sword;
+    public RhonasSweepPacket(ItemStack sword){
+        this.sword = sword;
+    }
+
+
+    @Override
+    public void write(FriendlyByteBuf buf) {
+        IPacket.super.write(buf);
+        buf.writeItem(sword);
+    }
+
+    @Override
+    public void read(FriendlyByteBuf buf) {
+        IPacket.super.read(buf);
+        this.sword = buf.readItem();
+    }
+
+    @Override
+    public void serverExecute(PacketContext ctx) {
+        IPacket.super.serverExecute(ctx);
+        ServerPlayer sender = ctx.getSender();
+        if(!sword.is(ItemsRegistry.RONAS_SWORD)) return;
+        if(sender.getAttackStrengthScale(0.5F) > 0.9F){
+            ItemRonasSword.poisonSwipe(sender, sword);
+        } else {
+            sender.addEffect(new PoisonEffectInstance(EffectsRegistry.POISSON, 100, 0, false, true, false, sword));
+        }
+    }
+}

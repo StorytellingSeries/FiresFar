@@ -9,6 +9,7 @@ import com.qurenie.relics_thirteenflames.content.entities.FartCloudEntity;
 import com.qurenie.relics_thirteenflames.init.EffectsRegistry;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
+import com.qurenie.relics_thirteenflames.net.RhonasSweepPacket;
 import it.hurts.sskirillss.relics.client.particles.circle.CircleTintData;
 import it.hurts.sskirillss.relics.client.particles.spark.SparkTintData;
 import it.hurts.sskirillss.relics.client.tooltip.base.RelicStyleData;
@@ -22,8 +23,10 @@ import it.hurts.sskirillss.relics.items.relics.base.utils.AbilityUtils;
 import it.hurts.sskirillss.relics.items.relics.base.utils.LevelingUtils;
 import it.hurts.sskirillss.relics.utils.MathUtils;
 import it.hurts.sskirillss.relics.utils.Scheduler;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -41,6 +44,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentCategory;
 import net.minecraft.world.item.enchantment.Enchantments;
@@ -51,13 +55,17 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.zeith.hammerlib.api.items.IColoredFoilItem;
+import org.zeith.hammerlib.net.Network;
 
 import java.awt.*;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Random;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -120,16 +128,16 @@ public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
                     .ability("fart", RelicAbilityEntry.builder()
                             .maxLevel(3)
                             .stat("radius", RelicAbilityStat.builder()
-                                    .initialValue(1.0, 2.0)
-                                    .thresholdValue(1.0, 4.0)
-                                    .upgradeModifier(RelicAbilityStat.Operation.ADD, 0.67)
+                                    .initialValue(2.0, 3.5)
+                                    .thresholdValue(2.0, 5.0)
+                                    .upgradeModifier(RelicAbilityStat.Operation.ADD, 0.5)
                                     .formatValue(x -> (float) MathUtils.round(x, 1))
                                     .build()
                             )
                             .stat("duration", RelicAbilityStat.builder()
                                     .initialValue(6.0, 10.0)
-                                    .thresholdValue(6.0, 25.0)
-                                    .upgradeModifier(RelicAbilityStat.Operation.ADD, 5.0)
+                                    .thresholdValue(6.0, 20.0)
+                                    .upgradeModifier(RelicAbilityStat.Operation.ADD, 3.33)
                                     .formatValue(x -> (int) MathUtils.round(x, 1))
                                     .build()
                             )
@@ -155,7 +163,7 @@ public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
                                     .initialValue(0, 0.2)
                                     .thresholdValue(0, 1.4)
                                     .upgradeModifier(RelicAbilityStat.Operation.ADD, 0.6)
-                                    .formatValue(x -> MathUtils.round(4 - 2.6 + x, 1))
+                                    .formatValue(x -> MathUtils.round(4 - 2.6 + x, 2))
                                     .build()
                             )
                             .build()
@@ -172,13 +180,19 @@ public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
     }
 
     @Override
+    public void appendHoverText(ItemStack stack, @Nullable Level level, List<net.minecraft.network.chat.Component> tooltip, TooltipFlag isAdvanced) {
+        tooltip.add(Component.translatable("tooltip.relics_thirteenflames.ronas_sword.lore").withStyle(ChatFormatting.GOLD).withStyle(ChatFormatting.ITALIC));
+        super.appendHoverText(stack, level, tooltip, isAdvanced);
+    }
+
+    @Override
     public boolean shouldCauseReequipAnimation(ItemStack oldStack, ItemStack newStack, boolean slotChanged) {
         return slotChanged;
     }
 
     @Override
     public InteractionResultHolder<ItemStack> use(Level pLevel, Player pPlayer, InteractionHand pUsedHand) {
-        if (pPlayer.isCrouching() && !AbilityUtils.isAbilityOnCooldown(pPlayer.getItemInHand(pUsedHand), "fart")) {
+        if (pPlayer.isCrouching() /*&& !AbilityUtils.isAbilityOnCooldown(pPlayer.getItemInHand(pUsedHand), "fart")*/) {
             pLevel.playSound(null, pPlayer, SoundEvents.CHORUS_FLOWER_DEATH, SoundSource.MASTER, 1.2f, 0.1f);
             pLevel.playSound(null, pPlayer, SoundEvents.SCULK_BLOCK_BREAK, SoundSource.MASTER, 1f, 1f);
             pLevel.playSound(null, pPlayer, SoundEvents.AZALEA_FALL, SoundSource.MASTER, 1f, 0.01f);
@@ -197,7 +211,9 @@ public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
             );
             cloud.setPos(pos);
             pLevel.addFreshEntity(cloud);
-            AbilityUtils.addAbilityCooldown(pPlayer.getItemInHand(pUsedHand), "fart", (int) AbilityUtils.getAbilityValue(sword, "fart", "cooldown") * 20);
+            int cooldown = (int) Math.round(AbilityUtils.getAbilityValue(pPlayer.getItemInHand(pUsedHand), "fart", "cooldown") * 20);
+            pPlayer.getCooldowns().addCooldown(this, cooldown);
+            //AbilityUtils.addAbilityCooldown(pPlayer.getItemInHand(pUsedHand), "fart", (int) AbilityUtils.getAbilityValue(sword, "fart", "cooldown") * 20);
         }
         return super.use(pLevel, pPlayer, pUsedHand);
     }
@@ -207,7 +223,7 @@ public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
         if (event.getEntity().getItemInHand(InteractionHand.MAIN_HAND).getItem() instanceof ItemRonasSword /*&& !event.getEntity().getLevel().isClientSide()*/) {
             if(event.getEntity().getAttackStrengthScale(0.5F) > 0.9F) {
                 poisonSwipe(event.getEntity(), event.getEntity().getItemInHand(InteractionHand.MAIN_HAND));
-            } else{
+            } else if(!event.getEntity().getLevel().isClientSide()){
                 event.getEntity().addEffect(new PoisonEffectInstance(EffectsRegistry.POISSON, 100, 0, false, true, false, event.getEntity().getItemInHand(InteractionHand.MAIN_HAND)));
             }
         }
@@ -343,15 +359,22 @@ public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
         if(event.getEntity().getLevel().isClientSide()) return;
         int stacks = event.getEntity().hasEffect(EffectsRegistry.POISSON) ? event.getEntity().getEffect(EffectsRegistry.POISSON).getAmplifier() + 1 : 0;
 
-/*
+
         if(event.getEntity().getEffect(EffectsRegistry.POISSON) instanceof PoisonEffectInstance pei && pei.getOriginSword().is(ItemsRegistry.RONAS_SWORD)){
 
             for (int i = 0; i < stacks; i++) {
                 LevelingUtils.addExperience(pei.getOriginSword(), rng.nextInt(3) + 1);
             }
         }
-        */
     }
+
+    @SubscribeEvent
+    public static void onHitAir(PlayerInteractEvent.LeftClickEmpty event) {
+        if(!event.getItemStack().is(ItemsRegistry.RONAS_SWORD)) return;
+
+        Network.sendToServer(new RhonasSweepPacket(event.getItemStack()));
+    }
+
 
 
     @Override
