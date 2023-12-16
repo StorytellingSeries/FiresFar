@@ -43,6 +43,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentCategory;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -133,10 +134,10 @@ public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
                                     .build()
                             )
                             .stat("cooldown", RelicAbilityStat.builder()
-                                    .initialValue(30, 40)
+                                    .initialValue(40, 30)
                                     .thresholdValue(12, 40)
                                     .upgradeModifier(RelicAbilityStat.Operation.ADD, -6)
-                                    .formatValue(x -> (int) MathUtils.round(x, 1))
+                                    .formatValue(x -> (int) MathUtils.round(x, 0))
                                     .build()
                             )
                             .build()
@@ -147,14 +148,14 @@ public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
                                     .initialValue(2, 2)
                                     .thresholdValue(0, 2)
                                     .upgradeModifier(RelicAbilityStat.Operation.ADD, -1.0)
-                                    .formatValue(x -> MathUtils.round((0.8f / x) * 100, 0))
+                                    .formatValue(x -> (int)MathUtils.round((1 - 0.8f / (x + 1)) * 100, 0))
                                     .build()
                             )
                             .stat("atkspd", RelicAbilityStat.builder()
                                     .initialValue(0, 0.2)
                                     .thresholdValue(0, 1.4)
                                     .upgradeModifier(RelicAbilityStat.Operation.ADD, 0.6)
-                                    .formatValue(x -> MathUtils.round(4 - 2.6 + x, 0))
+                                    .formatValue(x -> MathUtils.round(4 - 2.6 + x, 1))
                                     .build()
                             )
                             .build()
@@ -220,7 +221,12 @@ public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
 
     @Override
     public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-        return enchantment.category == EnchantmentCategory.WEAPON;
+        return enchantment.category == EnchantmentCategory.WEAPON && enchantment != Enchantments.UNBREAKING;
+    }
+
+    @Override
+    public int getEnchantmentValue(ItemStack stack) {
+        return 20;
     }
 
     @Override

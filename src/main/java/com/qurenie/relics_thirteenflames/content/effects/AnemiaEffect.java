@@ -26,7 +26,7 @@ public class AnemiaEffect extends MobEffect {
 
 
     @SubscribeEvent
-    public static void onMovementInput(LivingHealEvent event) {
+    public static void onLivingHeal(LivingHealEvent event) {
         if (event.getEntity().hasEffect(EffectsRegistry.ANEMIA)) {
             int amp = event.getEntity().getEffect(EffectsRegistry.ANEMIA).getAmplifier() + 1;
             event.setAmount(event.getAmount() * (0.8f / amp));

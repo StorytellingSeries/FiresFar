@@ -4,6 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Matrix4f;
 import com.qurenie.relics_thirteenflames.ThirteenFlames;
+import com.qurenie.relics_thirteenflames.client.render.entity.FallingRenderer;
 import com.qurenie.relics_thirteenflames.content.entities.KnefProjectile;
 import com.qurenie.relics_thirteenflames.init.EffectsRegistry;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
@@ -49,7 +50,6 @@ public class ClientModEvents {
             ItemProperties.register(ItemsRegistry.KNEF_BOW, new ResourceLocation("relics_thirteenflames", "pull"), (stack, world, living, a) -> {
 
                 if (living != null && living.isUsingItem()) {
-                    //ScriptUtils.sendMessageToPlayers(String.valueOf(living.getUseItem() != stack ? 0.0F : (float)(stack.getUseDuration() - living.getUseItemRemainingTicks()) / 20.0F));
                     return living.getUseItem() != stack ? 0.0F : (float) (stack.getUseDuration() - living.getUseItemRemainingTicks()) / 20.0F;
                 } else {
                     return 0.0f;
@@ -68,6 +68,7 @@ public class ClientModEvents {
         e.registerEntityRenderer(EntityRegistry.KNEF_STORM, NullRenderer::new);
         e.registerEntityRenderer(EntityRegistry.KNEF_RAINDROP, NullRenderer::new);
         e.registerEntityRenderer(EntityRegistry.FARTCLOUD, NullRenderer::new);
+        e.registerEntityRenderer(EntityRegistry.USABLE_FALLING, FallingRenderer::new);
     }
 
     @SubscribeEvent
@@ -83,7 +84,7 @@ public class ClientModEvents {
             Minecraft MC = Minecraft.getInstance();
             LocalPlayer player = MC.player;
             Entity looked = MC.crosshairPickEntity;
-            /*
+
             if (player != null && player.getMainHandItem().is(ItemsRegistry.RONAS_SWORD) && looked instanceof LivingEntity livin) {
                 int stacks = livin.hasEffect(EffectsRegistry.POISSON) ? livin.getEffect(EffectsRegistry.POISSON).getAmplifier() + 1 : 0;
                 TextureManager manager = MC.getTextureManager();
@@ -131,7 +132,7 @@ public class ClientModEvents {
                 Gui.disableScissor();
 
             }
-            */
+
         }
 
     }

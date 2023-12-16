@@ -1,8 +1,13 @@
 {
     "itemGroup.relics_thirteenflames": "Relics: Тринадцать Огней",
-    "item.relics_thirteenflames.knef_bow": "Лунный Лук Кнефмтити",
 
-    "tooltip.relics.knef_bow.lore": "Один из «Огней», легендарных артефактов, разбросанных по всему Мисру. \nСоздан богиней смерти, Кнефмтити",
+    "effect.relics_thirteenflames.anemia": "Анемия",
+    "effect.relics_thirteenflames.poisson": "Яд Ронаса",
+
+    "item.relics_thirteenflames.knef_bow": "Лунный Лук Кнефмтити",
+    "item.relics_thirteenflames.ronas_sword": "Клык Ронаса",
+
+    "tooltip.relics_thirteenflames.knef_bow.lore": "Один из «Огней», легендарных артефактов, разбросанных по всему Мисру.\nСоздан богиней смерти, Кнефмтити",
     "tooltip.relics.knef_bow.leveling": "+1 очко опыта за каждое попадание «Лунных Стрел». \n +1 очко опыта за каждую единицу здоровья, исцелённую с помощью «Гнева Небес».",
     "tooltip.relics.knef_bow.ability.shot": "Лунные Стрелы",
     "tooltip.relics.knef_bow.ability.shot.description": "Лук выпускает лучи лунного света, создавая их из ваших собственных жизненных сил. Лучи преследуют ближайшие цели.",
@@ -27,6 +32,32 @@
     "tooltip.relics.knef_bow.ability.storm.stat.dur.title": "Длительность",
     "tooltip.relics.knef_bow.ability.storm.stat.dur.value": "%1$s секунд",
     "tooltip.relics.knef_bow.ability.storm.stat.heal.title": "Исцеление",
-    "tooltip.relics.knef_bow.ability.storm.stat.heal.value": "%1$s%% максимального здоровья"
+    "tooltip.relics.knef_bow.ability.storm.stat.heal.value": "%1$s%% максимального здоровья",
 
+    "tooltip.relics_thirteenflames.ronas_sword.lore": "Один из «Огней», легендарных артефактов, разбросанных по всему Мисру.\nСоздан богом войны, Ронасом",
+    "tooltip.relics.ronas_sword.leveling": "+1-3 очков опыта за каждый стак «Яда Ронаса» на поверженных противниках. \n Шанс 25% получить +1 очко опыта за наложение нового стака «Яда Ронаса» на цель",
+    "tooltip.relics.ronas_sword.ability.spit": "Яд Ронаса",
+    "tooltip.relics.ronas_sword.ability.spit.description": "Каждый взмах клинка разбрызгивает яд по дуге перед вами, и с каждым новым ударом он все глубже проникает в тела ваших противников. Слишком частые атаки вместо этого отравят самого владельца",
+    "tooltip.relics.ronas_sword.ability.spit.stat.range.title": "Дальность",
+    "tooltip.relics.ronas_sword.ability.spit.stat.range.value": "%1$s блоков",
+    "tooltip.relics.ronas_sword.ability.spit.stat.poisondur.title": "Базовая Длительность",
+    "tooltip.relics.ronas_sword.ability.spit.stat.poisondur.value": "%1$s секунды",
+    "tooltip.relics.ronas_sword.ability.spit.stat.maxstacks.title": "Максимум Стаков",
+    "tooltip.relics.ronas_sword.ability.spit.stat.maxstacks.value": "%1$s",
+    "tooltip.relics.ronas_sword.ability.fart": "Токсичное Облако",
+    "tooltip.relics.ronas_sword.ability.fart.description": "Нажатие Shift+ПКМ выпускает облако яда, многие года отравлявшего воды Гезиры. Существа, попавшие в область поражения, получают периодический урон.",
+    "tooltip.relics.ronas_sword.ability.fart.stat.radius.title": "Радиус",
+    "tooltip.relics.ronas_sword.ability.fart.stat.radius.value": "%1$s блока",
+    "tooltip.relics.ronas_sword.ability.fart.stat.duration.title": "Длительность",
+    "tooltip.relics.ronas_sword.ability.fart.stat.duration.value": "%1$s секунд",
+    "tooltip.relics.ronas_sword.ability.fart.stat.cooldown.title": "Перезарядка",
+    "tooltip.relics.ronas_sword.ability.fart.stat.cooldown.value": "%1$s секунд",
+    "tooltip.relics.ronas_sword.ability.anemia": "Анемия",
+    "tooltip.relics.ronas_sword.ability.anemia.description": "Вы чувствуете, как клинок отравляет саму вашу сущность, снижая скорость атаки Клыком и количество восстанавливаемого вами здоровья.",
+    "tooltip.relics.ronas_sword.ability.anemia.stat.amp.title": "Снижения Восстановления",
+    "tooltip.relics.ronas_sword.ability.anemia.stat.amp.value": "-%1$s%%",
+    "tooltip.relics.ronas_sword.ability.anemia.stat.atkspd.title": "Скорость Атаки Клинка",
+    "tooltip.relics.ronas_sword.ability.anemia.stat.atkspd.value": "%1$s",
+
+    "tooltip.relics_thirteenflames.montu_hammer.aoemessage": "Область Добычи:"
 }
