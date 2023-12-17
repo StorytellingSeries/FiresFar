@@ -193,7 +193,7 @@ public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
 
     @Override
     public InteractionResultHolder<ItemStack> use(Level pLevel, Player pPlayer, InteractionHand pUsedHand) {
-        if (pPlayer.isCrouching() /*&& !AbilityUtils.isAbilityOnCooldown(pPlayer.getItemInHand(pUsedHand), "fart")*/) {
+        if (pPlayer.isCrouching()) {
             pLevel.playSound(null, pPlayer, SoundEvents.CHORUS_FLOWER_DEATH, SoundSource.MASTER, 1.2f, 0.1f);
             pLevel.playSound(null, pPlayer, SoundEvents.SCULK_BLOCK_BREAK, SoundSource.MASTER, 1f, 1f);
             pLevel.playSound(null, pPlayer, SoundEvents.AZALEA_FALL, SoundSource.MASTER, 1f, 0.01f);
@@ -214,7 +214,7 @@ public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
             pLevel.addFreshEntity(cloud);
             int cooldown = (int) Math.round(AbilityUtils.getAbilityValue(pPlayer.getItemInHand(pUsedHand), "fart", "cooldown") * 20);
             pPlayer.getCooldowns().addCooldown(this, cooldown);
-            //AbilityUtils.addAbilityCooldown(pPlayer.getItemInHand(pUsedHand), "fart", (int) AbilityUtils.getAbilityValue(sword, "fart", "cooldown") * 20);
+
         }
         return super.use(pLevel, pPlayer, pUsedHand);
     }
@@ -225,7 +225,10 @@ public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
             if(event.getEntity().getAttackStrengthScale(0.5F) > 0.9F) {
                 poisonSwipe(event.getEntity(), event.getEntity().getItemInHand(InteractionHand.MAIN_HAND));
             } else{
-                event.getEntity().addEffect(new PoisonEffectInstance(EffectsRegistry.POISSON, 100, 0, false, true, false, event.getEntity().getItemInHand(InteractionHand.MAIN_HAND)));
+                event.getEntity().level.playSound(null, event.getEntity(), SoundEvents.AZALEA_FALL, SoundSource.MASTER, 1f, 0.8f);
+                event.getEntity().level.playSound(null, event.getEntity(), SoundEvents.SCULK_BLOCK_BREAK, SoundSource.MASTER, 0.7f, 0.7f);
+                event.getEntity().level.playSound(null, event.getEntity(), SoundEvents.BLAZE_BURN, SoundSource.MASTER, 0.8f, 2.4f);
+                event.getEntity().addEffect(new PoisonEffectInstance(EffectsRegistry.POISSON, 100, 0, false, true, true, event.getEntity().getItemInHand(InteractionHand.MAIN_HAND)));
             }
         }
     }
@@ -267,15 +270,11 @@ public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
         p.level.playSound(null, p, SoundEvents.AZALEA_FALL, SoundSource.MASTER, 1f, 0.02f);
         p.level.playSound(null, p, SoundEvents.SCULK_BLOCK_BREAK, SoundSource.MASTER, 1f, 1f);
         p.level.playSound(null, p, SoundEvents.AZALEA_LEAVES_FALL, SoundSource.MASTER, 1f, 1.8f);
-//        double spreadAngle = 20 + (AbilityUtils.getAbilityValue(sword, "spit", "range") * 1.8);
-//        int maxAmp = (int) Math.round(AbilityUtils.getAbilityValue(sword, "spit", "maxstacks") - 1);
 
         double range = AbilityUtils.getAbilityValue(sword, "spit", "range");
 
         Vec3 startVec = p.getEyePosition(1F)
                 .add(0, -0.2, 0);
-
-
 
 
         if (p.level instanceof ServerLevel level) {
@@ -291,37 +290,6 @@ public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
             wave.setSword(sword);
             level.addFreshEntity(wave);
 
-            AABB eBox = new AABB(
-                    startVec.add(p.getLookAngle()
-                            .scale(range * 0.6)),
-                    startVec.add(p.getLookAngle()
-                            .scale(range * 0.6))
-            ).inflate(range * 0.3);
-            HashSet<LivingEntity> entitySet = new HashSet<>(p.level.getEntitiesOfClass(LivingEntity.class, eBox, e -> !(e.equals(p))));
-            eBox = new AABB(
-                    startVec.add(p.getLookAngle()
-                            .scale(range * 0.2)),
-                    startVec.add(p.getLookAngle()
-                            .scale(range * 0.2))
-            ).inflate(range * 0.1);
-            entitySet.addAll(p.level.getEntitiesOfClass(LivingEntity.class, eBox, e -> !(e.equals(p))));
-
-//            int duration = (int) Math.round(AbilityUtils.getAbilityValue(sword, "spit", "poisondur") * 20);
-//            for (LivingEntity e : entitySet) {
-//                e.hurt(DamageSource.mobAttack(p), 1);
-//                if (e.hasEffect(EffectsRegistry.POISSON)) {
-//                    int appliedAmplifier = e.getEffect(EffectsRegistry.POISSON).getAmplifier() + 1;
-//                    if (appliedAmplifier <= maxAmp) {
-//                        e.addEffect(new PoisonEffectInstance(EffectsRegistry.POISSON, duration + appliedAmplifier * 20, appliedAmplifier, false, true, false, sword));
-//                        if (rng.nextFloat() < 0.25f) LevelingUtils.addExperience(sword, 1);
-//                    } else {
-//                        e.addEffect(new PoisonEffectInstance(EffectsRegistry.POISSON, duration + maxAmp * 20, maxAmp, false, true, false, sword));
-//                    }
-//                } else {
-//                    e.addEffect(new PoisonEffectInstance(EffectsRegistry.POISSON, duration, 0, false, true, false, sword));
-//                    if (rng.nextFloat() < 0.25f) LevelingUtils.addExperience(sword, 1);
-//                }
-//            }
         }
     }
 

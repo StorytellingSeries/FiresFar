@@ -103,10 +103,10 @@ public class FartCloudEntity extends Projectile {
         AABB box = new AABB(this.getPosition(1), this.getPosition(1)).inflate(radius);
         if(this.getLevel() instanceof ServerLevel){
 
-            ParticleHelper.spawnParticleAABB(this.getLevel(), new CircleTintData(new Color(85 - rng.nextInt(80) + rng.nextInt(80), 255 - rng.nextInt(160), 0),
+            ParticleHelper.spawnParticleAABB(this.getLevel(), new CircleTintData(new Color(55 + rng.nextInt(-50, 10), 175 - rng.nextInt(160), 0),
                     radius / 6.2f + 0.15f,80, 0.94F, false), box, Math.round(radius * radius * 2f) + 2, 0.01 * radius);
 
-            ParticleHelper.spawnParticleAABB(this.getLevel(),
+            if(this.tickCount % 2 == 0)ParticleHelper.spawnParticleAABB(this.getLevel(),
                     new SparkTintData(new Color(85 - rng.nextInt(80), 255 - rng.nextInt(160), 0), radius / 5.0f, 60),
                     box, Math.round(radius * radius) + 1, 0);
         }

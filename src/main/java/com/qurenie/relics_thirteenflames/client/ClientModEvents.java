@@ -2,28 +2,18 @@ package com.qurenie.relics_thirteenflames.client;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
-import com.mojang.math.Matrix4f;
 import com.qurenie.relics_thirteenflames.ThirteenFlames;
-import com.qurenie.relics_thirteenflames.client.render.entity.FallingRenderer;
-import com.qurenie.relics_thirteenflames.content.entities.KnefProjectile;
 import com.qurenie.relics_thirteenflames.init.EffectsRegistry;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
 import it.hurts.sskirillss.relics.client.renderer.entities.NullRenderer;
-import it.hurts.sskirillss.relics.items.relics.base.RelicItem;
+import it.hurts.sskirillss.relics.items.relics.base.utils.AbilityUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
-import net.minecraft.client.gui.GuiComponent;
-import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.client.renderer.entity.EntityRenderer;
-import net.minecraft.client.renderer.entity.NoopRenderer;
-import net.minecraft.client.renderer.entity.ThrownItemRenderer;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.api.distmarker.Dist;
@@ -31,12 +21,9 @@ import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
-import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import org.zeith.hammerlib.net.Network;
-import top.theillusivec4.curios.api.client.CuriosRendererRegistry;
 
 
 @Mod.EventBusSubscriber(modid = ThirteenFlames.MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
@@ -69,7 +56,7 @@ public class ClientModEvents {
         e.registerEntityRenderer(EntityRegistry.KNEF_RAINDROP, NullRenderer::new);
         e.registerEntityRenderer(EntityRegistry.FARTCLOUD, NullRenderer::new);
         e.registerEntityRenderer(EntityRegistry.POISONWAVE, NullRenderer::new);
-        e.registerEntityRenderer(EntityRegistry.USABLE_FALLING, FallingRenderer::new);
+//        e.registerEntityRenderer(EntityRegistry.USABLE_FALLING, FallingRenderer::new);
     }
 
     @SubscribeEvent
@@ -103,16 +90,18 @@ public class ClientModEvents {
                 RenderSystem.setShaderTexture(0, textureEmpty);
                 RenderSystem.enableBlend();
                 poseStack.pushPose();
-                width = 81;
-                height = 18;
+                width = 72;
+                height = 16;
 
+                int maxStacks = (int) AbilityUtils.getAbilityValue(player.getMainHandItem(), "spit", "maxstacks");
 
-
-                x = screenWidth / 2 - width / 2 / scale;
+                x = screenWidth / 2 - (width - 12 * (6 - maxStacks)) / 2 / scale;
                 y = screenHeight / 2 + 20;
                 manager.bindForSetup(textureEmpty);
 
-                Gui.blit(poseStack, x, y, width / scale, height / scale, 0.0F, 0.0F, width, height, width, height);
+                int croppedWidth = width - 12 * (6 - maxStacks);
+
+                Gui.blit(poseStack, x, y, croppedWidth / scale, height / scale, 0F, 0.0F, croppedWidth, height, width, height);
                 poseStack.popPose();
                 RenderSystem.disableBlend();
 
@@ -122,12 +111,10 @@ public class ClientModEvents {
                 RenderSystem.setShaderTexture(0, textureFull);
                 RenderSystem.enableBlend();
                 poseStack.pushPose();
-                x = screenWidth / 2 - width / 2 / scale;
-                y = screenHeight / 2 + 20;
                 manager.bindForSetup(textureFull);
+
                 Gui.enableScissor(x, y, x + (dropWidth * stacks) / scale, y + height / scale);
-                //Gui.fill(poseStack, x, y, );
-                Gui.blit(poseStack, x, y, width / scale, height / scale, 0.0F, 0.0F, width, height, width, height);
+                Gui.blit(poseStack, x, y, croppedWidth / scale, height / scale, 0F, 0.0F, croppedWidth, height, width, height);
                 poseStack.popPose();
                 RenderSystem.disableBlend();
                 Gui.disableScissor();

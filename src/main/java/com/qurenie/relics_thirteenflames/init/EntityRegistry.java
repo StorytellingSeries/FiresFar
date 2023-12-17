@@ -60,8 +60,8 @@ public class EntityRegistry {
             .sized(1F, 1F)
             .build("fartcloud");
 
-    @RegistryName("usablefallingblock")
-    public static final EntityType<UsableFallingBlockEntity> USABLE_FALLING = Builder.of(UsableFallingBlockEntity::new, MobCategory.MISC)
-            .sized(0.98F, 0.98F)
-            .build("usablefallingblock");
+//    @RegistryName("usablefallingblock")
+//    public static final EntityType<UsableFallingBlockEntity> USABLE_FALLING = Builder.of(UsableFallingBlockEntity::new, MobCategory.MISC)
+//            .sized(0.98F, 0.98F)
+//            .build("usablefallingblock");
 }

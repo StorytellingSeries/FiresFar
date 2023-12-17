@@ -45,7 +45,7 @@
     "tooltip.relics.ronas_sword.ability.spit.stat.poisondur.value": "%1$s seconds",
     "tooltip.relics.ronas_sword.ability.spit.stat.maxstacks.title": "Max Stacks",
     "tooltip.relics.ronas_sword.ability.spit.stat.maxstacks.value": "%1$s",
-    "tooltip.relics.ronas_sword.ability.fart": "Toxic Vapors",
+    "tooltip.relics.ronas_sword.ability.fart": "Toxic Fumes",
     "tooltip.relics.ronas_sword.ability.fart.description": "Pressing Shift+RMB with the Fang will create a toxic cloud, poisoning the enemies in its range",
     "tooltip.relics.ronas_sword.ability.fart.stat.radius.title": "Range",
     "tooltip.relics.ronas_sword.ability.fart.stat.radius.value": "%1$s blocks",

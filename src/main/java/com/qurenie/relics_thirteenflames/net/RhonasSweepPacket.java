@@ -6,6 +6,8 @@ import com.qurenie.relics_thirteenflames.init.EffectsRegistry;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import org.zeith.hammerlib.net.IPacket;
@@ -41,7 +43,10 @@ public class RhonasSweepPacket implements IPacket {
         if(sender.getAttackStrengthScale(0.5F) > 0.9F){
             ItemRonasSword.poisonSwipe(sender, sword);
         } else {
-            sender.addEffect(new PoisonEffectInstance(EffectsRegistry.POISSON, 100, 0, false, true, false, sword));
+            sender.level.playSound(null, sender, SoundEvents.AZALEA_FALL, SoundSource.MASTER, 1f, 0.8f);
+            sender.level.playSound(null, sender, SoundEvents.SCULK_BLOCK_BREAK, SoundSource.MASTER, 0.7f, 0.7f);
+            sender.level.playSound(null, sender, SoundEvents.BLAZE_BURN, SoundSource.MASTER, 0.8f, 2.4f);
+            sender.addEffect(new PoisonEffectInstance(EffectsRegistry.POISSON, 100, 0, false, true, true, sword));
         }
     }
 }

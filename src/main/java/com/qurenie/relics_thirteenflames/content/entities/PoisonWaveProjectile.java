@@ -89,7 +89,6 @@ public class PoisonWaveProjectile extends ThrowableProjectile
             int particlesPer = (int) Math.round(Math.PI * dist.length() * spreadAngle / 90.0) * 3;
             particlesPer += particlesPer % 2 + 1;
 
-            if(Minecraft.getInstance().player != null) Minecraft.getInstance().player.chatSigned(String.valueOf(dist.length()), null);
 
             for (int j = 0; j < particlesPer; j++) {
 
@@ -102,7 +101,9 @@ public class PoisonWaveProjectile extends ThrowableProjectile
                 List<LivingEntity> eList = level.getEntitiesOfClass(LivingEntity.class, new AABB(vec, vec).inflate(0.2), e -> !Objects.equals(e, this.getOwner()) && !entityBlackList.contains(e) );
                 entityBlackList.addAll(eList);
                 for(LivingEntity lE : eList){
+                    int invulTime = p.invulnerableTime;
                     lE.hurt(DamageSource.playerAttack(p), 1);
+                    p.invulnerableTime = invulTime;
                     if (lE.hasEffect(EffectsRegistry.POISSON)) {
                         int appliedAmplifier = lE.getEffect(EffectsRegistry.POISSON).getAmplifier() + 1;
                         if (appliedAmplifier <= maxAmp) {
@@ -118,14 +119,14 @@ public class PoisonWaveProjectile extends ThrowableProjectile
                 }
 
 
-                double randomSpread = 0.012 * this.tickCount;
+                double randomSpread = 0.01 * this.tickCount;
                 ParticleHelper.spawnParticles(level, new CircleTintData(new Color(85 + rng.nextInt(80), 255 - rng.nextInt(100), 0),
                                 (float) (0.2F + 0.03f * this.tickCount), 20, 0.83F, false),
-                        vec.x, vec.y, vec.z, 1, randomSpread, randomSpread, randomSpread, 0.005 + this.tickCount * 0.008);
+                        vec.x, vec.y, vec.z, 1, randomSpread, randomSpread, randomSpread, 0.002 + this.tickCount * 0.008);
                 if (rng.nextFloat() < 0.3f)
                     ParticleHelper.spawnParticles(level, new SparkTintData(new Color(85 - rng.nextInt(80), 255 - rng.nextInt(100), 0),
                                     (float) (0.2F + 0.025f * this.tickCount), 20),
-                            vec.x, vec.y, vec.z, 1, randomSpread, randomSpread, randomSpread, 0.005 + this.tickCount * 0.008);
+                            vec.x, vec.y, vec.z, 1, randomSpread, randomSpread, randomSpread, 0.002 + this.tickCount * 0.008);
             }
         }
 
