@@ -1,0 +1,23 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.qurenie.relics_thirteenflames.mixins",
+  "refmap": "mixins.relics_thirteenflames.refmap.json",
+  "compatibilityLevel": "JAVA_17",
+  "injectors": {
+    "maxShiftBy": 5
+  },
+  "mixins": [
+    "GameRendererMixin",
+    "LivingEntityMixin",
+    "LivingEntityRendererMixin",
+    "LocalPlayerMixin",
+    "ParticleAccessor",
+    "PlayerMixin",
+    "client.BakedOverrideAccessor"
+  ],
+  "client": [
+  ],
+  "server": [
+  ]
+}

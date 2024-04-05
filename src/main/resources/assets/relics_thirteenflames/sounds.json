@@ -1,0 +1,49 @@
+{
+  "knef_shot": {
+    "sounds": [
+      "relics_thirteenflames:knef_shot"
+    ]
+  },
+  "knef_rain": {
+    "sounds": [
+      {
+        "name": "relics_thirteenflames:knef_rain",
+        "attenuation_distance": 100
+      }
+    ]
+  },
+  "knef_splash": {
+    "sounds": [
+      {
+        "name": "relics_thirteenflames:knef_splash",
+        "attenuation_distance": 100
+      }
+    ]
+  },
+  "knef_storm": {
+    "sounds": [
+      {
+        "name": "relics_thirteenflames:knef_storm",
+        "attenuation_distance": 100,
+        "stream": true
+      }
+    ]
+  },
+  "knef_storm_2": {
+    "sounds": [
+      {
+        "name": "relics_thirteenflames:knef_storm_2",
+        "attenuation_distance": 100,
+        "stream": true
+      }
+    ]
+  },
+  "montu_slap": {
+    "sounds": [
+      {
+        "name": "relics_thirteenflames:montu_slap",
+        "attenuation_distance": 100
+      }
+    ]
+  }
+}
