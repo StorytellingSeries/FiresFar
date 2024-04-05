@@ -12,7 +12,7 @@ import org.zeith.hammerlib.annotations.SimplyRegister;
 
 import java.util.Set;
 
-@SimplyRegister(creativeTabs = "")
+@SimplyRegister
 public interface ItemsRegistry {
 
     @RegistryName("knef_bow")

@@ -25,7 +25,7 @@ public class ParticleHelper {
     static Random rng = new Random();
 
     public static void spawnParticleEntity(ParticleOptions particleOptions, Entity entity, int count, double maxSpeed) {
-        spawnParticleAABB(entity.level, particleOptions, entity.getBoundingBox(), count, maxSpeed);
+        spawnParticleAABB(entity.level(), particleOptions, entity.getBoundingBox(), count, maxSpeed);
     }
 
     public static void spawnParticleAABB(Level level, ParticleOptions particleOptions, AABB box, int count, double maxSpeed) {

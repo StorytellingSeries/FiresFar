@@ -5,6 +5,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.Registry;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -38,7 +39,7 @@ public class PacketSpawnParticle implements IPacket {
 
     @Override
     public void write(FriendlyByteBuf buf) {
-        buf.writeId(Registry.PARTICLE_TYPE, options.getType());
+        buf.writeId(BuiltInRegistries.PARTICLE_TYPE, options.getType());
         options.writeToNetwork(buf);
         buf.writeDouble(spawnX);
         buf.writeDouble(spawnY);
@@ -50,7 +51,7 @@ public class PacketSpawnParticle implements IPacket {
 
     @Override
     public void read(FriendlyByteBuf buf) {
-        ParticleType<?> particletype = buf.readById(Registry.PARTICLE_TYPE);
+        ParticleType<?> particletype = buf.readById(BuiltInRegistries.PARTICLE_TYPE);
         this.options = this.readParticle(buf, particletype);
         this.spawnX = buf.readDouble();
         this.spawnY = buf.readDouble();

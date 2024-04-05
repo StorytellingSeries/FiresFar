@@ -13,6 +13,7 @@ import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.HalfTransparentBlock;
@@ -36,7 +37,7 @@ public abstract class ZeithTechISTER
         return Minecraft.getInstance().getEntityModels();
     }
 
-    public void renderOverrride(ItemOverrides.BakedOverride override, @NotNull ItemTransforms.@NotNull TransformType transformType, @NotNull PoseStack pose, @NotNull ItemStack stack, @NotNull MultiBufferSource bufferSource, @Nullable RenderType overrideType, int uv2, int overlay)
+    public void renderOverrride(ItemOverrides.BakedOverride override, @NotNull ItemDisplayContext transformType, @NotNull PoseStack pose, @NotNull ItemStack stack, @NotNull MultiBufferSource bufferSource, @Nullable RenderType overrideType, int uv2, int overlay)
     {
         var mc = Minecraft.getInstance();
         var ir = mc.getItemRenderer();
@@ -45,7 +46,7 @@ public abstract class ZeithTechISTER
         if(overridenModel != null)
         {
             boolean cull;
-            if(transformType != ItemTransforms.TransformType.GUI && !transformType.firstPerson() &&
+            if(transformType != ItemDisplayContext.GUI && !transformType.firstPerson() &&
                     stack.getItem() instanceof BlockItem bi)
             {
                 Block block = bi.getBlock();
@@ -70,7 +71,7 @@ public abstract class ZeithTechISTER
         }
     }
 
-    public void renderAllOverrides(@NotNull ItemStack stack, @NotNull ItemTransforms.@NotNull TransformType transformType, @NotNull PoseStack pose, @NotNull MultiBufferSource bufferSource, int uv2, int overlay)
+    public void renderAllOverrides(@NotNull ItemStack stack, @NotNull ItemDisplayContext transformType, @NotNull PoseStack pose, @NotNull MultiBufferSource bufferSource, int uv2, int overlay)
     {
         var mc = Minecraft.getInstance();
         var ir = mc.getItemRenderer();
@@ -85,7 +86,7 @@ public abstract class ZeithTechISTER
             if(overridenModel != null)
             {
                 boolean cull;
-                if(transformType != ItemTransforms.TransformType.GUI && !transformType.firstPerson() &&
+                if(transformType != ItemDisplayContext.GUI && !transformType.firstPerson() &&
                         stack.getItem() instanceof BlockItem bi)
                 {
                     Block block = bi.getBlock();
@@ -110,5 +111,5 @@ public abstract class ZeithTechISTER
     }
 
     @Override
-    public abstract void renderByItem(@NotNull ItemStack stack, @NotNull ItemTransforms.@NotNull TransformType transformType, @NotNull PoseStack pose, @NotNull MultiBufferSource bufferSource, int i, int j);
+    public abstract void renderByItem(@NotNull ItemStack stack, @NotNull ItemDisplayContext transformType, @NotNull PoseStack pose, @NotNull MultiBufferSource bufferSource, int i, int j);
 }

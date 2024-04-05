@@ -4,13 +4,14 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.qurenie.relics_thirteenflames.ThirteenFlames;
 import com.qurenie.relics_thirteenflames.client.render.entity.FallingRenderer;
+import com.qurenie.relics_thirteenflames.content.items.ItemRonasSword;
 import com.qurenie.relics_thirteenflames.init.EffectsRegistry;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
 import it.hurts.sskirillss.relics.client.renderer.entities.NullRenderer;
-import it.hurts.sskirillss.relics.items.relics.base.utils.AbilityUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.renderer.texture.TextureManager;
@@ -68,13 +69,13 @@ public class ClientModEvents {
     public static class PoisonOverlay implements IGuiOverlay {
 
         @Override
-        public void render(ForgeGui gui, PoseStack poseStack, float partialTick, int screenWidth, int screenHeight) {
+        public void render(ForgeGui gui, GuiGraphics guiGraphics, float partialTick, int screenWidth, int screenHeight) {
 
             Minecraft MC = Minecraft.getInstance();
             LocalPlayer player = MC.player;
             Entity looked = MC.crosshairPickEntity;
 
-            if (player != null && player.getMainHandItem().is(ItemsRegistry.RONAS_SWORD) && looked instanceof LivingEntity livin) {
+            if (player != null && player.getMainHandItem().getItem() instanceof ItemRonasSword relic && looked instanceof LivingEntity livin) {
                 int stacks = livin.hasEffect(EffectsRegistry.POISSON) ? livin.getEffect(EffectsRegistry.POISSON).getAmplifier() + 1 : 0;
                 TextureManager manager = MC.getTextureManager();
                 int scale = 2;
@@ -90,11 +91,11 @@ public class ClientModEvents {
                 RenderSystem.setShaderColor(0.5F, 0.8F, 0.5F, 1.0F);
                 RenderSystem.setShaderTexture(0, textureEmpty);
                 RenderSystem.enableBlend();
-                poseStack.pushPose();
+                guiGraphics.pose().pushPose();
                 width = 72;
                 height = 16;
 
-                int maxStacks = (int) AbilityUtils.getAbilityValue(player.getMainHandItem(), "spit", "maxstacks");
+                int maxStacks = (int) relic.getAbilityValue(player.getMainHandItem(), "spit", "maxstacks");
 
                 x = screenWidth / 2 - (width - 12 * (6 - maxStacks)) / 2 / scale;
                 y = screenHeight / 2 + 20;
@@ -102,8 +103,8 @@ public class ClientModEvents {
 
                 int croppedWidth = width - 12 * (6 - maxStacks);
 
-                Gui.blit(poseStack, x, y, croppedWidth / scale, height / scale, 0F, 0.0F, croppedWidth, height, width, height);
-                poseStack.popPose();
+                guiGraphics.blit(textureEmpty, x, y, croppedWidth / scale, height / scale, 0F, 0.0F, croppedWidth, height, width, height);
+                guiGraphics.pose().popPose();
                 RenderSystem.disableBlend();
 
                 int dropWidth = width / 6;
@@ -111,14 +112,14 @@ public class ClientModEvents {
                 RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
                 RenderSystem.setShaderTexture(0, textureFull);
                 RenderSystem.enableBlend();
-                poseStack.pushPose();
+                guiGraphics.pose().pushPose();
                 manager.bindForSetup(textureFull);
 
-                Gui.enableScissor(x, y, x + (dropWidth * stacks) / scale, y + height / scale);
-                Gui.blit(poseStack, x, y, croppedWidth / scale, height / scale, 0F, 0.0F, croppedWidth, height, width, height);
-                poseStack.popPose();
+                guiGraphics.enableScissor(x, y, x + (dropWidth * stacks) / scale, y + height / scale);
+                guiGraphics.blit(textureFull, x, y, croppedWidth / scale, height / scale, 0F, 0.0F, croppedWidth, height, width, height);
+                guiGraphics.pose().popPose();
                 RenderSystem.disableBlend();
-                Gui.disableScissor();
+                guiGraphics.disableScissor();
 
             }
 

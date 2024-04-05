@@ -106,7 +106,7 @@ public class TileShaking
             var findBounds = prevAABB.move(shifted).inflate(0.15);
             for(var ent : level.getEntitiesOfClass(Player.class, findBounds))
             {
-                ent.hurt(DamageSource.IN_WALL, ent.getMaxHealth() * 0.9F);
+                ent.hurt(ent.damageSources().inWall(), ent.getMaxHealth() * 0.9F);
                 deform();
                 return;
             }
@@ -139,7 +139,8 @@ public class TileShaking
     {
         BlockPos dst = worldPosition;
 
-        if(_physicallyShift) dst = new BlockPos(Vec3.atCenterOf(dst).add(getOffset(1F)));
+        Vec3 vec3 = Vec3.atCenterOf(dst).add(getOffset(1F));
+        if(_physicallyShift) dst = new BlockPos((int) vec3.x, (int) vec3.y, (int) vec3.z);
 
         // if fragile, we don't place the block back
         if(_fragile)

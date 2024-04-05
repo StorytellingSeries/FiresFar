@@ -32,13 +32,13 @@ public class TESRShaking
         matrix.translate(vec.x + 0.5, vec.y, vec.z + 0.5);
 
         var pos = entity.getBlockPos();
-
+        Vec3 vec3 = Vec3.atCenterOf(pos)
+                .add(entity.getOffset(partial));
         var shiftedPos = new BlockPos(
-                Vec3.atCenterOf(pos)
-                        .add(entity.getOffset(partial))
+                (int) vec3.x, (int) vec3.y, (int) vec3.z
         );
 
-        renderBlock(entity.getBlock(), entity.level(), shiftedPos, pos, matrix, buf);
+        renderBlock(entity.getBlock(), entity.getLevel(), shiftedPos, pos, matrix, buf);
     }
 
     public void renderBlock(BlockState state, Level level, BlockPos shiftedPos, BlockPos pos, PoseStack pose, MultiBufferSource src)

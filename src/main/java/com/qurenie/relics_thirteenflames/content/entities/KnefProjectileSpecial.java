@@ -2,7 +2,6 @@ package com.qurenie.relics_thirteenflames.content.entities;
 
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
-import it.hurts.sskirillss.relics.client.particles.circle.CircleTintData;
 import it.hurts.sskirillss.relics.utils.ParticleUtils;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.Entity;
