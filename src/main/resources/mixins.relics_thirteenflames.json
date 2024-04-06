@@ -13,10 +13,10 @@
     "LivingEntityRendererMixin",
     "LocalPlayerMixin",
     "ParticleAccessor",
-    "PlayerMixin",
-    "client.BakedOverrideAccessor"
+    "PlayerMixin"
   ],
   "client": [
+    "client.BakedOverrideAccessor"
   ],
   "server": [
   ]

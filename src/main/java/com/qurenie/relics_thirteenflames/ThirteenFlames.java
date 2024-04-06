@@ -28,7 +28,6 @@ public class ThirteenFlames
     private static final Logger LOGGER = LogManager.getLogger("ThirteenFlames");
 
     public static final CreativeModeTab ITEM_TAB = CreativeModeTab.builder()
-            .icon(ItemsRegistry.KNEF_BOW::getDefaultInstance)
             .title(Component.translatable("itemGroup.relics_thirteenflames"))
             .build()
     ;
@@ -54,9 +53,9 @@ public class ThirteenFlames
     @SubscribeEvent
     public void onCreativeTabBuild(BuildCreativeModeTabContentsEvent event)
     {
-        event.accept(ItemsRegistry.KNEF_BOW);
-        event.accept(ItemsRegistry.RONAS_SWORD);
-        event.accept(ItemsRegistry.MONTU_HAMMER);
+//        event.accept(ItemsRegistry.KNEF_BOW);
+//        event.accept(ItemsRegistry.RONAS_SWORD);
+//        event.accept(ItemsRegistry.MONTU_HAMMER);
     }
 
     // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent
