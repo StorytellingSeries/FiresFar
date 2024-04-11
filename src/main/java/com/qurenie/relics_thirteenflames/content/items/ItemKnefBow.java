@@ -71,8 +71,6 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
 
     RandomSource random = RandomSource.create();
 
-    //public static final DamageSource SUCC = new DamageSource("relics_thirteenflames:succ").bypassArmor().bypassEnchantments().bypassMagic().bypassInvul();
-
     @Override
     public RelicData constructDefaultRelicData() {
         return RelicData.builder()
@@ -156,7 +154,6 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
                         .build()
                 )
                 .leveling(new LevelingData(100, 20, 100))
-                .style(StyleData.builder().borders(0xfffd75, 0xffbe00).build())
                 .build();
     }
 

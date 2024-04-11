@@ -2,8 +2,8 @@
 	"credit": "Made with Blockbench",
 	"texture_size": [128, 128],
 	"textures": {
-		"4": "relics_thirteenflames:items/knef_bow_2",
-		"particle": "relics_thirteenflames:items/knef_bow_2"
+		"4": "relics_thirteenflames:item/knef_bow_2",
+		"particle": "relics_thirteenflames:item/knef_bow_2"
 	},
 	"elements": [
 		{

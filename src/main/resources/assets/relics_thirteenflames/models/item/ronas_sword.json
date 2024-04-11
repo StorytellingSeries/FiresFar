@@ -2,7 +2,7 @@
 	"render_type": "cutout",
 	"parent": "relics_thirteenflames:item/builtin/ister",
 	"textures": {
-		"particle": "relics_thirteenflames:items/ronas_sword"
+		"particle": "relics_thirteenflames:item/ronas_sword"
 	},
 	"overrides": [
 		{

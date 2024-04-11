@@ -2,7 +2,7 @@
 	"render_type": "cutout",
 	"parent": "relics_thirteenflames:item/builtin/ister",
 	"textures": {
-		"particle": "relics_thirteenflames:items/knef_bow_0"
+		"particle": "relics_thirteenflames:item/knef_bow_0"
 	},
 	"overrides": [
 		{

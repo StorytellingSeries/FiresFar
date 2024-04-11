@@ -75,41 +75,6 @@ public class ItemMontuHammer
     protected final float speed;
     private Random rng = new Random();
 
-    protected final RelicData data = RelicData.builder()
-            .abilities(AbilitiesData.builder()
-                    .ability(AbilityData.builder("slap")
-                            .maxLevel(4)
-                            .stat(StatData.builder("cooldown")
-                                    .initialValue(60.0, 40.0)
-                                    .upgradeModifier(UpgradeOperation.ADD, -5.0)
-                                    .formatValue(x -> (int) MathUtils.round(x, 1))
-                                    .build()
-                            )
-                            .stat(StatData.builder("radius")
-                                    .initialValue(3.0, 4.0)
-                                    .thresholdValue(3.0, 8.0)
-                                    .upgradeModifier(UpgradeOperation.ADD, 1)
-                                    .formatValue(x -> (int) MathUtils.round(x, 0))
-                                    .build()
-                            )
-                            .build()
-                    )
-                    .ability(AbilityData.builder("aoe")
-                            .maxLevel(2)
-                            .requiredPoints(3)
-                            .stat(StatData.builder("radius")
-                                    .initialValue(0.0, 0.0)
-                                    .thresholdValue(0.0, 2.0)
-                                    .upgradeModifier(UpgradeOperation.ADD, 1.0)
-                                    .formatValue(x -> (int) MathUtils.round(x + 1, 0))
-                                    .build()
-                            )
-                            .build())
-                    .build()
-            )
-            .leveling(new LevelingData(100, 10, 100))
-            .style(StyleData.builder().borders(0xfffd75, 0xffbe00).build())
-            .build();
 
     public ItemMontuHammer(Properties properties, Tier tier)
     {
@@ -125,14 +90,42 @@ public class ItemMontuHammer
 
     @Override
     public RelicData constructDefaultRelicData() {
-        return null;
+        return RelicData.builder()
+                .abilities(AbilitiesData.builder()
+                        .ability(AbilityData.builder("slap")
+                                .maxLevel(4)
+                                .stat(StatData.builder("cooldown")
+                                        .initialValue(60.0, 40.0)
+                                        .upgradeModifier(UpgradeOperation.ADD, -5.0)
+                                        .formatValue(x -> (int) MathUtils.round(x, 1))
+                                        .build()
+                                )
+                                .stat(StatData.builder("radius")
+                                        .initialValue(3.0, 4.0)
+                                        .thresholdValue(3.0, 8.0)
+                                        .upgradeModifier(UpgradeOperation.ADD, 1)
+                                        .formatValue(x -> (int) MathUtils.round(x, 0))
+                                        .build()
+                                )
+                                .build()
+                        )
+                        .ability(AbilityData.builder("aoe")
+                                .maxLevel(2)
+                                .requiredPoints(3)
+                                .stat(StatData.builder("radius")
+                                        .initialValue(0.0, 0.0)
+                                        .thresholdValue(0.0, 2.0)
+                                        .upgradeModifier(UpgradeOperation.ADD, 1.0)
+                                        .formatValue(x -> (int) MathUtils.round(x + 1, 0))
+                                        .build()
+                                )
+                                .build())
+                        .build()
+                )
+                .leveling(new LevelingData(100, 10, 100))
+                .build();
     }
 
-    @Override
-    public RelicData getRelicData()
-    {
-        return data;
-    }
 
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag isAdvanced) {
@@ -232,10 +225,11 @@ public class ItemMontuHammer
                         Mth.sqrt((float) pos.distSqr(new BlockPos(target.getX(), pos.getY(), target.getZ()))) * 5);
                 double finalCntSpd = cntSpd;
 
-                dropAllocableExperience(level, height0.getCenter(), ctx.getItemInHand(), 1);
+
 
                 Scheduler.schedule(Math.max(0, delay - 2), () ->
                 {
+                    dropAllocableExperience(level, height0.getCenter(), ctx.getItemInHand(), 1);
                     UsableFallingBlockEntity fbe = UsableFallingBlockEntity.createFalling(level, height0, state);
                     Vec3 dist = new Vec3(height0.getX(), pos.getY(), height0.getZ()).subtract(new Vec3(pos.getX(), pos.getY(), pos.getZ())).yRot(rng.nextFloat(-10, 10) * Mth.DEG_TO_RAD);
                     Vec3 move = dist.normalize().scale(Math.min(0.6, 0.2 / dist.length())).add(new Vec3(rng.nextFloat(0.05f),0,0).yRot(rng.nextFloat(3.14f)));

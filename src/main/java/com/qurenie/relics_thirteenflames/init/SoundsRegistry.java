@@ -1,5 +1,6 @@
 package com.qurenie.relics_thirteenflames.init;
 
+import com.qurenie.relics_thirteenflames.ThirteenFlames;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -17,7 +18,12 @@ public class SoundsRegistry
 	public static final RegistryObject<SoundEvent> KNEF_BOW_SPLASH;
 	public static final RegistryObject<SoundEvent> KNEF_BOW_STORM;
 	public static final RegistryObject<SoundEvent> KNEF_BOW_STORM_SHORT;
+
 	public static final RegistryObject<SoundEvent> MONTU_SLAP;
+
+	public static final RegistryObject<SoundEvent> SELI_HORN_BLOW;
+	public static final RegistryObject<SoundEvent> SELI_HORN_BLOW_END;
+	public static final RegistryObject<SoundEvent> SELI_HORN_WAVE;
 
 	public SoundsRegistry() {
 	}
@@ -44,8 +50,10 @@ public class SoundsRegistry
 		KNEF_BOW_STORM_SHORT = SOUNDS.register("knef_storm_2", () -> {
 			return SoundEvent.createVariableRangeEvent(new ResourceLocation("relics_thirteenflames", "knef_storm_2"));
 		});
-		MONTU_SLAP = SOUNDS.register("montu_slap", () -> {
-			return SoundEvent.createVariableRangeEvent(new ResourceLocation("relics_thirteenflames", "montu_slap"));
-		});
+		MONTU_SLAP = SOUNDS.register("montu_slap", () -> SoundEvent.createVariableRangeEvent(new ResourceLocation("relics_thirteenflames", "montu_slap")));
+		SELI_HORN_BLOW = SOUNDS.register("seli_horn_blow", () -> SoundEvent.createVariableRangeEvent(ThirteenFlames.rl("seli_horn_blow")));
+		SELI_HORN_BLOW_END = SOUNDS.register("seli_horn_blow_end", () -> SoundEvent.createVariableRangeEvent(ThirteenFlames.rl("seli_horn_blow_end")));
+		SELI_HORN_WAVE = SOUNDS.register("seli_horn_wave", () -> SoundEvent.createVariableRangeEvent(ThirteenFlames.rl("seli_horn_wave")));
+
 	}
 }

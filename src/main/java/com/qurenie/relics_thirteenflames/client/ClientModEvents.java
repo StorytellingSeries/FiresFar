@@ -3,11 +3,13 @@ package com.qurenie.relics_thirteenflames.client;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.qurenie.relics_thirteenflames.ThirteenFlames;
+import com.qurenie.relics_thirteenflames.client.particles.CircleTintFactory;
 import com.qurenie.relics_thirteenflames.client.render.entity.FallingRenderer;
 import com.qurenie.relics_thirteenflames.content.items.ItemRonasSword;
 import com.qurenie.relics_thirteenflames.init.EffectsRegistry;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
+import com.qurenie.relics_thirteenflames.init.ParticlesRegistry;
 import it.hurts.sskirillss.relics.client.renderer.entities.NullRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
@@ -21,8 +23,10 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
+import net.minecraftforge.client.event.RegisterParticleProvidersEvent;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
@@ -45,6 +49,11 @@ public class ClientModEvents {
                 }
             });
         });
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void registerParticles(RegisterParticleProvidersEvent event){
+        event.registerSpriteSet(ParticlesRegistry.CIRCLE_TINT.get(), CircleTintFactory::new);
     }
 
     @SubscribeEvent

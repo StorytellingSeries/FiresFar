@@ -4,15 +4,21 @@ import com.qurenie.relics_thirteenflames.ThirteenFlames;
 import com.qurenie.relics_thirteenflames.content.items.ItemKnefBow;
 import com.qurenie.relics_thirteenflames.content.items.ItemMontuHammer;
 import com.qurenie.relics_thirteenflames.content.items.ItemRonasSword;
+import com.qurenie.relics_thirteenflames.content.items.ItemSeliasetHorn;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.Tiers;
+import org.zeith.hammerlib.annotations.Ref;
 import org.zeith.hammerlib.annotations.RegistryName;
 import org.zeith.hammerlib.annotations.SimplyRegister;
+import org.zeith.hammerlib.proxy.HLConstants;
 
 import java.util.Set;
 
-@SimplyRegister
+@SimplyRegister(creativeTabs = {@Ref(
+        value = ThirteenFlames.class,
+        field = "ITEM_TAB"
+)})
 public interface ItemsRegistry {
 
     @RegistryName("knef_bow")
@@ -24,6 +30,8 @@ public interface ItemsRegistry {
     @RegistryName("montu_hammer")
     ItemMontuHammer MONTU_HAMMER = new ItemMontuHammer(props().rarity(Rarity.RARE).stacksTo(1), Tiers.NETHERITE);
 
+    @RegistryName("seliaset_horn")
+    ItemSeliasetHorn SELIASET_HORN = new ItemSeliasetHorn(props().stacksTo(1).rarity(Rarity.RARE));
 
     static Item.Properties props()
     {

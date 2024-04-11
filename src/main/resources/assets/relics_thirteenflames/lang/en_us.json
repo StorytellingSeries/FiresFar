@@ -7,6 +7,7 @@
     "item.relics_thirteenflames.knef_bow": "Knephmtyti's Moonbow",
     "item.relics_thirteenflames.ronas_sword": "Rhonas' Fang",
     "item.relics_thirteenflames.montu_hammer": "Montu's Hammer",
+    "item.relics_thirteenflames.seliaset_horn": "Seliaset's Horn",
 
 
     "tooltip.relics_thirteenflames.knef_bow.lore": "One of the «Flames», legendary artifacts scattered across the world.\nCreated by Knephmtyti, goddess of Death.",
@@ -73,5 +74,7 @@
     "tooltip.relics.montu_hammer.ability.aoe": "Seismic Survey",
     "tooltip.relics.montu_hammer.ability.aoe.description": "The power of the God of Labor allows you to tear through the Earth's crust with ease, expanding the mining area. Use Shift + Mouse Wheel to control the Hammer's might.",
     "tooltip.relics.montu_hammer.ability.aoe.stat.radius.title": "Max Mining Radius",
-    "tooltip.relics.montu_hammer.ability.aoe.stat.radius.value": "%1$s"
+    "tooltip.relics.montu_hammer.ability.aoe.stat.radius.value": "%1$s",
+
+    "tooltip.relics_thirteenflames.seliaset_horn.lore": "One of the «Flames», legendary artifacts scattered across the world.\nCreated by Seliaset, goddess of Fertility."
 }

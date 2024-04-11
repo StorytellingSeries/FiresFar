@@ -1,8 +1,10 @@
 package com.qurenie.relics_thirteenflames;
 
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
+import com.qurenie.relics_thirteenflames.init.ParticlesRegistry;
 import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
@@ -17,6 +19,8 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.zeith.hammerlib.api.items.CreativeTab;
+import org.zeith.hammerlib.proxy.HLConstants;
 
 // The value here should match an entry in the META-INF/mods.toml file
 @Mod(ThirteenFlames.MODID)
@@ -24,13 +28,19 @@ public class ThirteenFlames
 {
     // Define mod id in a common place for everything to reference
     public static final String MODID = "relics_thirteenflames";
+
+    public static ResourceLocation rl(String str){
+        return new ResourceLocation(MODID, str);
+    }
     // Directly reference a slf4j logger
     private static final Logger LOGGER = LogManager.getLogger("ThirteenFlames");
 
-    public static final CreativeModeTab ITEM_TAB = CreativeModeTab.builder()
-            .title(Component.translatable("itemGroup.relics_thirteenflames"))
-            .build()
-    ;
+    @CreativeTab.RegisterTab
+    public static final CreativeTab ITEM_TAB = new CreativeTab(new ResourceLocation(ThirteenFlames.MODID,"thirteenflames"),
+            b -> b.icon(ItemsRegistry.KNEF_BOW::getDefaultInstance)
+                    .title(Component.translatable("itemGroup.relics_thirteenflames"))
+    ).putAfter(HLConstants.HL_TAB);
+
     public ThirteenFlames()
     {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
@@ -39,6 +49,7 @@ public class ThirteenFlames
         modEventBus.addListener(this::commonSetup);
 
         SoundsRegistry.registerSounds();
+        ParticlesRegistry.PARTICLES.register(modEventBus);
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
@@ -50,22 +61,5 @@ public class ThirteenFlames
     }
 
 
-    @SubscribeEvent
-    public void onCreativeTabBuild(BuildCreativeModeTabContentsEvent event)
-    {
-//        event.accept(ItemsRegistry.KNEF_BOW);
-//        event.accept(ItemsRegistry.RONAS_SWORD);
-//        event.accept(ItemsRegistry.MONTU_HAMMER);
-    }
 
-    // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent
-    @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
-    public static class ClientModEvents
-    {
-        @SubscribeEvent
-        public static void onClientSetup(FMLClientSetupEvent event)
-        {
-
-        }
-    }
 }

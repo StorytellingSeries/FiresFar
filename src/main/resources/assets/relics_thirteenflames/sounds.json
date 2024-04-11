@@ -45,5 +45,32 @@
         "attenuation_distance": 100
       }
     ]
+  },
+  "seli_horn_blow": {
+    "sounds": [
+      {
+        "name": "relics_thirteenflames:seli_horn_blow",
+        "attenuation_distance": 100,
+        "stream": true
+      }
+    ]
+  },
+  "seli_horn_blow_end": {
+    "sounds": [
+      {
+        "name": "relics_thirteenflames:seli_horn_blow_end",
+        "attenuation_distance": 100,
+        "stream": true
+      }
+    ]
+  },
+  "seli_horn_wave": {
+    "sounds": [
+      {
+        "name": "relics_thirteenflames:seli_horn_wave",
+        "attenuation_distance": 20,
+        "stream": false
+      }
+    ]
   }
 }

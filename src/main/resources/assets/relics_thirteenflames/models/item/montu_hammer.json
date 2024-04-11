@@ -1,8 +1,8 @@
 {
 	"credit": "Made with Blockbench",
 	"textures": {
-		"2": "relics_thirteenflames:items/montu_hammer",
-		"particle": "relics_thirteenflames:items/montu_hammer"
+		"2": "relics_thirteenflames:item/montu_hammer",
+		"particle": "relics_thirteenflames:item/montu_hammer"
 	},
 	"elements": [
 		{

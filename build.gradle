@@ -25,6 +25,14 @@ base {
     archivesName = mod_id
 }
 
+mixin {
+    add sourceSets.main, "relics_thirteenflames.refmap.json"
+    config "mixins." + mod_id + ".json"
+
+    debug.verbose = true
+    debug.export = true
+}
+
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
 println('Java: ' + System.getProperty('java.version') + ' JVM: ' + System.getProperty('java.vm.version') + '(' + System.getProperty('java.vendor') + ') Arch: ' + System.getProperty('os.arch'))
@@ -44,6 +52,8 @@ minecraft {
             property 'forge.logging.console.level', 'debug'
             property 'forge.enabledGameTestNamespaces', mod_id
 
+            arg "-mixin.config=mixins." + mod_id + ".json"
+
             mods {
                 "${mod_id}" {
                     source sourceSets.main
@@ -57,6 +67,8 @@ minecraft {
             property 'forge.logging.markers', 'REGISTRIES'
             property 'forge.logging.console.level', 'debug'
             property 'forge.enabledGameTestNamespaces', mod_id
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
 
             mods {
                 "${mod_id}" {
@@ -87,6 +99,10 @@ dependencies {
     minecraft "net.neoforged:forge:${minecraft_version}-${forge_version}"
 
     implementation 'org.jetbrains:annotations:20.1.0'
+
+    if (System.getProperty("idea.sync.active") != "true") {
+        annotationProcessor "org.spongepowered:mixin:0.8.5:processor"
+    }
 
     if (file("libs").isDirectory()) {
         file("libs").eachFile { file ->
@@ -128,6 +144,7 @@ processResources {
 jar {
     manifest {
         attributes([
+                "MixinConfigs"            : mod_id + ".mixins.json",
                 "Specification-Title"     : mod_id,
                 "Specification-Vendor"    : mod_authors,
                 "Specification-Version"   : "1",
