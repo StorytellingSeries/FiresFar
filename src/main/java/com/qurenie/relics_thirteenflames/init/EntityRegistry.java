@@ -1,6 +1,7 @@
 package com.qurenie.relics_thirteenflames.init;
 
 import com.qurenie.relics_thirteenflames.content.entities.*;
+import com.qurenie.relics_thirteenflames.content.entities.EntitySeliasetSun;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EntityType.Builder;
 import net.minecraft.world.entity.MobCategory;
@@ -60,4 +61,9 @@ public class EntityRegistry {
     public static final EntityType<UsableFallingBlockEntity> USABLE_FALLING = Builder.of(UsableFallingBlockEntity::new, MobCategory.MISC)
             .sized(0.98F, 0.98F)
             .build("usablefallingblock");
+
+    @RegistryName("seliaset_sun")
+    public static final EntityType<EntitySeliasetSun> SELIASET_SUN = Builder.of(EntitySeliasetSun::new, MobCategory.MISC)
+            .sized(0.5f, 0.5f)
+            .build("seliaset_sun");
 }

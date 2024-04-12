@@ -108,7 +108,7 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
             int segments = (int) Math.round(this.getAbilityValue(horn, "air_ray", "distance"));
 
             if (living.isShiftKeyDown()) {
-                for (int i = 0; i < segments * 2; i++) {
+                for (int i = 1; i < segments * 2; i++) {
                     if (i < tick) {
                         double a = 360.0 * rng.nextFloat();
                         double radius = 0.2 + (i / 6.0);
@@ -247,21 +247,22 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
         return RelicData.builder()
                 .abilities(AbilitiesData.builder()
                         .ability(AbilityData.builder("air_ray")
-                                .maxLevel(10)
+                                .maxLevel(5)
                                 .stat(StatData.builder("distance")
                                         .thresholdValue(8, 24)
                                         .initialValue(10, 14)
-                                        .upgradeModifier(UpgradeOperation.ADD,1)
+                                        .upgradeModifier(UpgradeOperation.ADD,2)
                                         .formatValue(x-> MathUtils.round(x,1))
                                         .build())
                                 .stat(StatData.builder("efficiency")
                                         .thresholdValue(2, 5)
                                         .initialValue(3, 3.5)
-                                        .upgradeModifier(UpgradeOperation.ADD,0.15)
+                                        .upgradeModifier(UpgradeOperation.ADD,0.3)
                                         .formatValue(x-> MathUtils.round(x,1))
                                         .build())
                                 .build())
                         .ability(AbilityData.builder("block")
+                                .maxLevel(5)
                                 .active(CastData.builder()
                                         .source(CastSource.INVENTORY)
                                         .type(CastType.INSTANTANEOUS)
@@ -269,19 +270,19 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
                                 .stat(StatData.builder("wavesCount")
                                         .initialValue(2,2)
                                         .upgradeModifier(UpgradeOperation.ADD,1)
-                                        .thresholdValue(2,6)
+                                        .thresholdValue(2,7)
                                         .formatValue(x-> (int)Math.round(x))
                                         .build())
                                 .stat(StatData.builder("cooldown")
-                                        .initialValue(40,60)
+                                        .initialValue(60, 40)
                                         .thresholdValue(10,60)
-                                        .upgradeModifier(UpgradeOperation.ADD,-3)
+                                        .upgradeModifier(UpgradeOperation.ADD,-6)
                                         .formatValue(x-> (int)Math.round(x))
                                         .build())
                                 .stat(StatData.builder("stunDuration")
                                         .initialValue(0.5,1.5)
                                         .thresholdValue(0.5,4)
-                                        .upgradeModifier(UpgradeOperation.ADD,0.25)
+                                        .upgradeModifier(UpgradeOperation.ADD,0.5)
                                         .formatValue(x-> MathUtils.round(x,1))
                                         .build())
                                 .build())

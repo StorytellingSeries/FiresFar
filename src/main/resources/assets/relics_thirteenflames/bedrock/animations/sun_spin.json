@@ -1,0 +1,18 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"sun_spin": {
+			"loop": true,
+			"animation_length": 1,
+			"bones": {
+				"Body": {
+					"rotation": [0, "-math.abs((query.anim_time % 1)*360/2)*2", "-math.abs((query.anim_time % 1)*360/4)*2"],
+					"scale": "1+math.cos(query.anim_time*360)/16"
+				},
+				"model": {
+					"rotation": ["1.4+math.abs((query.anim_time%1)*360)", "1.4+math.abs((query.anim_time%1)*360)", "1.4+math.abs((query.anim_time%1)*360)"]
+				}
+			}
+		}
+	}
+}

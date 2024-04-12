@@ -1,18 +1,17 @@
 package com.qurenie.relics_thirteenflames.client;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.qurenie.relics_thirteenflames.ThirteenFlames;
 import com.qurenie.relics_thirteenflames.client.particles.CircleTintFactory;
 import com.qurenie.relics_thirteenflames.client.render.entity.FallingRenderer;
 import com.qurenie.relics_thirteenflames.content.items.ItemRonasSword;
+import com.qurenie.relics_thirteenflames.client.render.entity.EntityRendererSeliasetSun;
 import com.qurenie.relics_thirteenflames.init.EffectsRegistry;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
 import com.qurenie.relics_thirteenflames.init.ParticlesRegistry;
 import it.hurts.sskirillss.relics.client.renderer.entities.NullRenderer;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.item.ItemProperties;
@@ -68,6 +67,7 @@ public class ClientModEvents {
         e.registerEntityRenderer(EntityRegistry.FARTCLOUD, NullRenderer::new);
         e.registerEntityRenderer(EntityRegistry.POISONWAVE, NullRenderer::new);
         e.registerEntityRenderer(EntityRegistry.USABLE_FALLING, FallingRenderer::new);
+        e.registerEntityRenderer(EntityRegistry.SELIASET_SUN, EntityRendererSeliasetSun::new);
     }
 
     @SubscribeEvent
