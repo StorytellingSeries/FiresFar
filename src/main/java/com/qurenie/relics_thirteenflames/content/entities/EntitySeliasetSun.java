@@ -126,7 +126,8 @@ public class EntitySeliasetSun
 			
 			if(--growCooldown < 0)
 			{
-				growAround(this, (int) radStat, 2 + getStatLevel());
+				growAround(this, (int) radStat, 2 + getStatLevel(), getSunItem());
+
 				growCooldown = speedStat;
 			}
 			
@@ -383,10 +384,11 @@ public class EntitySeliasetSun
 			Blocks.SEAGRASS,
 			Blocks.BIG_DRIPLEAF_STEM,
 			Blocks.BIG_DRIPLEAF,
-			Blocks.SMALL_DRIPLEAF
+			Blocks.SMALL_DRIPLEAF,
+			Blocks.GLOW_LICHEN
 	);
 	
-	public static void growAround(Entity ent, int rad, int max)
+	public static void growAround(Entity ent, int rad, int max, ItemStack sun)
 	{
 		var world = ent.level();
 		if(!(world instanceof ServerLevel sl)) return;
@@ -410,8 +412,10 @@ public class EntitySeliasetSun
 		for(int i = 0; i < co; ++i)
 		{
 			BlockPos pos = positions.remove(ent.level().random.nextInt(positions.size()));
-			if(BoneMealItem.applyBonemeal(Items.BONE_MEAL.getDefaultInstance(), world, pos, FakePlayerFactory.getMinecraft(sl)))
+			if(BoneMealItem.applyBonemeal(Items.BONE_MEAL.getDefaultInstance(), world, pos, FakePlayerFactory.getMinecraft(sl))) {
 				world.levelEvent(2005, pos, 0);
+				if(sun.getItem() instanceof IRelicItem relic) relic.dropAllocableExperience(world, ent.getBoundingBox().getCenter(), sun, 1);
+			}
 		}
 	}
 }

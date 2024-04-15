@@ -10,6 +10,8 @@ import it.hurts.sskirillss.relics.items.relics.base.data.leveling.AbilityData;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.LevelingData;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.StatData;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.misc.UpgradeOperation;
+import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootData;
+import it.hurts.sskirillss.relics.items.relics.base.data.loot.misc.LootCollections;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -95,6 +97,10 @@ public class ItemSeliasetSun
 								.build())
 						.build())
 				.leveling(new LevelingData(100, 10, 100))
+				.loot(LootData.builder()
+						.entry(LootCollections.JUNGLE)
+						.entry(LootCollections.VILLAGE)
+						.build())
 				.build();
 	}
 

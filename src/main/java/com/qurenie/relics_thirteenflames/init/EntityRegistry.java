@@ -57,6 +57,11 @@ public class EntityRegistry {
             .sized(1F, 1F)
             .build("fartcloud");
 
+    @RegistryName("deathcloud")
+    public static final EntityType<DeathlyFartCloudEntity> DEATHCLOUD = Builder.of(DeathlyFartCloudEntity::new, MobCategory.MISC)
+            .sized(1F, 1F)
+            .build("fartcloud");
+
     @RegistryName("usablefallingblock")
     public static final EntityType<UsableFallingBlockEntity> USABLE_FALLING = Builder.of(UsableFallingBlockEntity::new, MobCategory.MISC)
             .sized(0.98F, 0.98F)
@@ -66,4 +71,9 @@ public class EntityRegistry {
     public static final EntityType<EntitySeliasetSun> SELIASET_SUN = Builder.of(EntitySeliasetSun::new, MobCategory.MISC)
             .sized(0.5f, 0.5f)
             .build("seliaset_sun");
+
+    @RegistryName("living_flesh")
+    public static final EntityType<LivingFleshEntity> LIVING_FLESH = Builder.of(LivingFleshEntity::new, MobCategory.CREATURE)
+            .sized(1F, 1F)
+            .build("living_flesh");
 }

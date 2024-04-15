@@ -54,7 +54,10 @@ public class AnimationsRegistry
 		return TO_REGISTER.computeIfAbsent(ThirteenFlames.rl(path), ___ -> IAnimationContainer.createNoSuffix());
 	}
 
-	public static final IAnimationSource SUN_SPIN = register("sun_spin"); //
+	public static final IAnimationSource SUN_SPIN = register("sun_spin");
+
+	public static final IAnimationSource FLESH_MOVE = register("flesh_move");
+	public static final IAnimationSource ZERO_SCALE = register("zero_scale");
 
 	@SubscribeEvent
 	public static void onSetup(FMLCommonSetupEvent event)

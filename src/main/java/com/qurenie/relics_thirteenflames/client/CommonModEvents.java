@@ -6,6 +6,7 @@ import com.qurenie.relics_thirteenflames.client.particles.CircleTintFactory;
 import com.qurenie.relics_thirteenflames.client.render.entity.EntityRendererSeliasetSun;
 import com.qurenie.relics_thirteenflames.client.render.entity.FallingRenderer;
 import com.qurenie.relics_thirteenflames.content.entities.EntitySeliasetSun;
+import com.qurenie.relics_thirteenflames.content.entities.LivingFleshEntity;
 import com.qurenie.relics_thirteenflames.content.items.ItemRonasSword;
 import com.qurenie.relics_thirteenflames.init.EffectsRegistry;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
@@ -41,6 +42,7 @@ public class CommonModEvents {
     @SubscribeEvent
     public static void onAttributeCreation(EntityAttributeCreationEvent event) {
         event.put(EntityRegistry.SELIASET_SUN, EntitySeliasetSun.createLivingAttributes().build());
+        event.put(EntityRegistry.LIVING_FLESH, LivingFleshEntity.createMobAttributes().build());
     }
 
 }

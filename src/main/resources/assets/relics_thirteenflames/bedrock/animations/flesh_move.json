@@ -1,0 +1,21 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"flesh_move": {
+			"loop": true,
+			"animation_length": 1,
+			"bones": {
+				"BodyUp": {
+					"rotation": [0, 0, "math.sin(query.anim_time*360)"],
+					"position": [0, "1-math.cos(query.anim_time*360)/4", "1+math.sin(query.anim_time*360)/2"],
+					"scale": [1, "1-math.cos(query.anim_time*360)/16", 1]
+				},
+				"Body": {
+					"rotation": [0, 0, "math.sin(query.anim_time*360)*2"],
+					"position": [0, 0, "1-math.cos(query.anim_time*360)/2"],
+					"scale": [1, 1, "1-math.cos(query.anim_time*360)/16"]
+				}
+			}
+		}
+	}
+}

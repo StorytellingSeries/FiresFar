@@ -1,11 +1,7 @@
 package com.qurenie.relics_thirteenflames.init;
 
 import com.qurenie.relics_thirteenflames.ThirteenFlames;
-import com.qurenie.relics_thirteenflames.content.items.ItemKnefBow;
-import com.qurenie.relics_thirteenflames.content.items.ItemMontuHammer;
-import com.qurenie.relics_thirteenflames.content.items.ItemRonasSword;
-import com.qurenie.relics_thirteenflames.content.items.ItemSeliasetHorn;
-import com.qurenie.relics_thirteenflames.content.items.ItemSeliasetSun;
+import com.qurenie.relics_thirteenflames.content.items.*;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.Tiers;
@@ -33,6 +29,9 @@ public interface ItemsRegistry {
 
     @RegistryName("seliaset_sun")
     ItemSeliasetSun SELIASET_SUN = new ItemSeliasetSun(props().stacksTo(1).rarity(Rarity.RARE));
+
+    @RegistryName("knef_rose")
+    ItemKnefRose KNEF_ROSE = new ItemKnefRose(props().stacksTo(1).rarity(Rarity.RARE));
 
     static Item.Properties props()
     {

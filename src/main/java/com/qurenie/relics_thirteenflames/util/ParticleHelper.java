@@ -139,6 +139,9 @@ public class ParticleHelper {
             spawnEnginedParticle(level, options, x + d1, y + d3, z + d5, d6, d7, d8, scale, lifetime, color, alpha);
         }
     }
+    public static void spawnEnginedParticles(Level level, ParticleOptions options, Vec3 pos, int count, double dx, double dy, double dz, double maxSpeed, float scale, int lifetime, Color color, float alpha) {
+        spawnEnginedParticles(level, options, pos.x, pos.y, pos.z, count, dx, dy, dz, maxSpeed, scale, lifetime, color, alpha);
+    }
 
 
 

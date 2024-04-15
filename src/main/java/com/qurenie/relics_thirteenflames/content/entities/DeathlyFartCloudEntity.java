@@ -1,0 +1,125 @@
+package com.qurenie.relics_thirteenflames.content.entities;
+
+import com.qurenie.relics_thirteenflames.content.effects.PoisonEffectInstance;
+import com.qurenie.relics_thirteenflames.init.EffectsRegistry;
+import com.qurenie.relics_thirteenflames.util.ParticleHelper;
+import it.hurts.sskirillss.relics.items.relics.base.IRelicItem;
+import it.hurts.sskirillss.relics.utils.ParticleUtils;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
+
+import java.awt.*;
+import java.util.List;
+import java.util.Random;
+
+public class DeathlyFartCloudEntity extends Projectile {
+
+
+
+    Random rng = new Random();
+    int dmgCD = 0;
+    public DeathlyFartCloudEntity(EntityType<? extends Projectile> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
+    }
+
+    private static final EntityDataAccessor<Integer> LIFETIME = SynchedEntityData.defineId(DeathlyFartCloudEntity.class, EntityDataSerializers.INT);
+
+    public void setLifeTime(int lifetime){
+        this.getEntityData().set(LIFETIME, lifetime);
+    }
+
+    public int getLifeTime() {
+        return this.getEntityData().get(LIFETIME);
+    }
+    private static final EntityDataAccessor<Float> RADIUS = SynchedEntityData.defineId(DeathlyFartCloudEntity.class, EntityDataSerializers.FLOAT);
+
+    public float getRadius() {
+        return this.getEntityData().get(RADIUS);
+    }
+
+    public void setRadius(float radius) {
+        this.getEntityData().set(RADIUS, radius);
+    }
+
+    @Override
+    public boolean isAlwaysTicking() {
+        return true;
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        if(this.tickCount > getLifeTime() + 15) this.discard();
+        float radius = this.tickCount < 15 ? getRadius() * this.tickCount / 10.0f : getRadius() * (1 - (float) this.tickCount / getLifeTime());
+        AABB box = new AABB(this.getPosition(1), this.getPosition(1)).inflate(radius, radius / 2.5, radius);
+        if(this.level() instanceof ServerLevel) {
+
+            ParticleHelper.spawnParticleAABB(this.level(), ParticleUtils.constructSimpleSpark(new Color(37, 13, 35),
+                    radius / 6.2f + 0.15f, 30, 0.84F), box, Math.round(radius * radius / 2) + 1, 0.01 * radius);
+
+            ParticleHelper.spawnParticleAABB(this.level(),
+                    ParticleTypes.SMOKE,
+                    box, Math.round(radius * radius * 2f) + 2, 0);
+
+            if (this.tickCount % 2 == 0) ParticleHelper.spawnEnginedParticles(this.level(),
+                    ParticleTypes.CLOUD,
+                    box.getCenter(), Math.round(radius * radius * 2f) + 2, box.getXsize(), box.getYsize(), box.getZsize(), 0.001, 0.8f, 20, Color.BLACK, 1);
+
+
+
+            List<LivingEntity> entities = this.level().getEntitiesOfClass(LivingEntity.class, box, e -> this.getOwner() != null && !e.getUUID().equals(this.getOwner().getUUID()) && !(e instanceof LivingFleshEntity));
+
+            if (dmgCD == 0) {
+                for (LivingEntity e : entities) {
+                    e.addEffect(new MobEffectInstance(MobEffects.WITHER, 100, 1, false, true, true));
+                }
+                dmgCD = 20;
+            }
+            if (dmgCD > 0) dmgCD--;
+        }
+    }
+
+    @Override
+    public boolean canCollideWith(Entity p_20303_) {
+        return false;
+    }
+
+    @Override
+    public boolean canBeCollidedWith() {
+        return false;
+    }
+
+    @Override
+    protected void defineSynchedData() {
+        this.entityData.define(RADIUS, 5F);
+        this.entityData.define(LIFETIME, 20);
+    }
+
+    @Override
+    protected void readAdditionalSaveData(CompoundTag compound) {
+        super.readAdditionalSaveData(compound);
+        setRadius(compound.getFloat("radius"));
+        setLifeTime(compound.getInt("lifetime"));
+    }
+
+    @Override
+    protected void addAdditionalSaveData(CompoundTag compound) {
+        super.addAdditionalSaveData(compound);
+        compound.putFloat("radius", getRadius());
+        compound.putInt("lifetime", getLifeTime());
+    }
+
+}

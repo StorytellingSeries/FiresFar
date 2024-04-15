@@ -1,0 +1,13 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"zero_scale": {
+			"loop": "hold_on_last_frame",
+			"bones": {
+				"model": {
+					"scale": [0, 0, 0]
+				}
+			}
+		}
+	}
+}

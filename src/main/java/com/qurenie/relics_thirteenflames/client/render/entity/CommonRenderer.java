@@ -3,6 +3,7 @@ package com.qurenie.relics_thirteenflames.client.render.entity;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Axis;
 import com.qurenie.relics_thirteenflames.client.render.entity.processor.base.IProcessor;
 import com.qurenie.relics_thirteenflames.init.register.RendererFactory;
 import net.minecraft.client.Minecraft;
@@ -30,8 +31,8 @@ public class CommonRenderer<T extends LivingEntity & IAnimatedEntity>
     protected void setupRotations(T pEntityLiving, PoseStack pMatrixStack, float pAgeInTicks, float pRotationYaw, float pPartialTicks) {
         super.setupRotations(pEntityLiving, pMatrixStack, pAgeInTicks, pRotationYaw, pPartialTicks);
         pMatrixStack.translate(0, 1.5F, 0);
-        pMatrixStack.mulPose(new Quaternionf(1, 0, 0, 1).rotateX(180f * Mth.DEG_TO_RAD));
-        pMatrixStack.mulPose(new Quaternionf(0, 1, 0, 1).rotateY(180f * Mth.DEG_TO_RAD));
+        pMatrixStack.mulPose(Axis.XP.rotationDegrees(180f));
+        pMatrixStack.mulPose(Axis.YP.rotationDegrees(180f));
     }
 
     public void addModelProcessor(IProcessor<T> proc) {
@@ -55,8 +56,8 @@ public class CommonRenderer<T extends LivingEntity & IAnimatedEntity>
         PoseStack posestack1 = new PoseStack();
         posestack1.translate(0.0D, 0.0D, 1000.0D);
         posestack1.scale((float) pScale, (float) pScale, (float) pScale);
-        Quaternionf quaternion = new Quaternionf(0, 0, 1, 1).rotateY(180f * Mth.DEG_TO_RAD);
-        Quaternionf quaternion1 = new Quaternionf(1, 0, 0, 1).rotateX(f1 * 20.0F * Mth.DEG_TO_RAD);
+        Quaternionf quaternion = Axis.ZP.rotationDegrees(180.0F);
+        Quaternionf quaternion1 = Axis.XP.rotationDegrees(f1 * 20.0F);
         quaternion.mul(quaternion1);
         posestack1.mulPose(quaternion);
         float f2 = pLivingEntity.yBodyRot;
@@ -109,8 +110,8 @@ public class CommonRenderer<T extends LivingEntity & IAnimatedEntity>
         matrixStack2.pushPose();
         matrixStack2.translate(0.0, 0.0, 1000.0);
 		matrixStack2.scale(scaleF, scaleF, scaleF);
-        Quaternionf quaternion = new Quaternionf(0, 0, 1, 1).rotateY(180f * Mth.DEG_TO_RAD);
-        Quaternionf quaternion2 = new Quaternionf(1, 0, 0, 1).rotateX(g * 20.0F * Mth.DEG_TO_RAD);
+        Quaternionf quaternion = Axis.ZP.rotationDegrees(180.0F);
+        Quaternionf quaternion2 = Axis.XP.rotationDegrees(g * 20.0F);
 
         quaternion.mul(quaternion2);
         matrixStack2.mulPose(quaternion);

@@ -11,4 +11,7 @@ public interface EntityModels {
 
     @RegistryName("seliaset_sun")
     IGeometryContainer SELIASET_SUN = create();
+
+    @RegistryName("living_flesh")
+    IGeometryContainer LIVING_FLESH = create();
 }

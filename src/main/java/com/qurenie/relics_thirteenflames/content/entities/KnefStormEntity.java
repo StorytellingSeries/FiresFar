@@ -1,5 +1,6 @@
 package com.qurenie.relics_thirteenflames.content.entities;
 
+import com.qurenie.relics_thirteenflames.client.particles.CircleTintData;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
 import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
@@ -174,13 +175,7 @@ public class KnefStormEntity extends Projectile {
                     LivingEntity target = targets.get(random.nextInt(targets.size()));
                     pos = target.getPosition(1f).add(0, this.getY() - target.getY() - 1, 0);
                 }
-//                else if(random.nextFloat() < 0.2){
-//                    List<LivingEntity> allies = new ArrayList<>(this.level().getEntitiesOfClass(LivingEntity.class, box, e -> (e.equals(this.getOwner()))));
-//                    if(!allies.isEmpty()) {
-//                        LivingEntity target = allies.get(random.nextInt(allies.size()));
-//                        pos = target.getPosition(1f).add(0, this.getY() - target.getY() - 1, 0);
-//                    }
-//                }
+
                 drop.setPos(pos);
                 drop.setDeltaMovement(0, -3, 0);
                 drop.setOwner(this.getOwner());
@@ -206,16 +201,11 @@ public class KnefStormEntity extends Projectile {
                 Vec3 pos = this.getPosition(1f).add(MathUtils.randomFloat(random) * radius, -1, MathUtils.randomFloat(random) * radius);
                 Vec3 endpos = pos;
 
-//                AABB secondaryBox;
-//                List<LivingEntity> secondaryTargets = List.of();
-//                Vec3 targetCenter = Vec3.ZERO;
+
                 if(!targets.isEmpty()){
                     LivingEntity target = targets.get(random.nextInt(targets.size()));
                     pos = target.getPosition(1F).add(0,this.getY() - target.getY(),0);
                     endpos = target.getPosition(1f);
-//                    secondaryBox = new AABB(endpos, endpos).inflate(5, 2, 5).move(0,1,0);
-//                    secondaryTargets = new ArrayList<>(this.level().getEntitiesOfClass(LivingEntity.class, secondaryBox, e -> !(e.equals(this.getOwner()) || e.equals(target))));
-//                    targetCenter = target.getBoundingBox().getCenter();
                 }
                 else{
                     HitResult result = this.level().clip(new ClipContext(pos, pos.add(0, -160, 0),
@@ -237,22 +227,6 @@ public class KnefStormEntity extends Projectile {
                     taskQueue.add(new DelayedRunnable(() -> drawThinLightning(this.level(), finalPos, finalEndpos, 16, 0.55, 0.3f, new Color(128, 86, 255), 14),
                             this.tickCount, 4));
 
-
-//                    if(!secondaryTargets.isEmpty()) {
-//                        //LivingEntity secTarget = secondaryTargets.get(this.random.nextInt(secondaryTargets.size()));
-//                        if(!this.level.isClientSide()) {
-//                            for(LivingEntity secTarget : secondaryTargets) {
-//                                Vec3 end2 = secTarget.getBoundingBox().getCenter();
-//                                int segments2 = (int) Math.round(targetCenter.distanceTo(end2) / 2);
-//                                drawThinHorizontalLightning(this.level, targetCenter, end2, segments2, 0.8, 0.15f, new Color(187, 145, 255), true);
-//                                drawThinHorizontalLightning(this.level, targetCenter, end2, segments2, 0.8, 0.15f, new Color(222, 127, 255), true);
-//                                drawThinHorizontalLightning(this.level, targetCenter, end2, segments2, 0.5, 0.25f, new Color(154, 96, 255), true);
-//
-//                                secTarget.hurt(DamageSource.thrown(this, this.getOwner()), 10);
-//                            }
-//                        }
-//                        secondaryTargets.clear();
-//                    }
 
                     float vol = (float) (20 / (this.getOwner() != null ? this.getOwner().distanceToSqr(endpos) : 20));
                     if(this.getOwner() == null) {
@@ -286,7 +260,7 @@ public class KnefStormEntity extends Projectile {
             straightPos = straightPos.add(end.subtract(start).scale((double) 1 / segments));
             pos = straightPos.add(new Vec3(MathUtils.randomFloat(random) * jag,  0, MathUtils.randomFloat(random) * jag));
             if(i == segments - 1) pos = end;
-            ParticleHelper.spawnParticleLine(level, ParticleUtils.constructSimpleSpark(color, d, 30, 0.89f),
+            ParticleHelper.spawnParticleLine(level, new CircleTintData(color, d, 0, 30, 0.89f, false),
                     prevPos,
                     pos,
                     (int) Math.round((-length * particleCount) * (0.2 + (double) i * i / (segments - 1) / (segments - 1)) * 0.8), 0);
@@ -309,12 +283,12 @@ public class KnefStormEntity extends Projectile {
                 Vec3 pos = this.getPosition(1F).subtract(new Vec3(0,0,-2)).add(new Vec3(radius + 7, 0, 0).yRot((float) Math.toRadians(a)));
 //                this.level().addParticle(ParticleUtils.constructSimpleSpark(new Color(0, 217, 255), (float) (radius / 20.0) * (1 - (float) ((i - 40) * (i - 40)) / 1600) + 0.1f, 2, 0.99f, false), true,
 //                        pos.x(), pos.y() - 1 - radius / 6, pos.z(), 0, 0, 0);
-                level().addParticle(ParticleUtils.constructSimpleSpark(new Color(0, 21, 255), (float) (radius / 20.0) * (1 - (float) ((i - 40) * (i - 40)) / 1600) + 0.1f, 2, 0.99f),
+                level().addParticle(new CircleTintData(new Color(0, 21, 255), (float) (radius / 20.0) * (1 - (float) ((i - 40) * (i - 40)) / 1600) + 0.1f, 0, 1, 1, false),
                         true,
                         pos.x(), pos.y() - 2 - radius / 6, pos.z(), 0, 0, 0);
 
                 pos = this.getPosition(1F).subtract(new Vec3(0,0,2)).add(new Vec3(radius + 7, 0, 0).yRot((float) Math.toRadians(-a)));
-                level().addParticle(ParticleUtils.constructSimpleSpark(new Color(0, 21, 255), (float) (radius / 20.0) * (1 - (float) ((i - 40) * (i - 40)) / 1600) + 0.1f, 2, 0.98f),
+                level().addParticle(new CircleTintData(new Color(0, 21, 255), (float) (radius / 20.0) * (1 - (float) ((i - 40) * (i - 40)) / 1600) + 0.1f, 0, 1, 1, false),
                         true,
                         pos.x(), pos.y() - 2 - radius / 6, pos.z(), 0, 0, 0);
                 a += 1.5;
@@ -327,7 +301,7 @@ public class KnefStormEntity extends Projectile {
         for(int i = 0; i < 90; i++){
             if(i + 120 <= this.tickCount * 2) {
                 Vec3 pos = this.getPosition(1F).add(new Vec3(- radius * 1.6 + a, 0, 0));
-                level().addParticle(ParticleUtils.constructSimpleSpark(new Color(0, 81, 255), (float) (radius / 20.0) * (1 - (float) ((i - 45) * (i - 45)) / 2025) + 0.1f, 2, 0.99f), true,
+                level().addParticle(new CircleTintData(new Color(0, 81, 255), (float) (radius / 20.0) * (1 - (float) ((i - 45) * (i - 45)) / 2025) + 0.1f, 0, 1, 1f, false), true,
                         pos.x(), pos.y() - 1 - radius / 6, pos.z(), 0, 0, 0);
 
                 a += (radius * 1.6) / 45;
@@ -340,11 +314,11 @@ public class KnefStormEntity extends Projectile {
         for(int i = 0; i < 40; i++){
             if(i + 70 <= this.tickCount) {
                 Vec3 pos = this.getPosition(1F).add(new Vec3(0.2,0,0)).add(new Vec3(radius / 2, 0, 0).yRot((float) Math.toRadians(a)));
-                level().addParticle(ParticleUtils.constructSimpleSpark(new Color(0, 172, 201), (float) (radius / 20.0) * ((float) ((i - 80) * (i - 80) - 1) / 6400) + 0.05f, 2, 0.99f), true,
+                level().addParticle(new CircleTintData(new Color(0, 172, 201), (float) (radius / 20.0) * ((float) ((i - 80) * (i - 80) - 1) / 6400) + 0.05f, 0, 1, 1, false), true,
                         pos.x(), pos.y() - 1 - radius / 6, pos.z(), 0, 0, 0);
 
                 pos = this.getPosition(1F).add(new Vec3(0.2,0,0)).add(new Vec3(radius / 2, 0, 0).yRot((float) Math.toRadians(-a)));
-                level().addParticle(ParticleUtils.constructSimpleSpark(new Color(0, 172, 201), (float) (radius / 20.0) * ((float) ((i - 80) * (i - 80) - 1) / 6400) + 0.05f, 2, 0.98f), true,
+                level().addParticle(new CircleTintData(new Color(0, 172, 201), (float) (radius / 20.0) * ((float) ((i - 80) * (i - 80) - 1) / 6400) + 0.05f, 0, 1, 1, false), true,
                         pos.x(), pos.y() - 1 - radius / 6, pos.z(), 0, 0, 0);
                 a += 2;
             }
@@ -355,17 +329,17 @@ public class KnefStormEntity extends Projectile {
                 Vec3 pos = this.getPosition(1F).add(new Vec3(-radius / 1.7, 0, 0).yRot((float) Math.toRadians(b)));
                 level().addParticle(ParticleUtils.constructSimpleSpark(new Color(0, 159, 185), (float) (radius / 20.0) * ((float) ((i - 90) * (i - 90) - 1) / 8100) + 0.1f, 2, 0.99f), true,
                         pos.x(), pos.y() - 1 - radius / 6, pos.z(), 0, 0, 0);
-                if(i >= 43) level().addParticle(ParticleUtils.constructSimpleSpark(new Color(0, 159, 185), (float) (radius / 20.0) * ((float) ((i - 90) * (i - 90) - 1) / 8100) + 0.1f, 2, 0.99f), true,
+                if(i >= 43) level().addParticle(new CircleTintData(new Color(0, 159, 185), (float) (radius / 20.0) * ((float) ((i - 90) * (i - 90) - 1) / 8100) + 0.1f, 0, 1, 1, false), true,
                         pos.x() + 0.05, pos.y() - 1 - radius / 6, pos.z() + 0.1, 0, 0, 0);
-                if(i == 44) level().addParticle(ParticleUtils.constructSimpleSpark(new Color(0, 159, 185), (float) (radius / 20.0) * ((float) ((i - 90) * (i - 90) - 1) / 8100) + 0.1f, 2, 0.99f), true,
+                if(i == 44) level().addParticle(new CircleTintData(new Color(0, 159, 185), (float) (radius / 20.0) * ((float) ((i - 90) * (i - 90) - 1) / 8100) + 0.1f, 0, 1, 1, false), true,
                         pos.x(), pos.y() - 1 - radius / 6, pos.z() + 0.3, 0, 0, 0);
 
                 pos = this.getPosition(1F).add(new Vec3(-radius / 1.7, 0, 0).yRot((float) Math.toRadians(-b)));
-                level().addParticle(ParticleUtils.constructSimpleSpark(new Color(0, 159, 185), (float) (radius / 20.0) * ((float) ((i - 90) * (i - 90) - 1) / 8100) + 0.1f, 2, 0.98f), true,
+                level().addParticle(new CircleTintData(new Color(0, 159, 185), (float) (radius / 20.0) * ((float) ((i - 90) * (i - 90) - 1) / 8100) + 0.1f, 0, 1, 1, false), true,
                         pos.x(), pos.y() - 1 - radius / 6, pos.z(), 0, 0, 0);
-                if(i >= 43) level().addParticle(ParticleUtils.constructSimpleSpark(new Color(0, 159, 185), (float) (radius / 20.0) * ((float) ((i - 90) * (i - 90) - 1) / 8100) + 0.1f, 2, 0.99f), true,
+                if(i >= 43) level().addParticle(new CircleTintData(new Color(0, 159, 185), (float) (radius / 20.0) * ((float) ((i - 90) * (i - 90) - 1) / 8100) + 0.1f, 0, 1, 1, false), true,
                         pos.x() + 0.05, pos.y() - 1 - radius / 6, pos.z() - 0.1, 0, 0, 0);
-                if(i == 44) level().addParticle(ParticleUtils.constructSimpleSpark(new Color(0, 159, 185), (float) (radius / 20.0) * ((float) ((i - 90) * (i - 90) - 1) / 8100) + 0.1f, 2, 0.99f), true,
+                if(i == 44) level().addParticle(new CircleTintData(new Color(0, 159, 185), (float) (radius / 20.0) * ((float) ((i - 90) * (i - 90) - 1) / 8100) + 0.1f, 0, 1, 1, false), true,
                         pos.x(), pos.y() - 1 - radius / 6, pos.z() - 0.3, 0, 0, 0);
                 b += 2;
             }
@@ -378,19 +352,19 @@ public class KnefStormEntity extends Projectile {
         for(int i = 0; i < 20; i++){
             if(i + 80 <= this.tickCount) {
                 Vec3 pos = this.getPosition(1F).add(new Vec3(b, 0, radius / 3 - a));
-                level().addParticle(ParticleUtils.constructSimpleSpark(new Color(0, 81, 255), (float) (radius / 40.0) * (1 - (float) ((i - 20) * (i - 20)) / 400) + 0.05f, 2, 0.99f), true,
+                level().addParticle(new CircleTintData(new Color(0, 81, 255), (float) (radius / 40.0) * (1 - (float) ((i - 20) * (i - 20)) / 400) + 0.05f, 0, 1, 1, false), true,
                         pos.x(), pos.y() - 1 - radius / 6, pos.z(), 0, 0, 0);
 
                 pos = this.getPosition(1F).add(new Vec3(-b, 0, radius / 3 - a));
-                level().addParticle(ParticleUtils.constructSimpleSpark(new Color(0, 81, 255), (float) (radius / 40.0) * (1 - (float) ((i - 20) * (i - 20)) / 400) + 0.05f, 2, 0.98f), true,
+                level().addParticle(new CircleTintData(new Color(0, 81, 255), (float) (radius / 40.0) * (1 - (float) ((i - 20) * (i - 20)) / 400) + 0.05f, 0, 1, 1, false), true,
                         pos.x(), pos.y() - 1 - radius / 6, pos.z(), 0, 0, 0);
 
                 pos = this.getPosition(1F).add(new Vec3(b, 0, - radius / 3 + a));
-                level().addParticle(ParticleUtils.constructSimpleSpark(new Color(0, 81, 255), (float) (radius / 40.0) * (1 - (float) ((i - 20) * (i - 20)) / 400) + 0.05f, 2, 0.98f), true,
+                level().addParticle(new CircleTintData(new Color(0, 81, 255), (float) (radius / 40.0) * (1 - (float) ((i - 20) * (i - 20)) / 400) + 0.05f, 0, 1, 1, false), true,
                         pos.x(), pos.y() - 1 - radius / 6, pos.z(), 0, 0, 0);
 
                 pos = this.getPosition(1F).add(new Vec3(-b, 0, - radius / 3 + a));
-                level().addParticle(ParticleUtils.constructSimpleSpark(new Color(0, 81, 255), (float) (radius / 40.0) * (1 - (float) ((i - 20) * (i - 20)) / 400) + 0.05f, 2, 0.98f), true,
+                level().addParticle(new CircleTintData(new Color(0, 81, 255), (float) (radius / 40.0) * (1 - (float) ((i - 20) * (i - 20)) / 400) + 0.05f, 0, 1, 1, false), true,
                         pos.x(), pos.y() - 1 - radius / 6, pos.z(), 0, 0, 0);
 
                 a += radius / 60;
@@ -405,19 +379,19 @@ public class KnefStormEntity extends Projectile {
         for(int i = 0; i < 20; i++){
             if(i + 1200 <= this.tickCount * 10) {
                 Vec3 pos = this.getPosition(1F).add(new Vec3(b, 0, -a));
-                level().addParticle(ParticleUtils.constructSimpleSpark(new Color(222, 127, 255), (float) (radius / 40.0) * ((float) ((i - 20) * (i - 20) - 1) / 400) + 0.05f, 2, 0.99f), true,
+                level().addParticle(new CircleTintData(new Color(222, 127, 255), (float) (radius / 40.0) * ((float) ((i - 20) * (i - 20) - 1) / 400) + 0.05f, 0, 1, 1, false), true,
                         pos.x(), pos.y() - 1.5 - radius / 6, pos.z(), 0, 0, 0);
 
                 pos = this.getPosition(1F).add(new Vec3(-b, 0, -a));
-                level().addParticle(ParticleUtils.constructSimpleSpark(new Color(222, 127, 255), (float) (radius / 40.0) * ((float) ((i - 20) * (i - 20) - 1) / 400) + 0.05f, 2, 0.98f), true,
+                level().addParticle(new CircleTintData(new Color(222, 127, 255), (float) (radius / 40.0) * ((float) ((i - 20) * (i - 20) - 1) / 400) + 0.05f, 0, 1, 1, false), true,
                         pos.x(), pos.y() - 1.5 - radius / 6, pos.z(), 0, 0, 0);
 
                 pos = this.getPosition(1F).add(new Vec3(b, 0, +a));
-                level().addParticle(ParticleUtils.constructSimpleSpark(new Color(222, 127, 255), (float) (radius / 40.0) * ((float) ((i - 20) * (i - 20) - 1) / 400) + 0.05f, 2, 0.98f), true,
+                level().addParticle(new CircleTintData(new Color(222, 127, 255), (float) (radius / 40.0) * ((float) ((i - 20) * (i - 20) - 1) / 400) + 0.05f, 0, 1, 1, false), true,
                         pos.x(), pos.y() - 1.5 - radius / 6, pos.z(), 0, 0, 0);
 
                 pos = this.getPosition(1F).add(new Vec3(-b, 0, a));
-                level().addParticle(ParticleUtils.constructSimpleSpark(new Color(222, 127, 255), (float) (radius / 40.0) * ((float) ((i - 20) * (i - 20) - 1) / 400) + 0.05f, 2, 0.98f), true,
+                level().addParticle(new CircleTintData(new Color(222, 127, 255), (float) (radius / 40.0) * ((float) ((i - 20) * (i - 20) - 1) / 400) + 0.05f, 0, 1, 1, false), true,
                         pos.x(), pos.y() - 1.5 - radius / 6, pos.z(), 0, 0, 0);
 
                 a += radius / 60;

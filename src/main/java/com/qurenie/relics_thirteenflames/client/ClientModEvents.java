@@ -3,17 +3,19 @@ package com.qurenie.relics_thirteenflames.client;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.qurenie.relics_thirteenflames.ThirteenFlames;
 import com.qurenie.relics_thirteenflames.client.particles.CircleTintFactory;
+import com.qurenie.relics_thirteenflames.client.render.entity.CommonRenderer;
 import com.qurenie.relics_thirteenflames.client.render.entity.FallingRenderer;
+import com.qurenie.relics_thirteenflames.client.render.entity.LivingFleshRenderer;
 import com.qurenie.relics_thirteenflames.content.items.ItemRonasSword;
 import com.qurenie.relics_thirteenflames.client.render.entity.EntityRendererSeliasetSun;
-import com.qurenie.relics_thirteenflames.init.EffectsRegistry;
-import com.qurenie.relics_thirteenflames.init.EntityRegistry;
-import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
-import com.qurenie.relics_thirteenflames.init.ParticlesRegistry;
+import com.qurenie.relics_thirteenflames.init.*;
+import com.qurenie.relics_thirteenflames.init.register.RendererFactory;
 import it.hurts.sskirillss.relics.client.renderer.entities.NullRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.ResourceLocation;
@@ -29,6 +31,8 @@ import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import org.zeith.hammeranims.api.geometry.IGeometryContainer;
+import org.zeith.hammeranims.api.tile.IAnimatedEntity;
 
 
 @Mod.EventBusSubscriber(modid = ThirteenFlames.MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
@@ -50,10 +54,6 @@ public class ClientModEvents {
         });
     }
 
-    @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void registerParticles(RegisterParticleProvidersEvent event){
-        event.registerSpriteSet(ParticlesRegistry.CIRCLE_TINT.get(), CircleTintFactory::new);
-    }
 
     @SubscribeEvent
     public static void registerRenderers(EntityRenderersEvent.RegisterRenderers e) {
@@ -65,9 +65,22 @@ public class ClientModEvents {
         e.registerEntityRenderer(EntityRegistry.KNEF_STORM, NullRenderer::new);
         e.registerEntityRenderer(EntityRegistry.KNEF_RAINDROP, NullRenderer::new);
         e.registerEntityRenderer(EntityRegistry.FARTCLOUD, NullRenderer::new);
+        e.registerEntityRenderer(EntityRegistry.DEATHCLOUD, NullRenderer::new);
         e.registerEntityRenderer(EntityRegistry.POISONWAVE, NullRenderer::new);
         e.registerEntityRenderer(EntityRegistry.USABLE_FALLING, FallingRenderer::new);
         e.registerEntityRenderer(EntityRegistry.SELIASET_SUN, EntityRendererSeliasetSun::new);
+        e.registerEntityRenderer(EntityRegistry.LIVING_FLESH,
+                rendererProvider(
+                        EntityModels.LIVING_FLESH,
+                        LivingFleshRenderer::new,
+                        ThirteenFlames.rl("textures/entity/living_flesh.png"),
+                        1f
+                )
+        );
+    }
+
+    public static <T extends LivingEntity & IAnimatedEntity, R extends CommonRenderer<T>> EntityRendererProvider<T> rendererProvider(IGeometryContainer model, RendererFactory.WithScale<T, R> renderer, ResourceLocation texture, float scale) {
+        return manager -> renderer.create(manager, new RendererFactory.ModelConfiguration(model), 0.5F, texture, scale);
     }
 
     @SubscribeEvent

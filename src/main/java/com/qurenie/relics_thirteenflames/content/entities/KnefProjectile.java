@@ -112,12 +112,15 @@ public class KnefProjectile extends ThrowableProjectile
     public void tick() {
         if(this.getOwnerUUID().isEmpty()) this.discard();
         Vec3 motion = this.getDeltaMovement();
+        if(prevPos == null) prevPos = this.position();
         super.tick();
 
         setDeltaMovement(motion);
+
         if(!level().isClientSide) {
+            double distance = this.position().subtract(prevPos == null ? this.position() : prevPos).length();
             ParticleHelper.spawnParticleLine(this.level(), ParticleUtils.constructSimpleSpark(color, 0.1f, 35, 0.89f),
-                    prevPos == null ? this.position() : prevPos, this.position(), getParticleCount(), 0);
+                    prevPos, this.position(), (int) Math.round(distance * getParticleCount()), 0.001);
         }
 
         if(isFree()){
