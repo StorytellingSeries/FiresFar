@@ -247,6 +247,7 @@ public class ItemKnefRose
 								.initPrimary(e.getEntity(), new RoseStats(it));
 						ent.moveTo(e.getEntity().position());
 						ent.setOwnerUUID(sp.getStringUUID());
+						ent.lifetime = (int) (e.getEntity().getMaxHealth() * 15);
 						
 						HammerLib.PROXY.queueTask(sp.level(), 15, () -> sp.level().addFreshEntity(ent));
 						return;

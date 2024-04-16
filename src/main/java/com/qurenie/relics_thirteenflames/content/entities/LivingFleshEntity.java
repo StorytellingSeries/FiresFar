@@ -95,7 +95,7 @@ public class LivingFleshEntity
 		
 		if(attackCd > 0) --attackCd;
 		
-		if(tickCount % 10 == 0 && !isAttacking())
+		if(tickCount % 10 == 0)
 		{
 			// find attack target
 			var target = (Mob) level().getEntities(this, getBoundingBox().inflate(12),
@@ -147,7 +147,7 @@ public class LivingFleshEntity
 				&& p.getStringUUID().equals(this.getOwnerUUID())) {
 			return -200;
 		}
-
+		if(getTarget() != null && getTarget().getUUID().equals(e.getUUID())) return -150;
 		if(e instanceof Mob m
 				&& Objects.equals(m.getTarget() == null ? null : m.getTarget().getStringUUID(), this.getOwnerUUID()))
 			return -100;

@@ -4,6 +4,7 @@ import com.google.common.base.Suppliers;
 import com.qurenie.relics_thirteenflames.client.particles.CircleTintData;
 import com.qurenie.relics_thirteenflames.client.render.item.EmissiveItemRenderer;
 import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
+import com.qurenie.relics_thirteenflames.net.PacketHornSounds;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import it.hurts.sskirillss.relics.init.EffectRegistry;
 import it.hurts.sskirillss.relics.items.relics.base.IRelicItem;
@@ -25,12 +26,18 @@ import it.hurts.sskirillss.relics.utils.Scheduler;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.Particle;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
@@ -45,6 +52,8 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
@@ -82,15 +91,17 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
         return super.use(pLevel,pPlayer,pUsedHand);
     }
 
-    public static SimpleSoundInstance ssi = SimpleSoundInstance.forUI(SoundsRegistry.SELI_HORN_BLOW.get(), 1, 1);
-    public static SimpleSoundInstance ssiStop = SimpleSoundInstance.forUI(SoundsRegistry.SELI_HORN_BLOW_END.get(), 1f, 0.8f);
+
     @Override
     public void releaseUsing(ItemStack pStack, Level pLevel, LivingEntity pLivingEntity, int pTimeCharged) {
         super.releaseUsing(pStack, pLevel, pLivingEntity, pTimeCharged);
 
-        if(!pLevel.isClientSide()) {
-            Minecraft.getInstance().getSoundManager().play(ssiStop);
-            Scheduler.schedule(6, () -> Minecraft.getInstance().getSoundManager().stop(ssi));
+        if(!pLevel.isClientSide() && pStack.is(this)) {
+            List<ServerPlayer> players = pLevel.getEntitiesOfClass(ServerPlayer.class, new AABB(pLivingEntity.blockPosition()).inflate(20));
+            for(ServerPlayer sp : players){
+                Network.sendTo(sp, new PacketHornSounds(true));
+            }
+
         }
 
     }
@@ -100,9 +111,6 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
         if (living instanceof Player player){
             this.releaseRay(level, player, horn);
         }
-
-
-        if(!Minecraft.getInstance().getSoundManager().isActive(ssi) && !level.isClientSide()) Minecraft.getInstance().getSoundManager().play(ssi);
 
 
         if(level.isClientSide()) {
@@ -194,6 +202,12 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
                 }
             }
         }
+        else {
+            List<ServerPlayer> players = level.getEntitiesOfClass(ServerPlayer.class, new AABB(living.blockPosition()).inflate(20));
+            for(ServerPlayer sp : players){
+                Network.sendTo(sp, new PacketHornSounds(false));
+            }
+        }
     }
 
     public void releaseRay(Level level, Player player, ItemStack horn){
@@ -225,8 +239,8 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
         return level.getEntitiesOfClass(LivingEntity.class, new AABB(endPos, endPos).inflate(boxRadius), e -> {
             Vec3 ePos = e.getBoundingBox().getCenter();
             Vec3 eVec = ePos.subtract(initPos);
-            double axisScalar = axis.x * axis.x + axis.y * axis.y + axis.z * axis.z;
-            double eScalar = eVec.x * axis.x + eVec.y * axis.y + eVec.z * axis.z;
+            double axisScalar = axis.dot(axis);
+            double eScalar = eVec.dot(axis);
             Vec3 point = initPos.add(axis.scale( eScalar / axisScalar ));
             return point.subtract(ePos).lengthSqr() < dist * dist;
         });
@@ -342,7 +356,7 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
     }
 
     public void releaseWave(Level level, Entity entity){
-        if(!level.isClientSide()) Minecraft.getInstance().getSoundManager().playDelayed(new SimpleSoundInstance(SoundsRegistry.SELI_HORN_WAVE.get(), SoundSource.MASTER, 1, 1, entity.level().getRandom(), entity.blockPosition()), 2);
+        level.playSound(entity, entity.blockPosition(), SoundsRegistry.SELI_HORN_WAVE.get(), SoundSource.MASTER, 1, 1);
         releaseWaveParticles(level, entity);
     }
 
@@ -419,5 +433,67 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
     @Override
     public int getFoilColor(@NotNull ItemStack stack) {
         return /*0xFA9FEB7D*/ new Color(183, 155, 58).getRGB();
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public static class TootSoundInstance extends AbstractTickableSoundInstance {
+        private float fadeDirection;
+        private float fade;
+
+        public Vec3 originPos;
+
+
+        public TootSoundInstance(SoundEvent p_119658_) {
+            super(p_119658_, SoundSource.PLAYERS, SoundInstance.createUnseededRandom());
+            this.looping = false;
+            this.delay = 0;
+            this.volume = 1.0F;
+            this.relative = true;
+            this.originPos = null;
+            this.fade = 1;
+            this.fadeDirection = 0;
+        }
+
+        public TootSoundInstance(SoundEvent sound, Vec3 pos){
+            super(sound, SoundSource.PLAYERS, SoundInstance.createUnseededRandom());
+            this.looping = false;
+            this.delay = 0;
+            this.volume = 1.0F;
+            this.relative = true;
+            this.originPos = pos;
+            this.fade = 1;
+            this.fadeDirection = 0;
+        }
+
+        @Override
+        public boolean isStopped() {
+            return super.isStopped() && this.fade <= 0;
+        }
+
+
+        public void tick() {
+            if (this.fade <= 0) {
+                this.stop();
+            }
+            fade = Mth.clamp(fade + fadeDirection, 0, 1);
+            LocalPlayer player = Minecraft.getInstance().player;
+            this.volume = (float) Mth.clamp( player == null ? 0 : 25f / player.distanceToSqr(originPos), 0.0F, 1.0F) * fade;
+        }
+
+        public void fadeOut() {
+            this.fade = Math.min(this.fade, 40);
+            this.fadeDirection = -0.1f;
+
+        }
+
+        public void fadeIn() {
+            this.fade = Math.max(0, this.fade);
+            this.fadeDirection = 0.2f;
+        }
+
+        public void setFade(float fade) {
+            this.fade = fade;
+            this.volume = fade;
+        }
     }
 }

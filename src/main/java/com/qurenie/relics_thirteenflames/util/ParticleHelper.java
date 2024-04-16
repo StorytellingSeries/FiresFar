@@ -57,6 +57,14 @@ public class ParticleHelper {
             Network.sendToAll(new PacketSpawnParticle(options, x, y, z, moveX, moveY, moveZ));
     }
 
+    public static void spawnDirectedParticle(Level level, ParticleOptions options, Vec3 pos, double moveX, double moveY, double moveZ) {
+        spawnDirectedParticle(level, options, pos.x, pos.y, pos.z, moveX, moveY, moveZ);
+    }
+
+    public static void spawnDirectedParticle(Level level, ParticleOptions options, Vec3 pos, Vec3 move) {
+        spawnDirectedParticle(level, options, pos, move.x, move.y, move.z);
+    }
+
     public static void spawnParticles(Level level, ParticleOptions options, double x, double y, double z, int count, double dx, double dy, double dz, double maxSpeed) {
         if (level.isClientSide)
             if (count == 0) {
