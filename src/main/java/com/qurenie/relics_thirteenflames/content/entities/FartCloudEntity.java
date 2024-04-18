@@ -120,13 +120,13 @@ public class FartCloudEntity extends Projectile {
                             int appliedAmplifier = e.getEffect(EffectsRegistry.POISSON).getAmplifier() + 1;
                             if (appliedAmplifier <= maxAmp) {
                                 e.addEffect(new PoisonEffectInstance(EffectsRegistry.POISSON, duration + appliedAmplifier * 20, appliedAmplifier, false, true, true, getSword()));
-                                if (rng.nextFloat() < 0.25f) relic.dropAllocableExperience(this.level(), e.position(), getSword(), 1);
+                                if (rng.nextFloat() < 0.25f && this.getOwner() instanceof LivingEntity livin) relic.spreadExperience(livin, getSword(), 1);
                             } else {
                                 e.addEffect(new PoisonEffectInstance(EffectsRegistry.POISSON, duration + maxAmp * 20, maxAmp, false, true, true, getSword()));
                             }
                         } else {
                             e.addEffect(new PoisonEffectInstance(EffectsRegistry.POISSON, duration, 0, false, true, true, getSword()));
-                            if (rng.nextFloat() < 0.25f) relic.dropAllocableExperience(this.level(), e.position(), getSword(), 1);
+                            if (rng.nextFloat() < 0.25f && this.getOwner() instanceof LivingEntity livin) relic.spreadExperience(livin, getSword(), 1);
                         }
                     }
                 }

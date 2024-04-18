@@ -25,8 +25,7 @@ public class KnefProjectileSpecial extends ThrowableProjectile
 
     public KnefProjectileSpecial(EntityType<? extends KnefProjectileSpecial> type, Level world) {
         super(type, world);
-        this.color = new Color(255, 100, 255);
-
+        this.color = new Color(100, 255, 178);
     }
 
     @Override
@@ -58,7 +57,7 @@ public class KnefProjectileSpecial extends ThrowableProjectile
             proj.setOwner(owner);
             proj.setPos(center);
             proj.setDeltaMovement(move);
-            proj.color = new Color(255 - proj.random.nextInt(100), 100, 255 - proj.random.nextInt(10));
+            proj.color = new Color(100, 255, 178);
             list.add(proj);
         }
         return list;

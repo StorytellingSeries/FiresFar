@@ -229,7 +229,7 @@ public class ItemMontuHammer
 
                 Scheduler.schedule(Math.max(0, delay - 2), () ->
                 {
-                    dropAllocableExperience(level, height0.getCenter(), ctx.getItemInHand(), 1);
+                    spreadExperience(ctx.getPlayer(), ctx.getItemInHand(), 1);
                     UsableFallingBlockEntity fbe = UsableFallingBlockEntity.createFalling(level, height0, state);
                     Vec3 dist = new Vec3(height0.getX(), pos.getY(), height0.getZ()).subtract(new Vec3(pos.getX(), pos.getY(), pos.getZ())).yRot(rng.nextFloat(-10, 10) * Mth.DEG_TO_RAD);
                     Vec3 move = dist.normalize().scale(Math.min(0.6, 0.2 / dist.length())).add(new Vec3(rng.nextFloat(0.05f),0,0).yRot(rng.nextFloat(3.14f)));
@@ -291,7 +291,7 @@ public class ItemMontuHammer
         }
         blocksMined++;
         if(blocksMined >= 25){
-            dropAllocableExperience(world, pos.getCenter(), stack, blocksMined / 25);
+            spreadExperience(player, stack, blocksMined / 25);
             blocksMined %= 25;
         }
         stack.getOrCreateTag().putInt("blocksmined", blocksMined);

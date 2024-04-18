@@ -36,7 +36,6 @@ import javax.annotation.Nullable;
 
 public class UsableFallingBlockEntity extends Entity {
     private static final Logger LOGGER = LogUtils.getLogger();
-    public BlockState blockState = Blocks.SAND.defaultBlockState();
     public int time;
     public boolean dropItem = true;
     private boolean cancelDrop;
@@ -46,6 +45,18 @@ public class UsableFallingBlockEntity extends Entity {
     private float fallDamagePerDistance;
     @Nullable
     public CompoundTag blockData;
+
+    private static final EntityDataAccessor<BlockState> BLOCK_STATE = SynchedEntityData.defineId(UsableFallingBlockEntity.class, EntityDataSerializers.BLOCK_STATE);
+
+    public void setBlockState(@Nullable BlockState state) {
+        this.entityData.set(BLOCK_STATE, state);
+    }
+
+    @Nullable
+    public BlockState getBlockState() {
+        return this.entityData.get(BLOCK_STATE);
+    }
+
     protected static final EntityDataAccessor<BlockPos> DATA_START_POS = SynchedEntityData.defineId(UsableFallingBlockEntity.class, EntityDataSerializers.BLOCK_POS);
 
     private static final EntityDataAccessor<Integer> LIFETIME = SynchedEntityData.defineId(UsableFallingBlockEntity.class, EntityDataSerializers.INT);
@@ -64,7 +75,7 @@ public class UsableFallingBlockEntity extends Entity {
 
     public static UsableFallingBlockEntity createFalling(Level pLevel, BlockPos pos, BlockState pState) {
         UsableFallingBlockEntity ufbe = new UsableFallingBlockEntity(EntityRegistry.USABLE_FALLING, pLevel);
-        ufbe.blockState = pState;
+        ufbe.setBlockState(pState);
         ufbe.blocksBuilding = true;
         ufbe.setPos(pos.getX(), pos.getY(), pos.getZ());
         ufbe.setDeltaMovement(Vec3.ZERO);
@@ -100,6 +111,7 @@ public class UsableFallingBlockEntity extends Entity {
     protected void defineSynchedData() {
         this.entityData.define(DATA_START_POS, BlockPos.ZERO);
         this.entityData.define(LIFETIME, 600);
+        this.entityData.define(BLOCK_STATE, Blocks.AIR.defaultBlockState());
     }
 
     /**
@@ -115,10 +127,12 @@ public class UsableFallingBlockEntity extends Entity {
      */
     @Override
     public void tick() {
-        if (this.blockState.isAir() || this.blockState.hasBlockEntity()) {
+        BlockState blockState = getBlockState();
+        if(blockState == null) return;
+        if (blockState.isAir() || blockState.hasBlockEntity()) {
             this.discard();
         } else {
-            Block block = this.blockState.getBlock();
+            Block block = blockState.getBlock();
             ++this.time;
             if (!this.isNoGravity()) {
                 this.setDeltaMovement(this.getDeltaMovement().add(0.0D, -0.04D, 0.0D));
@@ -145,13 +159,14 @@ public class UsableFallingBlockEntity extends Entity {
                         if (!this.cancelDrop) {
                             boolean canBeReplaced = blockstate.canBeReplaced(new DirectionalPlaceContext(this.level(), blockpos, Direction.DOWN, ItemStack.EMPTY, Direction.UP));
                             boolean free = FallingBlock.isFree(this.level().getBlockState(blockpos.below()));
-                            boolean canSurviveNoFree = this.blockState.canSurvive(this.level(), blockpos) && !free;
+                            boolean canSurviveNoFree = blockState.canSurvive(this.level(), blockpos) && !free;
                             if (canBeReplaced) {
-                                if (this.blockState.hasProperty(BlockStateProperties.WATERLOGGED) && this.level().getFluidState(blockpos).getType() == Fluids.WATER) {
-                                    this.blockState = this.blockState.setValue(BlockStateProperties.WATERLOGGED, Boolean.valueOf(true));
+                                if (blockState.hasProperty(BlockStateProperties.WATERLOGGED) && this.level().getFluidState(blockpos).getType() == Fluids.WATER) {
+                                    setBlockState(blockState.setValue(BlockStateProperties.WATERLOGGED, Boolean.TRUE));
+                                    blockState = getBlockState();
                                 }
 
-                                if (this.level().setBlock(blockpos, this.blockState, 3)) {
+                                if (this.level().setBlock(blockpos, blockState, 3)) {
                                     ((ServerLevel)this.level()).getChunkSource().chunkMap.broadcast(this, new ClientboundBlockUpdatePacket(blockpos, this.level().getBlockState(blockpos)));
                                     this.discard();
 
@@ -184,7 +199,10 @@ public class UsableFallingBlockEntity extends Entity {
 
     @Override
     protected void addAdditionalSaveData(CompoundTag pCompound) {
-        pCompound.put("BlockState", NbtUtils.writeBlockState(this.blockState));
+        BlockState state = getBlockState();
+        if (state != null)
+            pCompound.put("BlockState", NbtUtils.writeBlockState(state));
+
         pCompound.putInt("Time", this.time);
         pCompound.putBoolean("DropItem", this.dropItem);
         pCompound.putInt("lifetime", getLifeTime());
@@ -199,7 +217,7 @@ public class UsableFallingBlockEntity extends Entity {
      */
     @Override
     protected void readAdditionalSaveData(CompoundTag pCompound) {
-        this.blockState = NbtUtils.readBlockState(this.level().holderLookup(Registries.BLOCK), pCompound.getCompound("BlockState"));
+        setBlockState(NbtUtils.readBlockState(this.getCommandSenderWorld().holderLookup(Registries.BLOCK), pCompound.getCompound("BlockState")));
         this.time = pCompound.getInt("Time");
         setLifeTime(pCompound.getInt("lifetime"));
 
@@ -211,10 +229,6 @@ public class UsableFallingBlockEntity extends Entity {
             this.blockData = pCompound.getCompound("TileEntityData");
         }
 
-        if (this.blockState.isAir()) {
-            this.blockState = Blocks.SAND.defaultBlockState();
-        }
-
     }
 
     @Override
@@ -222,25 +236,6 @@ public class UsableFallingBlockEntity extends Entity {
         return false;
     }
 
-    @Override
-    public void fillCrashReportCategory(CrashReportCategory pCategory) {
-        super.fillCrashReportCategory(pCategory);
-        pCategory.setDetail("Immitating BlockState", this.blockState.toString());
-    }
-
-    public BlockState getBlockState() {
-        return this.blockState;
-    }
-
-    /**
-     * Checks if players can use this entity to access operator (permission level 2) commands either directly or
-     * indirectly, such as give or setblock. A similar method exists for entities at {@link
-     * net.minecraft.world.entity.Entity#onlyOpCanSetNbt()}.<p>For example, {@link
-     * net.minecraft.world.entity.vehicle.MinecartCommandBlock#onlyOpCanSetNbt() command block minecarts} and {@link
-     * net.minecraft.world.entity.vehicle.MinecartSpawner#onlyOpCanSetNbt() mob spawner minecarts} (spawning command
-     * block minecarts or drops) are considered accessible.</p>@return true if this entity offers ways for unauthorized
-     * players to use restricted commands
-     */
     @Override
     public boolean onlyOpCanSetNbt() {
         return true;
@@ -250,7 +245,7 @@ public class UsableFallingBlockEntity extends Entity {
     @Override
     public void recreateFromPacket(ClientboundAddEntityPacket pPacket) {
         super.recreateFromPacket(pPacket);
-        this.blockState = Block.stateById(pPacket.getData());
+        this.setBlockState(Block.stateById(pPacket.getData()));
         this.blocksBuilding = true;
         double d0 = pPacket.getX();
         double d1 = pPacket.getY();

@@ -64,6 +64,32 @@ public class KnefProjCarrier extends ThrowableProjectile
     @Override
     public void tick() {
         Vec3 motion = this.getDeltaMovement();
+
+        for (int i = 0; i < rays.size(); i++){
+            if(rays.get(i).prevPos == null) {
+                double a = 360.0 / rays.size() * i - this.tickCount * 10.0;
+                double radius = rad + Math.sin(Math.toRadians(this.tickCount * 20.0) - 90) * 0.04;
+                if (i % 2 == 0 && rays.size() > 7) {
+                    radius += 0.1;
+                    if (i % 4 == 0 && rays.size() > 15) radius -= 0.1;
+                }
+                Vec3 x = !(motion.normalize().x < 0.001 && motion.normalize().z < 0.001) ? motion.normalize().cross(new Vec3(0, 1, 0)).normalize().scale(radius) : motion.normalize().cross(new Vec3(1, 0, 0)).normalize().scale(radius);
+                Vec3 z = motion.normalize().cross(x).normalize().scale(radius);
+
+                Vec3 pos = this.getPosition(1F)
+                        .add(x.scale(Math.cos(Math.toRadians(a))))
+                        .add(z.scale(Math.sin(Math.toRadians(a))))
+                        //.subtract(motion.scale((double) i / rays.size() * 2))
+                        ;
+
+                if (i % 2 == 0) {
+                    pos = pos.add(motion.scale(0.3));
+                    if (i % 4 == 0 && rays.size() > 15) pos = pos.subtract(motion.scale(0.3));
+                }
+                rays.get(i).prevPos = pos;
+            }
+        }
+
         super.tick();
 
         setDeltaMovement(motion);

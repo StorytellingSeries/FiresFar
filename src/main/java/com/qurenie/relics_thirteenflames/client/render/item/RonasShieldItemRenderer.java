@@ -36,9 +36,6 @@ public class RonasShieldItemRenderer
                 pose.mulPose(Axis.XN.rotationDegrees(-30));
             }
             if (transformType == ItemDisplayContext.FIRST_PERSON_LEFT_HAND) {
-//                pose.translate(0.15, 0.2, 0);
-//                pose.mulPose(Axis.YP.rotationDegrees(10));
-//                pose.mulPose(Axis.ZN.rotationDegrees(10));
                 pose.translate(-0.45, -0.2, -0.8);
                 pose.mulPose(Axis.ZN.rotationDegrees(10));
             }

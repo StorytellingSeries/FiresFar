@@ -95,15 +95,28 @@ public class KnefDischarge extends ThrowableProjectile
 
     }
 
+//    Color[] lightningColors = {
+//            new Color(175, 117, 245),
+//            new Color(10, 46, 203),
+//            new Color(115, 110, 255),
+//            new Color(245, 152, 255)
+//    };
+    Color[] lightningColors = {
+            new Color(145, 255, 213),
+            new Color(117, 223, 255),
+            new Color(96, 255, 194),
+            new Color(86, 185, 255)
+    };
+
     private void spark(int count, double speed, float diam) {
-        ParticleHelper.spawnParticleEntity(ParticleUtils.constructSimpleSpark(new Color(175, 117, 245), diam, 45, 0.9f),
+        ParticleHelper.spawnParticleEntity(ParticleUtils.constructSimpleSpark(lightningColors[0], diam, 45, 0.9f),
                 this, count, speed);
-        ParticleHelper.spawnParticleEntity(ParticleUtils.constructSimpleSpark(new Color(10, 46, 203), diam, 45, 0.9f),
+        ParticleHelper.spawnParticleEntity(ParticleUtils.constructSimpleSpark(lightningColors[1], diam, 45, 0.9f),
                 this, count, speed);
 
-        ParticleHelper.spawnParticleEntity(ParticleUtils.constructSimpleSpark(new Color(115, 110, 255), diam / 2.0f, 50, 0.93f),
+        ParticleHelper.spawnParticleEntity(ParticleUtils.constructSimpleSpark(lightningColors[2], diam / 2.0f, 50, 0.93f),
                 this, count, speed);
-        ParticleHelper.spawnParticleEntity(ParticleUtils.constructSimpleSpark(new Color(245, 152, 255), diam / 2.0f, 50, 0.93f),
+        ParticleHelper.spawnParticleEntity(ParticleUtils.constructSimpleSpark(lightningColors[3], diam / 2.0f, 50, 0.93f),
                 this, count, speed);
         this.level().playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.AZALEA_FALL, SoundSource.MASTER, 0.5f, 1.4f + random.nextFloat() * 1.6f);
     }
@@ -123,9 +136,9 @@ public class KnefDischarge extends ThrowableProjectile
             Vec3 start = this.position();
             Vec3 end = le.getBoundingBox().getCenter();
             if(!this.level().isClientSide()) {
-                drawJaggedLightning(this.level(), start, end, 3, 0.2, 0.15f, new Color(187, 145, 255), true);
-                drawJaggedLightning(this.level(), start, end, 3, 0.2, 0.15f, new Color(222, 127, 255), true);
-                drawJaggedLightning(this.level(), start, end, 3, 0.2, 0.25f, new Color(154, 96, 255), true);
+                drawJaggedLightning(this.level(), start, end, 3, 0.2, 0.15f, lightningColors[0], true);
+                drawJaggedLightning(this.level(), start, end, 3, 0.2, 0.15f, lightningColors[1], true);
+                drawJaggedLightning(this.level(), start, end, 3, 0.2, 0.25f, lightningColors[2], true);
 
                 le.hurt(le.level().damageSources().thrown(this, this.getOwner()), getDmg());
             }
@@ -144,12 +157,12 @@ public class KnefDischarge extends ThrowableProjectile
                             .add(MathUtils.randomFloat(random) * box2.getXsize() * 0.4,
                                     MathUtils.randomFloat(random) * box2.getYsize() * 0.4,
                                     MathUtils.randomFloat(random) * box2.getZsize() * 0.4);
-                    drawJaggedLightning(this.level(), end, end2, 3, 0.3, 0.15f, new Color(222, 127, 255), true);
+                    drawJaggedLightning(this.level(), end, end2, 3, 0.3, 0.15f, lightningColors[0], true);
                     end2 = box2.getCenter()
                             .add(MathUtils.randomFloat(random) * box2.getXsize() * 0.4,
                                     MathUtils.randomFloat(random) * box2.getYsize() * 0.4,
                                     MathUtils.randomFloat(random) * box2.getZsize() * 0.4);
-                    drawJaggedLightning(this.level(), end, end2, 3, 0.3, 0.25f, new Color(154, 96, 255), true);
+                    drawJaggedLightning(this.level(), end, end2, 3, 0.3, 0.25f, lightningColors[1], true);
 
                     secTarget.hurt(secTarget.level().damageSources().thrown(this, this.getOwner()), getDmg());
                 }
@@ -161,21 +174,21 @@ public class KnefDischarge extends ThrowableProjectile
     public void drawJaggedLightning(Level level, Vec3 start, Vec3 end, int sliceIterations, double maxJagMultiplier, float d, Color color, boolean doStartBurst){
 
         if(doStartBurst) {
-            ParticleHelper.spawnParticleAABB(this.level(), ParticleUtils.constructSimpleSpark(new Color(230, 175, 255), 0.6f, 15, 0.68f),
+            ParticleHelper.spawnParticleAABB(this.level(), ParticleUtils.constructSimpleSpark(lightningColors[0], 0.6f, 15, 0.68f),
                     new AABB(start, start), 10, 0.2);
-            ParticleHelper.spawnParticleAABB(this.level(), ParticleUtils.constructSimpleSpark(new Color(230, 175, 255), 0.3f, 30, 0.82f),
+            ParticleHelper.spawnParticleAABB(this.level(), ParticleUtils.constructSimpleSpark(lightningColors[1], 0.3f, 30, 0.82f),
                     new AABB(start, start), 10, 0.15);
         }
 
         ParticleHelper.spawnRandomJaggedParticleLine(level, start, end, maxJagMultiplier, ParticleUtils.constructSimpleSpark(color, d, 35, 0.9f), 16, sliceIterations);
 
-        ParticleHelper.spawnParticleAABB(this.level(), ParticleUtils.constructSimpleSpark(new Color(179, 190, 255), 0.2f, 50, 0.75f),
+        ParticleHelper.spawnParticleAABB(this.level(), ParticleUtils.constructSimpleSpark(lightningColors[0], 0.2f, 50, 0.75f),
                 new AABB(end, end), 10, 0.06);
-        ParticleHelper.spawnParticleAABB(this.level(), ParticleUtils.constructSimpleSpark(new Color(242, 208, 255), 0.2f, 50, 0.75f),
+        ParticleHelper.spawnParticleAABB(this.level(), ParticleUtils.constructSimpleSpark(lightningColors[1], 0.2f, 50, 0.75f),
                 new AABB(end, end), 10, 0.06);
-        ParticleHelper.spawnParticleAABB(this.level(), ParticleUtils.constructSimpleSpark(new Color(0, 89, 255), 0.4f, 30, 0.8f),
+        ParticleHelper.spawnParticleAABB(this.level(), ParticleUtils.constructSimpleSpark(lightningColors[2], 0.4f, 30, 0.8f),
                 new AABB(end, end), 10, 0.08);
-        ParticleHelper.spawnParticleAABB(this.level(), ParticleUtils.constructSimpleSpark(new Color(221, 117, 255), 0.4f, 30, 0.8f),
+        ParticleHelper.spawnParticleAABB(this.level(), ParticleUtils.constructSimpleSpark(lightningColors[3], 0.4f, 30, 0.8f),
                 new AABB(end, end), 10, 0.08);
     }
 

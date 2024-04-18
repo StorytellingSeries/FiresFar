@@ -73,5 +73,21 @@
     "tooltip.relics.montu_hammer.ability.aoe": "Геологоразведка",
     "tooltip.relics.montu_hammer.ability.aoe.description": "Сила бога труда позволяет вам с лёгкостью прорубаться сквозь твёрдые породы. Улучшение поднимает радиус разрушения блоков молотом. Прокручивание колёсика мыши с зажатой клавишей Shift позволит регулировать область добычи.",
     "tooltip.relics.montu_hammer.ability.aoe.stat.radius.title": "Максимальный радиус добычи",
-    "tooltip.relics.montu_hammer.ability.aoe.stat.radius.value": "%1$s"
+    "tooltip.relics.montu_hammer.ability.aoe.stat.radius.value": "%1$s",
+
+    "tooltip.relics.seliaset_horn.leveling": "Горн Селиасэт. Один из \"Огней\", легендарных артефактов, разбросанных по всему Мисру. Созданный богиней плодородия, горн дарует своему владельцу силу управлять ветрами Мисра.",
+    "tooltip.relics.seliaset_horn.ability.air_ray": "Дикий ветер",
+    "tooltip.relics.seliaset_horn.ability.air_ray.description": "Управляйте потоком ветра, выдувая или втягивая воздух. Мощный поток оттолкнёт от вас или притянет к вам всех врагов на его пути. Улучшение поднимает скорость ветра, а также радиус действия потока.",
+    "tooltip.relics.seliaset_horn.ability.block": "Стихийный ритм",
+    "tooltip.relics.seliaset_horn.ability.block.description": "Разместите рог на земле и подуйте в него, чтобы запустить цепочку мощных воздушных волн. Волны отталкивают и оглушают всех врагов, попавших в радиус действия. Улучшение увеличивает количество волн, длительность оглушения, а также понижает перезарядку.",
+    "tooltip.relics.seliaset_horn.ability.air_ray.stat.distance.title": "Дистанция",
+    "tooltip.relics.seliaset_horn.ability.air_ray.stat.efficiency.title": "Эффективность потока ветра.",
+    "tooltip.relics.seliaset_horn.ability.air_ray.stat.distance.value": "%1$s блоков.",
+    "tooltip.relics.seliaset_horn.ability.air_ray.stat.efficiency.value": "%1$s.",
+    "tooltip.relics.seliaset_horn.ability.block.stat.wavesCount.title": "Количество волн",
+    "tooltip.relics.seliaset_horn.ability.block.stat.cooldown.title": "Перезарядка",
+    "tooltip.relics.seliaset_horn.ability.block.stat.stunDuration.title": "Длительность оглушения",
+    "tooltip.relics.seliaset_horn.ability.block.stat.wavesCount.value": "%1$s волн.",
+    "tooltip.relics.seliaset_horn.ability.block.stat.cooldown.value": "%1$s секунд.",
+    "tooltip.relics.seliaset_horn.ability.block.stat.stunDuration.value": "%1$s секунд."
 }

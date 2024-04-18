@@ -26,6 +26,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ClickAction;
@@ -98,7 +99,7 @@ public class ItemKnefRose
 								.stat(StatData.builder("hp_rate")
 										.initialValue(0.2, 0.3)
 										.thresholdValue(0.2, 1)
-										.upgradeModifier(UpgradeOperation.ADD, 6.0)
+										.upgradeModifier(UpgradeOperation.ADD, 0.05)
 										.formatValue(x -> MathUtils.round(x * 100, 0))
 										.build()
 								)
@@ -160,6 +161,7 @@ public class ItemKnefRose
 	@Override
 	public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag isAdvanced)
 	{
+		tooltip.add(Component.translatable("tooltip.relics_thirteenflames.knef_rose.lore").withStyle(ChatFormatting.GOLD).withStyle(ChatFormatting.ITALIC));
 		int bones = getBones(stack);
 		if(bones > 0)
 			tooltip.add(Component.literal("Костей: ").append(Integer.toUnsignedString(bones))
@@ -271,9 +273,8 @@ public class ItemKnefRose
 					var it = ih.getStackInSlot(j);
 					if(it.is(this) && getBones(it) > 0)
 					{
-						this.dropAllocableExperience(pl.level(), pl.position(), it, (int) Math.min(e.getAmount() / 2, 2));
-						
-						float newAmount = reduceDamage(it, e.getAmount());
+
+						float newAmount = reduceDamage(pl, it, e.getAmount());
 						if(newAmount == e.getAmount()) continue;
 						
 						e.setAmount(newAmount);
@@ -290,7 +291,7 @@ public class ItemKnefRose
 		}
 	}
 	
-	public float reduceDamage(ItemStack stack, float damage)
+	public float reduceDamage(LivingEntity pl, ItemStack stack, float damage)
 	{
 		var damageReductionPerBone = this.getAbilityValue(stack, "undeath", "damage_taken");
 		
@@ -300,8 +301,10 @@ public class ItemKnefRose
 		int neededBonesToNegateAllDamage = (int) Math.ceil(damage / damageReductionPerBone);
 		int bonesTaken = takeBones(stack, neededBonesToNegateAllDamage, false);
 		
-		if(bonesTaken > 0) //noinspection lossy-conversions
+		if(bonesTaken > 0) {//noinspection lossy-conversions
 			damage -= bonesTaken * damageReductionPerBone;
+			spreadExperience(pl, stack, bonesTaken);
+		}
 		
 		return Math.max(0F, damage);
 	}
@@ -358,7 +361,10 @@ public class ItemKnefRose
 		public int counter;
 
 		@NBTSerializable("HPRate")
-		public float hpRate = 30F;
+		public float hpRate = 0.3F;
+
+		@NBTSerializable("Rose")
+		public ItemStack rose;
 		
 		public RoseStats(ItemStack roseStack)
 		{
@@ -368,6 +374,7 @@ public class ItemKnefRose
 			splitScale = relic.canUseAbility(roseStack, "rot_split") ? (float) relic.getAbilityValue(roseStack, "rot_split", "split_size") : 0;
 			maxSplits = relic.canUseAbility(roseStack, "rot_split") ? (int) relic.getAbilityValue(roseStack, "rot_split", "max_splits") : 0;
 			hpRate = (float) relic.getAbilityValue(roseStack, "living_rot", "hp_rate");
+			rose = roseStack;
         }
 		
 		public RoseStats(CompoundTag nbt)

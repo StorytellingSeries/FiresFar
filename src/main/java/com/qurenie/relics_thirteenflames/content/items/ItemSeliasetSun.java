@@ -58,9 +58,10 @@ public class ItemSeliasetSun
 		Player player = ctx.getPlayer();
 		Level level = ctx.getLevel();
 		Vec3 loc = ctx.getClickLocation();
-		if(!level.isClientSide)
+		if(!level.isClientSide && player != null)
 		{
 			EntitySeliasetSun entity = EntitySeliasetSun.create(level, loc, item.copy());
+			entity.setOwnerUUID(player.getStringUUID());
 			level.addFreshEntity(entity);
 			item.setCount(0);
 			player.setItemInHand(ctx.getHand(), ItemStack.EMPTY);
@@ -82,6 +83,7 @@ public class ItemSeliasetSun
 		return RelicData.builder()
 				.abilities(AbilitiesData.builder()
 						.ability(AbilityData.builder("leveling")
+								.maxLevel(10)
 								.stat(StatData.builder("speed")
 										.initialValue(200, 200)
 										.upgradeModifier(UpgradeOperation.ADD, -20)

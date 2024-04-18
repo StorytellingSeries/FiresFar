@@ -58,15 +58,15 @@ public class PacketHornSounds
 
         var w = Minecraft.getInstance().level;
         LocalPlayer player = Minecraft.getInstance().player;
-        if(w != null) {
+        if(w != null && player != null) {
             if (silence)
                 toot.fadeOut();
             else if (!Minecraft.getInstance().getSoundManager().isActive(toot)) {
-                if(player != null) toot.originPos = player.position();
+                toot.originPos = player.position();
                 toot.fadeIn();
                 toot.setFade(0.02f);
                 Minecraft.getInstance().getSoundManager().play(toot);
-            }
+            } else toot.originPos = player.position();
         }
     }
 }

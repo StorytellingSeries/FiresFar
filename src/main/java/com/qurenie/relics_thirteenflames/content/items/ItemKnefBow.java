@@ -10,8 +10,12 @@ import com.qurenie.relics_thirteenflames.content.entities.KnefStormcaller;
 import com.qurenie.relics_thirteenflames.init.DamageSourceRegistry;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
 import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
+import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import it.hurts.sskirillss.relics.items.relics.base.RelicItem;
 import it.hurts.sskirillss.relics.items.relics.base.data.RelicData;
+import it.hurts.sskirillss.relics.items.relics.base.data.cast.CastData;
+import it.hurts.sskirillss.relics.items.relics.base.data.cast.misc.CastType;
+import it.hurts.sskirillss.relics.items.relics.base.data.cast.misc.RelicContainer;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.AbilitiesData;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.AbilityData;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.LevelingData;
@@ -19,8 +23,10 @@ import it.hurts.sskirillss.relics.items.relics.base.data.leveling.StatData;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.misc.UpgradeOperation;
 import it.hurts.sskirillss.relics.items.relics.base.data.style.StyleData;
 import it.hurts.sskirillss.relics.utils.MathUtils;
+import it.hurts.sskirillss.relics.utils.NBTUtils;
 import it.hurts.sskirillss.relics.utils.ParticleUtils;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundSource;
@@ -61,8 +67,6 @@ import static net.minecraftforge.common.ForgeMod.WATER_TYPE;
 public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
 
 
-    boolean isShitting = false;
-
     public ItemKnefBow(Properties properties) {
 
         super(properties);
@@ -102,6 +106,10 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
                         )
                         .ability(AbilityData.builder("swim")
                                 .maxLevel(5)
+                                .active(CastData.builder()
+                                        .container(RelicContainer.INVENTORY)
+                                        .type(CastType.TOGGLEABLE)
+                                        .build())
                                 .stat(StatData.builder("speed")
                                         .initialValue(4, 6)
                                         .thresholdValue(4, 11)
@@ -173,69 +181,24 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
         return true;
     }
 
-    private boolean isSurging = false;
+    //private boolean isSurging = false;
 
     @Override
     public void releaseUsing(@NotNull ItemStack pStack, @NotNull Level pLevel, LivingEntity pLivingEntity, int pTimeCharged) {
-        if (!pLivingEntity.isEyeInFluidType(WATER_TYPE.get()) && pLivingEntity instanceof Player p) {
+        if(!(pLivingEntity instanceof Player)) return;
 
-            float baseDmg = (float) getAbilityValue(pStack, "shot", "dmg");
-            if (!isShitting || !canUseAbility(pStack, "storm") || isAbilityOnCooldown(pStack, "storm")) {
-                if (this.getUseDuration(pStack) - pTimeCharged > 19) {
-                    if (!pLevel.isClientSide()) {
-                        float fl = random.nextFloat();
-                        pLevel.playSound(null, pLivingEntity.getX(), pLivingEntity.getY(), pLivingEntity.getZ(), SoundsRegistry.KNEF_BOW_SHOT.get(), SoundSource.MASTER, 0.5f, 1.8f - fl * 0.15f);
-                        pLevel.playSound(null, pLivingEntity.getX(), pLivingEntity.getY(), pLivingEntity.getZ(), SoundsRegistry.KNEF_BOW_SHOT.get(), SoundSource.MASTER, 0.5f, 0.6f);
-                    }
-                    int count = (int) getAbilityValue(pStack, "shot", "rays");
-
-                    Vec3 pos = pLivingEntity.getEyePosition(1f).add(pLivingEntity.getLookAngle().scale(0.3))
-                            .add(pLivingEntity.getLookAngle()
-                                    .cross( (pLivingEntity.getLookAngle().x < 0.001 && pLivingEntity.getLookAngle().z < 0.001) ?
-                                            Vec3.directionFromRotation(0, pLivingEntity.getYHeadRot()).scale(pLivingEntity.getLookAngle().y > 0 ? -1 : 1).normalize() :
-                                            new Vec3(0,1,0)
-                                    ).normalize().scale(0.2)
-                            )
-                            .add(0, -0.13, 0).subtract(pLivingEntity.getLookAngle().scale(1.4));
-                    KnefProjCarrier carrier = new KnefProjCarrier(EntityRegistry.KNEF_PROJECTILE_CARRIER, pLevel)
-                            .setRays(
-                                    KnefProjectile.makeList(count, pLevel, pLivingEntity, pos, pLivingEntity.getLookAngle().scale(0.3), baseDmg, pStack.getEnchantmentLevel(Enchantments.POWER_ARROWS), pStack)
-                            );
-                    carrier.setPos(pos);
-                    carrier.setOwner(pLivingEntity);
-                    carrier.setOwnerUUID(pLivingEntity.getStringUUID());
-                    carrier.shootFromRotation(pLivingEntity, pLivingEntity.getXRot(), pLivingEntity.getYRot(), 0.75f, 1f, 0);
-                    pLevel.addFreshEntity(carrier);
-                    for (KnefProjectile proj : carrier.rays) pLevel.addFreshEntity(proj);
-                } else if (this.getUseDuration(pStack) - pTimeCharged > 5) {
-                    if (!pLevel.isClientSide()) {
-                        float fl = random.nextFloat();
-                        pLevel.playSound(null, pLivingEntity.getX(), pLivingEntity.getY(), pLivingEntity.getZ(), SoundsRegistry.KNEF_BOW_SHOT.get(), SoundSource.MASTER, 0.5f, 1.75f + fl * 0.1f);
-                    }
-                    Vec3 pos = pLivingEntity.getEyePosition(1f).add(pLivingEntity.getLookAngle().scale(0.3))
-                            .add(pLivingEntity.getLookAngle()
-                                    .cross( (pLivingEntity.getLookAngle().x < 0.001 && pLivingEntity.getLookAngle().z < 0.001) ?
-                                            Vec3.directionFromRotation(0, pLivingEntity.getYHeadRot()).scale(pLivingEntity.getLookAngle().y > 0 ? -1 : 1).normalize() :
-                                            new Vec3(0,1,0)
-                                    ).normalize().scale(0.2)
-                            )
-                            .add(0, -0.13, 0).subtract(pLivingEntity.getLookAngle().scale(1.4));
-                    KnefProjectile proj = new KnefProjectile(EntityRegistry.KNEF_PROJECTILE, pLevel);
-                    proj.setPos(pos);
-                    proj.setOwner(pLivingEntity);
-                    proj.setOwnerUUID(pLivingEntity.getStringUUID());
-                    proj.setBaseDmg(baseDmg);
-                    proj.setPowerEnch(pStack.getEnchantmentLevel(Enchantments.POWER_ARROWS));
-                    proj.setBow(pStack);
-                    proj.shootFromRotation(pLivingEntity, pLivingEntity.getXRot(), pLivingEntity.getYRot(), 0.75f, 1f, 0);
-                    pLevel.addFreshEntity(proj);
+        float baseDmg = (float) getAbilityValue(pStack, "shot", "dmg");
+        boolean isShitting = NBTUtils.getBoolean(pStack, "shifting", false);
+        if (!isShitting || !canUseAbility(pStack, "storm") || isAbilityOnCooldown(pStack, "storm")) {
+            if (this.getUseDuration(pStack) - pTimeCharged > 19) {
+                if (!pLevel.isClientSide()) {
+                    float fl = random.nextFloat();
+                    pLevel.playSound(null, pLivingEntity.getX(), pLivingEntity.getY(), pLivingEntity.getZ(), SoundsRegistry.KNEF_BOW_SHOT.get(), SoundSource.MASTER, 0.5f, 1.8f - fl * 0.15f);
+                    pLevel.playSound(null, pLivingEntity.getX(), pLivingEntity.getY(), pLivingEntity.getZ(), SoundsRegistry.KNEF_BOW_SHOT.get(), SoundSource.MASTER, 0.5f, 0.6f);
                 }
-            } else if (this.getUseDuration(pStack) - pTimeCharged > 19 && !isAbilityOnCooldown(pStack, "storm")/* && !pLevel.isClientSide()*/) {
-                pLevel.playSound(null, pLivingEntity.getX(), pLivingEntity.getY(), pLivingEntity.getZ(), SoundsRegistry.KNEF_BOW_SHOT.get(), SoundSource.MASTER, 0.7f, 0.6f);
-                pLevel.playSound(null, pLivingEntity.getX(), pLivingEntity.getY(), pLivingEntity.getZ(), SoundsRegistry.KNEF_BOW_SHOT.get(), SoundSource.MASTER, 0.6f, 0.3f);
+                int count = (int) getAbilityValue(pStack, "shot", "rays");
 
-                KnefStormcaller stormcaller = new KnefStormcaller(EntityRegistry.KNEF_STORMCALLER, pLevel);
-                Vec3 pos = pLivingEntity.getEyePosition(1f).add(pLivingEntity.getLookAngle().scale(0.3))
+                Vec3 pos = pLivingEntity.getEyePosition(1f).add(pLivingEntity.getLookAngle().scale(1.6))
                         .add(pLivingEntity.getLookAngle()
                                 .cross( (pLivingEntity.getLookAngle().x < 0.001 && pLivingEntity.getLookAngle().z < 0.001) ?
                                         Vec3.directionFromRotation(0, pLivingEntity.getYHeadRot()).scale(pLivingEntity.getLookAngle().y > 0 ? -1 : 1).normalize() :
@@ -243,24 +206,22 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
                                 ).normalize().scale(0.2)
                         )
                         .add(0, -0.13, 0).subtract(pLivingEntity.getLookAngle().scale(1.4));
-                stormcaller.setPos(pos);
-                stormcaller.setOwner(pLivingEntity);
-                stormcaller.setOwnerUUID(pLivingEntity.getStringUUID());
-                stormcaller.shotPos = pos;
-                stormcaller.setBow(pStack);
-                stormcaller.setRays(
-                        KnefProjectileSpecial.makeList(6, pLevel, pLivingEntity, pos, pLivingEntity.getLookAngle().scale(0.3))
-                );
-                stormcaller.shootFromRotation(pLivingEntity, pLivingEntity.getXRot(), pLivingEntity.getYRot(), 0.75f, 2.5f, 0);
-                for (KnefProjectileSpecial proj : stormcaller.rays) pLevel.addFreshEntity(proj);
-                pLevel.addFreshEntity(stormcaller);
-                addAbilityCooldown(pStack, "storm", 600);
+                KnefProjCarrier carrier = new KnefProjCarrier(EntityRegistry.KNEF_PROJECTILE_CARRIER, pLevel)
+                        .setRays(
+                                KnefProjectile.makeList(count, pLevel, pLivingEntity, pos, pLivingEntity.getLookAngle().scale(0.3), baseDmg, pStack.getEnchantmentLevel(Enchantments.POWER_ARROWS), pStack)
+                        );
+                carrier.setPos(pos);
+                carrier.setOwner(pLivingEntity);
+                carrier.setOwnerUUID(pLivingEntity.getStringUUID());
+                carrier.shootFromRotation(pLivingEntity, pLivingEntity.getXRot(), pLivingEntity.getYRot(), 0.75f, 1f, 0);
+                pLevel.addFreshEntity(carrier);
+                for (KnefProjectile proj : carrier.rays) pLevel.addFreshEntity(proj);
             } else if (this.getUseDuration(pStack) - pTimeCharged > 5) {
                 if (!pLevel.isClientSide()) {
                     float fl = random.nextFloat();
                     pLevel.playSound(null, pLivingEntity.getX(), pLivingEntity.getY(), pLivingEntity.getZ(), SoundsRegistry.KNEF_BOW_SHOT.get(), SoundSource.MASTER, 0.5f, 1.75f + fl * 0.1f);
                 }
-                Vec3 pos = pLivingEntity.getEyePosition(1f).add(pLivingEntity.getLookAngle().scale(0.3))
+                Vec3 pos = pLivingEntity.getEyePosition(1f).add(pLivingEntity.getLookAngle().scale(1.6))
                         .add(pLivingEntity.getLookAngle()
                                 .cross( (pLivingEntity.getLookAngle().x < 0.001 && pLivingEntity.getLookAngle().z < 0.001) ?
                                         Vec3.directionFromRotation(0, pLivingEntity.getYHeadRot()).scale(pLivingEntity.getLookAngle().y > 0 ? -1 : 1).normalize() :
@@ -275,13 +236,60 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
                 proj.setBaseDmg(baseDmg);
                 proj.setPowerEnch(pStack.getEnchantmentLevel(Enchantments.POWER_ARROWS));
                 proj.setBow(pStack);
-                proj.setFree(false);
                 proj.shootFromRotation(pLivingEntity, pLivingEntity.getXRot(), pLivingEntity.getYRot(), 0.75f, 1f, 0);
                 pLevel.addFreshEntity(proj);
             }
+        } else if (this.getUseDuration(pStack) - pTimeCharged > 19 && !isAbilityOnCooldown(pStack, "storm")/* && !pLevel.isClientSide()*/) {
+            pLevel.playSound(null, pLivingEntity.getX(), pLivingEntity.getY(), pLivingEntity.getZ(), SoundsRegistry.KNEF_BOW_SHOT.get(), SoundSource.MASTER, 0.7f, 0.6f);
+            pLevel.playSound(null, pLivingEntity.getX(), pLivingEntity.getY(), pLivingEntity.getZ(), SoundsRegistry.KNEF_BOW_SHOT.get(), SoundSource.MASTER, 0.6f, 0.3f);
+
+            KnefStormcaller stormcaller = new KnefStormcaller(EntityRegistry.KNEF_STORMCALLER, pLevel);
+            Vec3 pos = pLivingEntity.getEyePosition(1f).add(pLivingEntity.getLookAngle().scale(1.6))
+                    .add(pLivingEntity.getLookAngle()
+                            .cross( (pLivingEntity.getLookAngle().x < 0.001 && pLivingEntity.getLookAngle().z < 0.001) ?
+                                    Vec3.directionFromRotation(0, pLivingEntity.getYHeadRot()).scale(pLivingEntity.getLookAngle().y > 0 ? -1 : 1).normalize() :
+                                    new Vec3(0,1,0)
+                            ).normalize().scale(0.2)
+                    )
+                    .add(0, -0.13, 0).subtract(pLivingEntity.getLookAngle().scale(1.4));
+            stormcaller.setPos(pos);
+            stormcaller.setOwner(pLivingEntity);
+            stormcaller.setOwnerUUID(pLivingEntity.getStringUUID());
+            stormcaller.shotPos = pos;
+            stormcaller.prevPos = pos;
+            stormcaller.setBow(pStack);
+            stormcaller.setRays(
+                    KnefProjectileSpecial.makeList(6, pLevel, pLivingEntity, pos, pLivingEntity.getLookAngle().scale(0.3))
+            );
+            stormcaller.shootFromRotation(pLivingEntity, pLivingEntity.getXRot(), pLivingEntity.getYRot(), 0.75f, 2.5f, 0);
+            for (KnefProjectileSpecial proj : stormcaller.rays) pLevel.addFreshEntity(proj);
+            pLevel.addFreshEntity(stormcaller);
+            addAbilityCooldown(pStack, "storm", 600);
+        } else if (this.getUseDuration(pStack) - pTimeCharged > 5) {
+            if (!pLevel.isClientSide()) {
+                float fl = random.nextFloat();
+                pLevel.playSound(null, pLivingEntity.getX(), pLivingEntity.getY(), pLivingEntity.getZ(), SoundsRegistry.KNEF_BOW_SHOT.get(), SoundSource.MASTER, 0.5f, 1.75f + fl * 0.1f);
+            }
+            Vec3 pos = pLivingEntity.getEyePosition(1f).add(pLivingEntity.getLookAngle().scale(1.6))
+                    .add(pLivingEntity.getLookAngle()
+                            .cross( (pLivingEntity.getLookAngle().x < 0.001 && pLivingEntity.getLookAngle().z < 0.001) ?
+                                    Vec3.directionFromRotation(0, pLivingEntity.getYHeadRot()).scale(pLivingEntity.getLookAngle().y > 0 ? -1 : 1).normalize() :
+                                    new Vec3(0,1,0)
+                            ).normalize().scale(0.2)
+                    )
+                    .add(0, -0.13, 0).subtract(pLivingEntity.getLookAngle().scale(1.4));
+            KnefProjectile proj = new KnefProjectile(EntityRegistry.KNEF_PROJECTILE, pLevel);
+            proj.setPos(pos);
+            proj.setOwner(pLivingEntity);
+            proj.setOwnerUUID(pLivingEntity.getStringUUID());
+            proj.setBaseDmg(baseDmg);
+            proj.setPowerEnch(pStack.getEnchantmentLevel(Enchantments.POWER_ARROWS));
+            proj.setBow(pStack);
+            proj.setFree(false);
+            proj.shootFromRotation(pLivingEntity, pLivingEntity.getXRot(), pLivingEntity.getYRot(), 0.75f, 1f, 0);
+            pLevel.addFreshEntity(proj);
         }
-        isShitting = false;
-        isSurging = false;
+        NBTUtils.setBoolean(pStack, "shifting", false);
     }
 
     @Override
@@ -299,46 +307,36 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
         return slotChanged;
     }
 
-    @SubscribeEvent
-    public static void onPlayerHurt(LivingHurtEvent event)
-    {
-        if(event.getEntity() instanceof Player p
-                && p.isUsingItem()
-                && p.getUseItem().getItem() instanceof ItemKnefBow bow
-                && bow.isSurging
-                && event.getSource() == p.damageSources().fall()){
-            event.setCanceled(true);
-        }
-    }
 
     @Override
-    public void onUseTick(Level level, LivingEntity player, ItemStack stack, int count) {
-        if ( (player.isEyeInFluidType(WATER_TYPE.get()) || isSurging) && player instanceof Player p) {
+    public void onUseTick(Level level, LivingEntity living, ItemStack stack, int count) {
+        if ( isAbilityTicking(stack, "swim") && living.isInWaterOrRain() && living instanceof Player p) {
 
             if (!p.isCreative()) {
-                if (player.getHealth() > 1)
-                    player.hurt(DamageSourceRegistry.SUCC, player.getMaxHealth() * (float) getAbilityValue(stack, "shot", "drain") * 0.02f);
-                else player.kill();
+                if (living.getHealth() > 1)
+                    living.hurt(DamageSourceRegistry.SUCC, living.getMaxHealth() * (float) getAbilityValue(stack, "shot", "drain") * 0.02f);
+                else living.kill();
             }
-            player.hurtTime = 0;
-            player.hurtDuration = 0;
+            living.hurtTime = 0;
+            living.hurtDuration = 0;
 
-            isSurging = player.isInWaterOrRain();
-            player.setSwimming(false);
+
+            living.setSwimming(false);
             Vec3 luk = p.getLookAngle();
-            Vec3 motion = player.getDeltaMovement();
+            Vec3 motion = living.getDeltaMovement();
             double spid = getAbilityValue(stack, "swim", "speed") / 5;
 
-            AABB aoe = player.getBoundingBox().inflate(2);
-            for (LivingEntity target : player.level().getEntitiesOfClass(LivingEntity.class, aoe, e -> !e.getUUID().equals(player.getUUID()))) {
+            AABB aoe = living.getBoundingBox().inflate(2);
+            for (LivingEntity target : living.level().getEntitiesOfClass(LivingEntity.class, aoe, e -> !e.getUUID().equals(living.getUUID()))) {
                 target.hurt(p.damageSources().playerAttack(p), (float) getAbilityValue(stack, "swim", "dmg"));
-                Vec3 awayctor = target.position().subtract(player.position()).subtract(motion);
+                Vec3 awayctor = target.position().subtract(living.position()).subtract(motion);
                 target.push(awayctor.x() * 1 / awayctor.length(), awayctor.y() * 1 / awayctor.length(), awayctor.z() * 1 / awayctor.length());
             }
 
             p.setDeltaMovement(0,0,0);
             p.push(luk.x() * spid, luk.y() * spid, luk.z() * spid);
             p.startAutoSpinAttack(2);
+            p.fallDistance = 0;
             for (int i = 0; i < 12; i++) {
 
                 double a = 360.0 / 12 * i - count * 10.0;
@@ -351,30 +349,29 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
                 Vec3 x = !( motion.normalize().x < 0.001 && motion.normalize().z < 0.001 ) ? motion.normalize().cross(new Vec3(0, 1, 0)).normalize().scale(radius) : motion.normalize().cross(new Vec3(1, 0, 0)).normalize().scale(radius);
                 Vec3 z = motion.normalize().cross(x).normalize().scale(radius);
 
-                Vec3 pos = player.getPosition(1F)
+                Vec3 pos = living.getPosition(1F)
                         .add(x.scale(Math.cos(Math.toRadians(a))))
-                        .add(z.scale(Math.sin(Math.toRadians(a))))
-                        //.subtract(motion.scale((double) i / rays.size() * 2))
-                        ;
+                        .add(z.scale(Math.sin(Math.toRadians(a))));
+
                 if (i % 2 == 0) {
                     pos = pos.add(luk.scale(3.4));
                     if (i % 4 == 0) pos = pos.subtract(luk.scale(0.8));
                 }
                 pos = pos.add(luk.scale(-0.4));
-                player.level().addParticle(ParticleUtils.constructSimpleSpark(new Color(0, (int) (140 + Math.sin(count / 6.0) * 100), (int) (215 - Math.sin(count / 6.0) * 40)), 0.35f, 60, 0.92f),
+                ParticleHelper.spawnDirectedParticle(living.level(), ParticleUtils.constructSimpleSpark(new Color(0, (int) (174 + Math.sin(count / 6.0) * 30), (int) (105 - Math.sin(count / 6.0) * 20)), 0.35f, 60, 0.92f),
                         pos.x(), pos.y(), pos.z(), 0, 0, 0);
             }
-        } else if(player instanceof Player p){
+        } else if(living instanceof Player p){
             if (this.getUseDuration(stack) - count < 19) {
                 if (!p.isCreative()) {
-                    if (player.getHealth() > 1) {
-                        //player.setHealth(player.getHealth() - player.getMaxHealth() * (float)AbilityUtils.getAbilityValue(stack, "shot", "drain") * (isShitting ? 0.1f : 0.05f));
-                        player.hurt(DamageSourceRegistry.SUCC, player.getMaxHealth() * (float) getAbilityValue(stack, "shot", "drain") * (isShitting ? 0.1f : 0.05f));
+                    if (living.getHealth() > 1) {
+                        boolean isShitting = NBTUtils.getBoolean(stack, "shifting", false);
+                        living.hurt(DamageSourceRegistry.SUCC, living.getMaxHealth() * (float) getAbilityValue(stack, "shot", "drain") * (isShitting ? 0.1f : 0.05f));
                     }
-                    else player.kill();
+                    else living.kill();
                 }
-                player.hurtTime = 0;
-                player.hurtDuration = 0;
+                living.hurtTime = 0;
+                living.hurtDuration = 0;
             }
 
         }
@@ -383,8 +380,8 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
     @Override
     public InteractionResultHolder<ItemStack> use(Level pLevel, Player pPlayer, InteractionHand pHand) {
         ItemStack itemstack = pPlayer.getItemInHand(pHand);
+        NBTUtils.setBoolean(itemstack, "shifting", pPlayer.isShiftKeyDown());
         pPlayer.startUsingItem(pHand);
-        isShitting = pPlayer.isShiftKeyDown();
         return InteractionResultHolder.consume(itemstack);
     }
 
@@ -418,7 +415,7 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
 
     @Override
     public int getFoilColor(@NotNull ItemStack stack) {
-        return /*0xFA9FEB7D*/ new Color(0, 26, 75).getRGB(); //хекс коды люблю невероятно
+        return /*0xFA9FEB7D*/ new Color(0, 56, 48).getRGB(); //хекс коды люблю невероятно
     }
 
 }

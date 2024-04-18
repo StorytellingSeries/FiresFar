@@ -73,6 +73,7 @@ public class KnefRaindrop extends ThrowableProjectile
     public KnefRaindrop(EntityType<? extends KnefRaindrop> type, Level world) {
         super(type, world);
         this.color = new Color(0, 86 - this.random.nextInt(80), 255 - this.random.nextInt(90));
+        //this.color = new Color(94, 0, 255 - this.random.nextInt(90));
 
     }
 
@@ -97,7 +98,7 @@ public class KnefRaindrop extends ThrowableProjectile
         if(pResult.getEntity() instanceof LivingEntity living) {
             if (this.getOwner() != null && pResult.getEntity().equals(this.getOwner())) {
                 living.heal(living.getMaxHealth() * getHeal());
-                if(getBow().getItem() instanceof IRelicItem relic) relic.dropAllocableExperience(this.level(), pResult.getLocation(), getBow(), Math.round(Math.min(living.getMaxHealth() * getHeal(), living.getMaxHealth() - living.getHealth())));
+                if(getBow().getItem() instanceof IRelicItem relic) relic.spreadExperience(living, getBow(), Math.round(Math.min(living.getMaxHealth() * getHeal(), living.getMaxHealth() - living.getHealth())));
             } else {
                 pResult.getEntity().hurt(level().damageSources().thrown(this, this.getOwner()), getDmg());
                 pResult.getEntity().invulnerableTime = 0;

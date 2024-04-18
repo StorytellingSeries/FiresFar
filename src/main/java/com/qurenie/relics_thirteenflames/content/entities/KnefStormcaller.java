@@ -2,7 +2,6 @@ package com.qurenie.relics_thirteenflames.content.entities;
 
 import com.qurenie.relics_thirteenflames.content.items.ItemKnefBow;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
-import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
 import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import it.hurts.sskirillss.relics.items.relics.base.IRelicItem;
@@ -64,7 +63,7 @@ public class KnefStormcaller extends ThrowableProjectile
         this.rays = rays;
     }
 
-    public Vec3 prevPos1, prevPos2, prevPos3, prevPos4, pos1, pos2, pos3, pos4, shotPos;
+    public Vec3 prevPos, shotPos;
 
     public KnefStormcaller(EntityType<? extends KnefStormcaller> type, Level world) {
         super(type, world);
@@ -78,7 +77,7 @@ public class KnefStormcaller extends ThrowableProjectile
         setDeltaMovement(motion);
 
         if(shotPos == null) shotPos = this.getPosition(1F);
-
+        if(prevPos == null) prevPos = this.position();
 
 
         //-------------------------GRAPHENE----------------------------//
@@ -106,35 +105,15 @@ public class KnefStormcaller extends ThrowableProjectile
             rays.get(i).setPos(pos);
         }
 
-        pos1 = this.position().add(new Vec3(MathUtils.randomFloat(random) * 0.15, MathUtils.randomFloat(random) * 0.15, MathUtils.randomFloat(random) * 0.15));
-        pos2 = this.position().add(new Vec3(MathUtils.randomFloat(random) * 0.15, MathUtils.randomFloat(random) * 0.15, MathUtils.randomFloat(random) * 0.15));
-        pos4 = this.position().add(new Vec3(MathUtils.randomFloat(random) * 0.15, MathUtils.randomFloat(random) * 0.15, MathUtils.randomFloat(random) * 0.15));
-        pos3 = this.position();
 
-        if(this.tickCount % 2 == 0 && !this.level().isClientSide) {
+        if(!this.level().isClientSide()) {
+            double distance = this.position().subtract(prevPos == null ? this.position() : prevPos).length();
+            ParticleHelper.spawnParticleLine(this.level(), ParticleUtils.constructSimpleSpark(new Color(0, 34, 255), 0.3f, 80, 0.85f),
+                    prevPos, this.position(), (int) Math.round(distance * 8), 0);
 
-//            ParticleHelper.spawnParticleLine(this.level, new CircleTintData(new Color(201, 75, 255), 0.25f, 100, 0.94f, false),
-//                    prevPos1 == null ? shotPos : prevPos1,
-//                    pos1,
-//                    25, 0);
-//            ParticleHelper.spawnParticleLine(this.level, new CircleTintData(new Color(143, 82, 255), 0.25f, 100, 0.94f, false),
-//                    prevPos2 == null ? shotPos : prevPos2,
-//                    pos2,
-//                    25, 0);
-//            ParticleHelper.spawnParticleLine(this.level, new CircleTintData(new Color(167, 106, 255), 0.25f, 100, 0.94f, false),
-//                    prevPos4 == null ? shotPos : prevPos4,
-//                    pos4,
-//                    25, 0);
-            ParticleHelper.spawnParticleLine(this.level(), ParticleUtils.constructSimpleSpark(new Color(0, 34, 255), 0.3f, 40, 0.91f),
-                    prevPos3 == null ? shotPos : prevPos3,
-                    pos3,
-                    25, 0);
 
-            prevPos1 = this.pos1;
-            prevPos2 = this.pos2;
-            prevPos3 = this.pos3;
-            prevPos4 = this.pos4;
         }
+        prevPos = this.position();
         //-----------------------GRAPHENE_END--------------------------//
 
         if(this.getY() > this.shotPos.y + 90){
@@ -144,15 +123,11 @@ public class KnefStormcaller extends ThrowableProjectile
                 for (int i = 0; i < 120; i++) {
                     Vec3 direction = new Vec3(1,0,0);
                     direction = direction.yRot((float) Math.toRadians(random.nextFloat() * 360f)).scale(random.nextFloat() * 0.8f);
-                    ParticleHelper.spawnDirectedParticle(this.level(), ParticleUtils.constructSimpleSpark(new Color(0, 15, 49), 4.2f, 80, 0.95f),
+                    ParticleHelper.spawnDirectedParticle(this.level(), ParticleUtils.constructSimpleSpark(new Color(0, 49, 32), 6.2f, 80, 0.92f),
                             this.getX(), this.getY(), this.getZ(), direction.x, MathUtils.randomFloat(random) * 0.1, direction.z);
                     direction = direction.yRot((float) Math.toRadians(random.nextFloat() * 360f)).normalize().scale(random.nextFloat() * 0.8f);
-                    ParticleHelper.spawnDirectedParticle(this.level(), ParticleUtils.constructSimpleSpark(new Color(28, 0, 27), 4.2f, 80, 0.95f),
+                    ParticleHelper.spawnDirectedParticle(this.level(), ParticleUtils.constructSimpleSpark(new Color(8, 0, 28), 6.2f, 80, 0.92f),
                             this.getX(), this.getY(), this.getZ(), direction.x, MathUtils.randomFloat(random) * 0.1, direction.z);
-//                    this.level.addParticle(new CircleTintData(new Color(0, 24, 80), 4.2f, 130, 0.95f, false),
-//                            this.getX(), this.getY(), this.getZ(), MathUtils.randomFloat(random), MathUtils.randomFloat(random) * 0.1, MathUtils.randomFloat(random));
-//                    this.level.addParticle(new CircleTintData(new Color(0, 7, 14), 4.2f, 130, 0.95f, false),
-//                            this.getX(), this.getY(), this.getZ(), MathUtils.randomFloat(random) * 1.2, MathUtils.randomFloat(random) * 0.1, MathUtils.randomFloat(random) * 1.2);
                 }
             }
             //-----------------------GRAPHENE_END--------------------------//
@@ -250,10 +225,6 @@ public class KnefStormcaller extends ThrowableProjectile
         }
     }
 
-//    @Override
-//    public boolean canCollideWith(Entity pEntity) {
-//        return (pEntity instanceof LivingEntity && pEntity.equals(this.getOwner()));
-//    }
 
     @Override
     protected void defineSynchedData() {

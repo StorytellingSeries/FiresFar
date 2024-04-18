@@ -97,30 +97,30 @@ public class PoisonWaveProjectile extends ThrowableProjectile
                 entityBlackList.addAll(eList);
                 for(LivingEntity lE : eList){
                     int invulTime = p.invulnerableTime;
-                    lE.hurt(lE.damageSources().playerAttack(p), 1);
+                    lE.hurt(lE.damageSources().thrown(this, p), 1);
                     p.invulnerableTime = invulTime;
                     if (lE.hasEffect(EffectsRegistry.POISSON)) {
                         int appliedAmplifier = lE.getEffect(EffectsRegistry.POISSON).getAmplifier() + 1;
                         if (appliedAmplifier <= maxAmp) {
                             lE.addEffect(new PoisonEffectInstance(EffectsRegistry.POISSON, duration + appliedAmplifier * 20, appliedAmplifier, false, true, false, sword));
-                            if (rng.nextFloat() < 0.25f) relic.dropAllocableExperience(lE.level(), lE.position(), sword, 1);
+                            if (rng.nextFloat() < 0.25f) relic.spreadExperience(p, sword, 1);
                         } else {
                             lE.addEffect(new PoisonEffectInstance(EffectsRegistry.POISSON, duration + maxAmp * 20, maxAmp, false, true, false, sword));
                         }
                     } else {
                         lE.addEffect(new PoisonEffectInstance(EffectsRegistry.POISSON, duration, 0, false, true, false, sword));
-                        if (rng.nextFloat() < 0.25f) relic.dropAllocableExperience(lE.level(), lE.position(), sword, 1);
+                        if (rng.nextFloat() < 0.25f) relic.spreadExperience(p, sword, 1);
                     }
                 }
 
 
                 double randomSpread = 0.01 * this.tickCount;
                 ParticleHelper.spawnParticles(level(), ParticleUtils.constructSimpleSpark(new Color(85 + rng.nextInt(80), 255 - rng.nextInt(100), 0),
-                                (float) (0.2F + 0.03f * this.tickCount), 20, 0.83F),
+                                (float) (0.4F + 0.03f * this.tickCount), 20, 0.83F),
                         vec.x, vec.y, vec.z, 1, randomSpread, randomSpread, randomSpread, 0.002 + this.tickCount * 0.008);
                 if (rng.nextFloat() < 0.3f)
                     ParticleHelper.spawnParticles(level(), ParticleUtils.constructSimpleSpark(new Color(85 - rng.nextInt(80), 255 - rng.nextInt(100), 0),
-                                    (float) (0.1F + 0.0125f * this.tickCount), 20, 0.8f),
+                                    (float) (0.25F + 0.0125f * this.tickCount), 20, 0.8f),
                             vec.x, vec.y, vec.z, 1, randomSpread, randomSpread, randomSpread, 0.002 + this.tickCount * 0.008);
             }
         }

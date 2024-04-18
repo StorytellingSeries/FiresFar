@@ -1,5 +1,6 @@
 package com.qurenie.relics_thirteenflames.content.entities;
 
+import com.qurenie.relics_thirteenflames.client.particles.CircleTintData;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
 import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
@@ -35,12 +36,22 @@ import java.util.UUID;
 
 public class KnefProjectile extends ThrowableProjectile
 {
+
+    static Color[] colors = {
+            new Color(51, 255, 202),
+            new Color(108, 255, 156),
+            new Color(62, 255, 142),
+            new Color(78, 248, 255),
+            new Color(139, 255, 211),
+            new Color(65, 255, 220)
+    };
+
     public Vec3 prevPos;
     public LivingEntity target;
 
     public Color color;
 
-    Random rng = new Random();
+    static Random rng = new Random();
 
     private ItemStack bow = ItemStack.EMPTY;
 
@@ -104,7 +115,8 @@ public class KnefProjectile extends ThrowableProjectile
 
     public KnefProjectile(EntityType<? extends KnefProjectile> type, Level world) {
         super(type, world);
-        this.color = new Color(0, 246 - this.random.nextInt(100), 255 - this.random.nextInt(120));
+        //this.color = new Color(0, 246 - this.random.nextInt(100), 255 - this.random.nextInt(120));
+        this.color = colors[rng.nextInt(colors.length)];
 
     }
 
@@ -138,22 +150,24 @@ public class KnefProjectile extends ThrowableProjectile
     }
 
     @Override
-    protected void onHitEntity(EntityHitResult pResult) {
+    protected void onHitEntity(EntityHitResult result) {
         if(!this.level().isClientSide()) {
             Entity owner = ((ServerLevel) this.level()).getEntity(UUID.fromString(this.getOwnerUUID()));
-            if(pResult.getEntity().getStringUUID().equals(this.getOwnerUUID())) return;
-            if(this.bow.getItem() instanceof IRelicItem relic){
-                relic.dropAllocableExperience(level(), pResult.getLocation(), bow, 1);
-            }
-            ((ServerLevel)this.level()).sendParticles(ParticleUtils.constructSimpleSpark(new Color(0, 196, 255), 0.2f, 10, 0.55f),
-                    this.getX(), this.getY(), this.getZ(), 10, 0, 0, 0, 0.1);
-            ((ServerLevel)this.level()).sendParticles(ParticleUtils.constructSimpleSpark(new Color(0, 60, 255), 0.2f, 10, 0.55f),
-                    this.getX(), this.getY(), this.getZ(), 10, 0, 0, 0, 0.1);
-
-            if(pResult.getEntity().hurt(this.damageSources().thrown(this, owner), getBaseDmg() + getPowerEnch() / 2f)) {
+            if(result.getEntity().getStringUUID().equals(this.getOwnerUUID())) return;
 
 
-                pResult.getEntity().invulnerableTime = 0;
+            if(result.getEntity().hurt(this.damageSources().thrown(this, owner), getBaseDmg() + getPowerEnch() / 2f)) {
+
+                ParticleHelper.spawnParticles(this.level(), new CircleTintData(colors[rng.nextInt(colors.length)], 0.1f, 0, 11, 0.5f, false),
+                        this.getPosition(1), 10, 0, 0, 0, 0.08);
+                ParticleHelper.spawnParticles(this.level(), new CircleTintData(colors[rng.nextInt(colors.length)], 0.1f, 0, 11, 0.5f, false),
+                        this.getPosition(1), 10, 0, 0, 0, 0.08);
+
+                if(this.bow.getItem() instanceof IRelicItem relic && owner instanceof LivingEntity livin){
+                    relic.spreadExperience(livin, bow, 1);
+                }
+
+                result.getEntity().invulnerableTime = 0;
 
                 if (owner != null) {
                     float vol = (float) (10 / owner.distanceToSqr(this.position()));
@@ -172,19 +186,16 @@ public class KnefProjectile extends ThrowableProjectile
 
         if (!this.level().isClientSide()) {
             ParticleHelper.spawnParticleLine(this.level(), ParticleUtils.constructSimpleSpark(color, 0.1f, 80, 0.9f),
-                    this.position(), result.getLocation(), (int) Math.round(Math.sqrt(this.position().distanceToSqr(result.getLocation())) * 10), 0);
-            ((ServerLevel) this.level()).sendParticles(ParticleUtils.constructSimpleSpark(new Color(0, 196, 255), 0.2f, 10, 0.55f),
-                    result.getLocation().x(), result.getLocation().y(), result.getLocation().z(), 10, 0, 0, 0, 0.1);
-            ((ServerLevel) this.level()).sendParticles(ParticleUtils.constructSimpleSpark(new Color(0, 60, 255), 0.2f, 10, 0.55f),
-                    result.getLocation().x(), result.getLocation().y(), result.getLocation().z(), 10, 0, 0, 0, 0.1);
-//            ParticleHelper.spawnParticleEntity(new CircleTintData(new Color(0, 196, 255), 0.2f, 10, 0.55f, false),
-//                    this, 10, 0.1);
-//            ParticleHelper.spawnParticleEntity(new CircleTintData(new Color(0, 60, 255), 0.2f, 10, 0.55f, false),
-//                    this, 10, 0.1);
+                    this.position(), result.getLocation(), (int) Math.round(Math.sqrt(this.position().distanceToSqr(result.getLocation())) * 10), 0.001);
 
-        Entity owner = ((ServerLevel) this.level()).getEntity(UUID.fromString(this.getOwnerUUID()));
-        float vol = owner == null ? 10 : (float) (10 / owner.distanceToSqr(this.position()));
-        this.level().playSound(null, owner == null ? this : owner, SoundsRegistry.KNEF_BOW_SPLASH.get(), SoundSource.PLAYERS, random.nextFloat() * 0.05f * vol + vol, random.nextFloat() * 0.1f + 0.6f);
+            ParticleHelper.spawnParticles(this.level(), new CircleTintData(colors[rng.nextInt(colors.length)], 0.1f, 0, 11, 0.5f, false),
+                    result.getLocation().x(), result.getLocation().y(), result.getLocation().z(), 10, 0, 0, 0, 0.08);
+            ParticleHelper.spawnParticles(this.level(), new CircleTintData(colors[rng.nextInt(colors.length)], 0.1f, 0, 11, 0.5f, false),
+                    result.getLocation().x(), result.getLocation().y(), result.getLocation().z(), 10, 0, 0, 0, 0.08);
+
+            Entity owner = ((ServerLevel) this.level()).getEntity(UUID.fromString(this.getOwnerUUID()));
+            float vol = owner == null ? 10 : (float) (10 / owner.distanceToSqr(this.position()));
+            this.level().playSound(null, owner == null ? this : owner, SoundsRegistry.KNEF_BOW_SPLASH.get(), SoundSource.PLAYERS, random.nextFloat() * 0.05f * vol + vol, random.nextFloat() * 0.1f + 0.6f);
         }
         this.discard();
     }
@@ -205,7 +216,8 @@ public class KnefProjectile extends ThrowableProjectile
             proj.setPos(center);
             proj.setBaseDmg(baseDmg);
             proj.setDeltaMovement(move);
-            proj.color = new Color(0, 246 - proj.random.nextInt(160), 255 - proj.random.nextInt(120));
+            //proj.color = new Color(0, 246 - proj.random.nextInt(160), 255 - proj.random.nextInt(120));
+            proj.color = colors[rng.nextInt(colors.length)];
             proj.setPowerEnch(powerEnch);
             proj.setBow(bow);
             proj.setParticleCount( (i % 2 == 0 && count > 7) ? (i % 4 == 0 && count > 15) ? 3 : 12 : count <= 7 ? 12 : 6);

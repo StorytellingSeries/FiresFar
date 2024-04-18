@@ -4,8 +4,10 @@ import com.qurenie.relics_thirteenflames.client.AnimationsRegistry;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
 import it.hurts.sskirillss.relics.items.relics.base.IRelicItem;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -37,14 +39,23 @@ import org.zeith.hammeranims.core.init.DefaultsHA;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 public class EntitySeliasetSun
 		extends LivingEntity
 		implements IAnimatedEntity
 {
 	public static final EntityDataAccessor<Boolean> ACTIVE = SynchedEntityData.defineId(EntitySeliasetSun.class, EntityDataSerializers.BOOLEAN);
-	public static final EntityDataAccessor<Boolean> OVERPOWERED = SynchedEntityData.defineId(EntitySeliasetSun.class, EntityDataSerializers.BOOLEAN);
-	public static final EntityDataAccessor<Boolean> FASTER_ACTIVATION = SynchedEntityData.defineId(EntitySeliasetSun.class, EntityDataSerializers.BOOLEAN);
+
+	private static final EntityDataAccessor<String> OWNER_UUID = SynchedEntityData.defineId(EntitySeliasetSun.class, EntityDataSerializers.STRING);
+
+	public void setOwnerUUID(String uuid){
+		this.getEntityData().set(OWNER_UUID, uuid);
+	}
+
+	public String getOwnerUUID() {
+		return this.getEntityData().get(OWNER_UUID);
+	}
 	
 	public final AnimationSystem animations = AnimationSystem.create(this);
 	
@@ -90,12 +101,12 @@ public class EntitySeliasetSun
 	
 	public int getMax()
 	{
-		return isOverpowered() ? 80 : 20;
+		return 20;
 	}
 	
 	public int getActivationSpeed()
 	{
-		return isFasterAct() ? 8 : 1;
+		return 1;
 	}
 
 	@Override
@@ -103,9 +114,18 @@ public class EntitySeliasetSun
 	{
 		animations.tick();
 
-		if(this.isActive()) this.setDeltaMovement(Vec3.ZERO);
+		if(getActivity(0) < getActivity(1)) {
+			this.setDeltaMovement(0, 0.15, 0);
+		} else if(getActivity(0) > getActivity(1)) {
+			this.setDeltaMovement(0, -0.15, 0);
+		} else if(this.isActive()) this.setDeltaMovement(Vec3.ZERO);
+
 		super.tick();
 		if(this.isActive()) this.setDeltaMovement(Vec3.ZERO);
+
+
+
+		if (getOwnerUUID().isEmpty()) this.discard();
 		
 		activeTicks += (isActive() ? 1 : -1) * getActivationSpeed();
 		activeTicks = Mth.clamp(activeTicks, 0, getMax());
@@ -190,7 +210,7 @@ public class EntitySeliasetSun
 	@Override
 	public InteractionResult interact(Player player, InteractionHand hand)
 	{
-		if(!this.level().isClientSide)
+		if(!this.level().isClientSide && player.getStringUUID().equals(getOwnerUUID()))
 		{
 			var wasActive = this.isActive();
 			if(!wasActive) this.ticker = 0;
@@ -221,7 +241,7 @@ public class EntitySeliasetSun
 	@Override
 	public boolean hurt(DamageSource pSource, float pAmount)
 	{
-		if(pSource.getEntity() instanceof ServerPlayer && getActivity(1F) <= 0.001F)
+		if(pSource.getDirectEntity() instanceof ServerPlayer p && getActivity(1F) <= 0.001F && p.getStringUUID().equals(getOwnerUUID()))
 		{
 			ItemStack horn = this.getSunItem();
 			CompoundTag itemData = new CompoundTag();
@@ -278,35 +298,26 @@ public class EntitySeliasetSun
 		this.entityData.set(ACTIVE, state);
 	}
 	
-	public boolean isOverpowered()
-	{
-		return this.entityData.get(OVERPOWERED);
-	}
-	
-	public void setOverpowered(boolean state)
-	{
-		this.entityData.set(OVERPOWERED, state);
-	}
-	
-	public boolean isFasterAct()
-	{
-		return this.entityData.get(FASTER_ACTIVATION);
-	}
-	
-	public void setFasterAct(boolean state)
-	{
-		this.entityData.set(FASTER_ACTIVATION, state);
-	}
-	
 	@Override
 	protected void defineSynchedData()
 	{
 		super.defineSynchedData();
 		entityData.define(ACTIVE, false);
-		entityData.define(OVERPOWERED, false);
-		entityData.define(FASTER_ACTIVATION, false);
+		entityData.define(OWNER_UUID, "");
 	}
-	
+
+	@Override
+	public void readAdditionalSaveData(CompoundTag p_21096_) {
+		super.readAdditionalSaveData(p_21096_);
+		setOwnerUUID(this.getEntityData().get(OWNER_UUID));
+	}
+
+	@Override
+	public void addAdditionalSaveData(CompoundTag p_21145_) {
+		super.addAdditionalSaveData(p_21145_);
+		this.getEntityData().set(OWNER_UUID, getOwnerUUID());
+	}
+
 	@Override
 	public boolean shouldRender(double pX, double pY, double pZ)
 	{
@@ -332,7 +343,7 @@ public class EntitySeliasetSun
 	{
 		return ItemStack.EMPTY;
 	}
-	
+
 	@Override
 	public void setItemSlot(EquipmentSlot pSlot, ItemStack pStack)
 	{
@@ -360,7 +371,7 @@ public class EntitySeliasetSun
 	{
 		return false;
 	}
-	
+
 	@Override
 	public void setupSystem(AnimationSystem.Builder builder)
 	{
@@ -414,7 +425,7 @@ public class EntitySeliasetSun
 			BlockPos pos = positions.remove(ent.level().random.nextInt(positions.size()));
 			if(BoneMealItem.applyBonemeal(Items.BONE_MEAL.getDefaultInstance(), world, pos, FakePlayerFactory.getMinecraft(sl))) {
 				world.levelEvent(2005, pos, 0);
-				if(sun.getItem() instanceof IRelicItem relic) relic.dropAllocableExperience(world, ent.getBoundingBox().getCenter(), sun, 1);
+				if(sun.getItem() instanceof IRelicItem relic) relic.addExperience(sun, 1);
 			}
 		}
 	}

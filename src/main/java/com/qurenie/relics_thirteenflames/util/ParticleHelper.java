@@ -93,6 +93,9 @@ public class ParticleHelper {
             Network.sendToAll(new PacketSpawnParticle(options, x + d1, y + d3, z + d5, d6, d7, d8));
         }
     }
+    public static void spawnParticles(Level level, ParticleOptions options, Vec3 pos, int count, double dx, double dy, double dz, double maxSpeed) {
+        spawnParticles(level, options, pos.x, pos.y, pos.z, count, dx, dy, dz, maxSpeed);
+    }
 
     public static void spawnRandomJaggedParticleLine(Level level, Vec3 begin, Vec3 end, double maxJagMultiplier, ParticleOptions options, int particlesPerBlock, int sliceIterations){
         List<Vec3> locs = new ArrayList<>(List.of(begin));

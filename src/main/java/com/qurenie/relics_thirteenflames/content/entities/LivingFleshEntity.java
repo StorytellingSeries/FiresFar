@@ -5,6 +5,7 @@ import com.qurenie.relics_thirteenflames.content.items.ItemKnefRose;
 import com.qurenie.relics_thirteenflames.init.EntityDataSerializersTF;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
+import it.hurts.sskirillss.relics.items.relics.base.IRelicItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -119,12 +120,15 @@ public class LivingFleshEntity
 		if(isAttacking() && tickCount % 5 == 0 && (target = getTarget()) != null)
 		{
 			navigation.moveTo(target, Math.min(0.4, 0.5 / getScale()));
-			if(target.getBoundingBox().intersects(getBoundingBox().inflate(0.5)))
+			if(target.getBoundingBox().intersects(getBoundingBox().inflate(0.6)))
 			{
 				if(attackCd <= 0)
 				{
 					attackCd = 20;
 					target.hurt(this.level().damageSources().mobAttack(this), getDamage());
+					if(getStats().rose.getItem() instanceof IRelicItem relic) {
+						relic.spreadExperience(this.level().getPlayerByUUID(UUID.fromString(getOwnerUUID())), getStats().rose, 1);
+					}
 				}
 			}
 		}
@@ -133,10 +137,7 @@ public class LivingFleshEntity
 		
 		if(tickCount >= lifetime)
 		{
-			if(tickCount % 20 == 0 && !isDeadOrDying())
-			{
-				hurt(this.level().damageSources().generic(), this.getMaxHealth() / 5f);
-			}
+			this.kill();
 		}
 	}
 
@@ -164,6 +165,9 @@ public class LivingFleshEntity
 				random.nextGaussian() - random.nextGaussian()
 		).normalize().scale(0.01));
 		ent.setOwnerUUID(this.getOwnerUUID());
+		if(getStats().rose.getItem() instanceof IRelicItem relic) {
+			relic.spreadExperience(this.level().getPlayerByUUID(UUID.fromString(getOwnerUUID())), getStats().rose, 1);
+		}
 		return ent;
 	}
 	

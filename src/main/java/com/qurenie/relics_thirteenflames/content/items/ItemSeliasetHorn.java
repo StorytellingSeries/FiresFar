@@ -11,9 +11,9 @@ import it.hurts.sskirillss.relics.items.relics.base.IRelicItem;
 import it.hurts.sskirillss.relics.items.relics.base.RelicItem;
 import it.hurts.sskirillss.relics.items.relics.base.data.RelicData;
 import it.hurts.sskirillss.relics.items.relics.base.data.cast.CastData;
-import it.hurts.sskirillss.relics.items.relics.base.data.cast.misc.CastSource;
 import it.hurts.sskirillss.relics.items.relics.base.data.cast.misc.CastStage;
 import it.hurts.sskirillss.relics.items.relics.base.data.cast.misc.CastType;
+import it.hurts.sskirillss.relics.items.relics.base.data.cast.misc.RelicContainer;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.AbilitiesData;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.AbilityData;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.LevelingData;
@@ -49,6 +49,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -83,12 +85,9 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
 
     @Override
     public InteractionResultHolder<ItemStack> use(Level pLevel, Player pPlayer, InteractionHand pUsedHand) {
-        if (!pLevel.isClientSide){
-            ItemStack horn = pPlayer.getItemInHand(pUsedHand);
-            pPlayer.startUsingItem(pUsedHand);
-            return InteractionResultHolder.success(horn);
-        }
-        return super.use(pLevel,pPlayer,pUsedHand);
+        ItemStack horn = pPlayer.getItemInHand(pUsedHand);
+        pPlayer.startUsingItem(pUsedHand);
+        return InteractionResultHolder.success(horn);
     }
 
 
@@ -107,9 +106,14 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
     }
 
     @Override
+    public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
+        return enchantment.equals(Enchantments.FIRE_ASPECT);
+    }
+
+    @Override
     public void onUseTick(Level level, LivingEntity living, ItemStack horn,  int count) {
         if (living instanceof Player player){
-            this.releaseRay(level, player, horn);
+            this.releaseRay(player, horn);
         }
 
 
@@ -210,14 +214,14 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
         }
     }
 
-    public void releaseRay(Level level, Player player, ItemStack horn){
+    public void releaseRay(Player player, ItemStack horn){
         Vec3 initPos = player.position().add(0,player.getEyeHeight(),0);
         double distance = this.getAbilityValue(horn, "air_ray", "distance");
 
 
         Vec3 endPos = initPos.add(player.getLookAngle().scale(distance / 2.0));
-        if (!level.isClientSide) {
-            List<LivingEntity> entitiesToAffect = getAffectedEntities(level, initPos, endPos, distance, distance / 6.0);
+        if (!player.level().isClientSide) {
+            List<LivingEntity> entitiesToAffect = getAffectedEntities(player, initPos, endPos, distance, distance / 6.0);
 
 
             for (LivingEntity e : entitiesToAffect) {
@@ -230,19 +234,25 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
                 }
 
                 e.setDeltaMovement(e.getDeltaMovement().add(speed));
+
+                int fire = horn.getEnchantmentLevel(Enchantments.FIRE_ASPECT);
+                if(fire > 0) {
+                    e.setSecondsOnFire(fire * 2);
+                    ParticleHelper.spawnParticleEntity(rng.nextBoolean() ? ParticleTypes.FLAME : ParticleTypes.SMALL_FLAME, e, 3, 0.02);
+                }
             }
         }
     }
 
-    List<LivingEntity> getAffectedEntities(Level level, Vec3 initPos, Vec3 endPos, double boxRadius, double dist){
+    List<LivingEntity> getAffectedEntities(Player player, Vec3 initPos, Vec3 endPos, double boxRadius, double dist){
         Vec3 axis = endPos.subtract(initPos);
-        return level.getEntitiesOfClass(LivingEntity.class, new AABB(endPos, endPos).inflate(boxRadius), e -> {
+        return player.level().getEntitiesOfClass(LivingEntity.class, new AABB(endPos, endPos).inflate(boxRadius), e -> {
             Vec3 ePos = e.getBoundingBox().getCenter();
             Vec3 eVec = ePos.subtract(initPos);
             double axisScalar = axis.dot(axis);
             double eScalar = eVec.dot(axis);
             Vec3 point = initPos.add(axis.scale( eScalar / axisScalar ));
-            return point.subtract(ePos).lengthSqr() < dist * dist;
+            return point.subtract(ePos).lengthSqr() < dist * dist && !e.equals(player);
         });
     }
 
@@ -280,7 +290,7 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
                         .ability(AbilityData.builder("block")
                                 .maxLevel(5)
                                 .active(CastData.builder()
-                                        .source(CastSource.INVENTORY)
+                                        .container(RelicContainer.INVENTORY)
                                         .type(CastType.INSTANTANEOUS)
                                         .build())
                                 .stat(StatData.builder("wavesCount")
@@ -348,7 +358,7 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
                 Vec3 b = le.position().subtract(entity.position());
                 Vec3 sp = b.normalize().multiply(2,2,2).add(0,0.5,0);
                 le.setDeltaMovement(sp);
-                if(!le.hasEffect(EffectRegistry.STUN.get())) this.dropAllocableExperience(le.level(), le.getBoundingBox().getCenter(), stack, 1);
+                if(!le.hasEffect(EffectRegistry.STUN.get()) && entity instanceof LivingEntity livin) this.spreadExperience(livin, stack, 1);
                 le.addEffect(new MobEffectInstance(EffectRegistry.STUN.get(),(int)Math.round(this.getAbilityValue(stack,"block","stunDuration")*20),0));
 
             }
@@ -361,9 +371,9 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
     }
 
     public void releaseWaveParticles(Level level, Entity entity){
-        double angle = Math.PI * 2 / 72;
+        double angle = Math.PI * 2 / 60;
         for (float g = -0.5f; g <= 0.5;g += 0.25f){
-            for (int i = 0; i <= 72; i++){
+            for (int i = 0; i <= 60; i++){
                 double vangle = angle*i + (g * angle);
                 double x = Math.sin(vangle);
                 double y = Math.cos(vangle);
@@ -388,9 +398,9 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
         Vec3 ePos = entity.position();
         for(int i = 0; i < 14; i++){
             double r = 0.512 * i + 0.3;
-            int count = (int) Math.round(2 * Math.PI * r * 10);
+            int count = (int) Math.round(2 * Math.PI * r * 6);
             double r2 = r + 0.256;
-            int count2 = (int) Math.round(2 * Math.PI * r2 * 10);
+            int count2 = (int) Math.round(2 * Math.PI * r2 * 6);
             int finalI = i;
             Scheduler.schedule(i , () -> {
                 for(int j = 0; j < count; j++){
@@ -398,7 +408,7 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
 //                            pos.x(), pos.y(), pos.z(), sped.x(), 0, sped.z());
                     Vec3 pos = ePos.add(new Vec3(r, 0, 0).yRot((float) Math.toRadians(360.0 / count * j)));
                     Vec3 sped = pos.subtract(ePos.add(new Vec3(0, 0.3, 0))).normalize().scale(0.11);
-                    ParticleHelper.spawnDirectedParticle(level, new CircleTintData(new Color(42, 41, 26), 0.2f, 0, (int) Math.round(10 + r * 3), -1, false),
+                    ParticleHelper.spawnDirectedParticle(level, new CircleTintData(new Color(42, 41, 26), 0.3f, 0, (int) Math.round(10 + r * 2), -1, false),
                             pos.x, pos.y + 0.3, pos.z, sped.x, 0, sped.z);
                     if(finalI == 13) ParticleHelper.spawnDirectedParticle(level, ParticleTypes.CLOUD,
                             pos.x, pos.y, pos.z, sped.scale(2).x, 0, sped.scale(2).z);
@@ -408,7 +418,7 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
                 for (int j = 0; j < count2; j++) {
                     Vec3 pos = ePos.add(new Vec3(r2, 0, 0).yRot((float) Math.toRadians(360.0 / count2 * j)));
                     Vec3 sped = pos.subtract(ePos.add(new Vec3(0, 0.3, 0))).normalize().scale(0.11);
-                    ParticleHelper.spawnDirectedParticle(level, new CircleTintData(new Color(42, 41, 26), 0.2f, 0, (int) Math.round(10 + r2 * 3), -1, false),
+                    ParticleHelper.spawnDirectedParticle(level, new CircleTintData(new Color(42, 41, 26), 0.3f, 0, (int) Math.round(10 + r2 * 2), -1, false),
                             pos.x, pos.y + 0.3, pos.z, sped.x, 0, sped.z);
 
                 }
