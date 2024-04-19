@@ -425,7 +425,7 @@ public class EntitySeliasetSun
 			BlockPos pos = positions.remove(ent.level().random.nextInt(positions.size()));
 			if(BoneMealItem.applyBonemeal(Items.BONE_MEAL.getDefaultInstance(), world, pos, FakePlayerFactory.getMinecraft(sl))) {
 				world.levelEvent(2005, pos, 0);
-				if(sun.getItem() instanceof IRelicItem relic) relic.addExperience(sun, 1);
+				if(sun.getItem() instanceof IRelicItem relic && ent instanceof EntitySeliasetSun ess && sl.getEntity(UUID.fromString(ess.getOwnerUUID())) instanceof LivingEntity livin) relic.spreadExperience(livin, sun, 1);
 			}
 		}
 	}

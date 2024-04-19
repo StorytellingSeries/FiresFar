@@ -302,7 +302,7 @@ public class KnefStormEntity extends Projectile {
 
     public void drawFrame(){
         a = 30;
-        Color color = new Color(34, 0, 255);
+        Color color = new Color(0, 255, 187);
         for(int i = 0; i < 80; i++){
             if(i + 40 <= this.tickCount) {
                 Vec3 pos = this.getPosition(1F).subtract(new Vec3(0,0,-2)).add(new Vec3(radius + 7, 0, 0).yRot((float) Math.toRadians(a)));

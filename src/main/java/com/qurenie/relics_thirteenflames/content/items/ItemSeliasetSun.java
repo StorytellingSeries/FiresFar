@@ -12,6 +12,7 @@ import it.hurts.sskirillss.relics.items.relics.base.data.leveling.StatData;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.misc.UpgradeOperation;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootData;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.misc.LootCollections;
+import it.hurts.sskirillss.relics.utils.MathUtils;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -85,16 +86,16 @@ public class ItemSeliasetSun
 						.ability(AbilityData.builder("leveling")
 								.maxLevel(10)
 								.stat(StatData.builder("speed")
-										.initialValue(200, 200)
+										.initialValue(220, 220)
 										.upgradeModifier(UpgradeOperation.ADD, -20)
 										.thresholdValue(20, 200)
-										.formatValue(x -> Math.round(x / 2F) / 10F)
+										.formatValue(x -> (int) MathUtils.round(x / 20, 0))
 										.build())
 								.stat(StatData.builder("radius")
 										.initialValue(10, 10)
 										.thresholdValue(10, 30)
 										.upgradeModifier(UpgradeOperation.ADD, 2F)
-										.formatValue(x -> (int) Math.round(x))
+										.formatValue(x -> (int) MathUtils.round(x, 0))
 										.build())
 								.build())
 						.build())

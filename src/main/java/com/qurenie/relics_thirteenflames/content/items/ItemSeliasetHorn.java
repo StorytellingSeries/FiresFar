@@ -284,7 +284,7 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
                                         .thresholdValue(2, 5)
                                         .initialValue(3, 3.5)
                                         .upgradeModifier(UpgradeOperation.ADD,0.3)
-                                        .formatValue(x-> MathUtils.round(x,1))
+                                        .formatValue(x-> (int) MathUtils.round(x * 20,0))
                                         .build())
                                 .build())
                         .ability(AbilityData.builder("block")
