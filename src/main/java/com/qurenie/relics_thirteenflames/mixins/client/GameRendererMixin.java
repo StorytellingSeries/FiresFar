@@ -1,4 +1,4 @@
-package com.qurenie.relics_thirteenflames.mixins;
+package com.qurenie.relics_thirteenflames.mixins.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.qurenie.relics_thirteenflames.content.items.ItemKnefBow;

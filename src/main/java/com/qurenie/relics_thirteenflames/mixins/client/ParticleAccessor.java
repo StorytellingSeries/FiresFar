@@ -1,4 +1,4 @@
-package com.qurenie.relics_thirteenflames.mixins;
+package com.qurenie.relics_thirteenflames.mixins.client;
 
 import net.minecraft.client.particle.Particle;
 import org.spongepowered.asm.mixin.Mixin;

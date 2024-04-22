@@ -1,6 +1,6 @@
 package com.qurenie.relics_thirteenflames.util;
 
-import com.qurenie.relics_thirteenflames.mixins.ParticleAccessor;
+import com.qurenie.relics_thirteenflames.mixins.client.ParticleAccessor;
 import com.qurenie.relics_thirteenflames.net.PacketEnginedParticle;
 import com.qurenie.relics_thirteenflames.net.PacketSpawnParticle;
 import net.minecraft.client.Minecraft;

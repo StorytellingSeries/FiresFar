@@ -26,8 +26,8 @@ base {
 }
 
 mixin {
-    add sourceSets.main, "relics_thirteenflames.refmap.json"
-    config "mixins." + mod_id + ".json"
+    add sourceSets.main, mod_id + ".mixins.refmap.json"
+    config mod_id + ".mixins.json"
 
     debug.verbose = true
     debug.export = true
@@ -52,7 +52,7 @@ minecraft {
             property 'forge.logging.console.level', 'debug'
             property 'forge.enabledGameTestNamespaces', mod_id
 
-            arg "-mixin.config=mixins." + mod_id + ".json"
+            arg "-mixin.config=" + mod_id + ".mixins.json"
 
             mods {
                 "${mod_id}" {

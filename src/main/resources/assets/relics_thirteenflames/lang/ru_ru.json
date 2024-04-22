@@ -7,6 +7,10 @@
     "item.relics_thirteenflames.knef_bow": "Лунный Лук Кнефмтити",
     "item.relics_thirteenflames.ronas_sword": "Клык Ронаса",
     "item.relics_thirteenflames.montu_hammer": "Молот Монту",
+    "item.relics_thirteenflames.knef_rose": "Чёрная Роза Кнефмтити",
+    "item.relics_thirteenflames.ronas_shield": "Щит Ронаса",
+    "item.relics_thirteenflames.seliaset_horn": "Горн Селиасэт",
+    "item.relics_thirteenflames.seliaset_sun": "Солнце Селиасэт",
 
 
     "tooltip.relics_thirteenflames.knef_bow.lore": "Один из «Огней», легендарных артефактов, разбросанных по всему Мисру.\nСоздан богиней смерти, Кнефмтити.",
@@ -20,7 +24,7 @@
     "tooltip.relics.knef_bow.ability.shot.stat.drain.title": "Поглощение здоровья за выстрел",
     "tooltip.relics.knef_bow.ability.shot.stat.drain.value": "%1$s%% максимального здоровья",
     "tooltip.relics.knef_bow.ability.swim": "Глубинный рывок",
-    "tooltip.relics.knef_bow.ability.swim.description": "Чувствуя себя как рыба в воде, вы устремляетесь вперед, нанося урон противникам на пути.",
+    "tooltip.relics.knef_bow.ability.swim.description": "Переключаемая способность. Используя Лук, находясь в воде или под дождём, вы устремляетесь вперед, нанося урон противникам на пути.",
     "tooltip.relics.knef_bow.ability.swim.stat.speed.title": "Скорость",
     "tooltip.relics.knef_bow.ability.swim.stat.speed.value": "%1$s блоков",
     "tooltip.relics.knef_bow.ability.swim.stat.dmg.title": "Урон столкновения",

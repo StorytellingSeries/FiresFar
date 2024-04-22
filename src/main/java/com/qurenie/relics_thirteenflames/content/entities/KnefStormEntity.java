@@ -205,7 +205,7 @@ public class KnefStormEntity extends Projectile {
                 drop.setHeal(getHeal());
                 drop.setDmg(getDmg());
                 this.level().addFreshEntity(drop);
-                ParticleHelper.spawnParticleEntity(ParticleUtils.constructSimpleSpark(new Color(140, 0, 255), 0.2f, 15, 0.83f), //new Color(0, 128, 255)
+                ParticleHelper.spawnParticleEntity(ParticleUtils.constructSimpleSpark(new Color(0, 217, 255), 0.2f, 15, 0.83f), //new Color(0, 128, 255)
                         drop, 8, 0.1);
                 ParticleHelper.spawnParticleEntity(ParticleUtils.constructSimpleSpark(new Color(0, 51, 255), 0.2f, 15, 0.83f), //new Color(0, 128, 255)
                         drop, 7, 0.1);
@@ -302,7 +302,7 @@ public class KnefStormEntity extends Projectile {
 
     public void drawFrame(){
         a = 30;
-        Color color = new Color(0, 255, 187);
+        Color color = new Color(26, 255, 210);
         for(int i = 0; i < 80; i++){
             if(i + 40 <= this.tickCount) {
                 Vec3 pos = this.getPosition(1F).subtract(new Vec3(0,0,-2)).add(new Vec3(radius + 7, 0, 0).yRot((float) Math.toRadians(a)));

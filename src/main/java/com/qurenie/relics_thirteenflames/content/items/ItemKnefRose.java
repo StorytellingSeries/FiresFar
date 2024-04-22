@@ -18,6 +18,7 @@ import it.hurts.sskirillss.relics.items.relics.base.data.leveling.misc.UpgradeOp
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootData;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.misc.LootCollections;
 import it.hurts.sskirillss.relics.utils.MathUtils;
+import it.hurts.sskirillss.relics.utils.NBTUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.nbt.CompoundTag;
@@ -193,12 +194,12 @@ public class ItemKnefRose
 				stack.getOrCreateTag().putInt("netherTicker", netherTicker);
 			}
 
-			int deterioTicker = stack.getOrCreateTag().getInt("deteriorationTicker");
+			int deterioTicker = NBTUtils.getInt(stack, "deteriorationTicker", 0);
 			if (this.getBones(stack) > 0 && deterioTicker++ >= this.getAbilityValue(stack, "undeath", "deterioration_rate")) {
 				deterioTicker = 0;
 				this.takeBones(stack, 1, false);
 			}
-			stack.getOrCreateTag().putInt("deteriorationTicker", deterioTicker);
+			NBTUtils.setInt(stack, "deteriorationTicker", deterioTicker);
 		}
 		super.inventoryTick(stack, level, entity, slot, isSelected);
 	}
@@ -213,7 +214,7 @@ public class ItemKnefRose
 			
 			// Limit to 1 bone per right click; No limit on left click.
 			if(e.getAction() == ClickAction.SECONDARY) bones = Math.min(bones, 1);
-			bones = (int) Math.min(bones, this.getAbilityValue(stack, "undeath", "max_bones") - getBones(stack));
+			bones = Math.min(bones, getMaxBones(stack) - getBones(stack));
 			addBones(stack, bones);
 			e.getHeldStack().shrink(bones);
 			
@@ -325,7 +326,7 @@ public class ItemKnefRose
 	public void setBones(ItemStack stack, int bones)
 	{
 		bones = Math.max(bones, 0);
-		bones = (int) Math.min(bones, this.getAbilityValue(stack, "undeath", "max_bones"));
+		bones = (int) Math.min(bones, getMaxBones(stack));
 		var tag = stack.getOrCreateTagElement("KnefRose");
 		if(bones == 0)
 		{
@@ -343,6 +344,11 @@ public class ItemKnefRose
 		return Optional.ofNullable(stack.getTagElement("KnefRose"))
 				.map(t -> t.getInt("Bones"))
 				.orElse(0);
+	}
+
+	public int getMaxBones(ItemStack stack)
+	{
+		return (int) MathUtils.round(this.getAbilityValue(stack, "undeath", "max_bones"), 0);
 	}
 
 	public static class RoseStats

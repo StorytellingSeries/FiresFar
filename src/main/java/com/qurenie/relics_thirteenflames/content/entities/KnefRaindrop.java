@@ -118,8 +118,9 @@ public class KnefRaindrop extends ThrowableProjectile
         this.level().playSound(null, loc.x, loc.y, loc.z, SoundsRegistry.KNEF_BOW_SPLASH.get(), SoundSource.PLAYERS, random.nextFloat() * 0.2f + 0.1f, random.nextFloat() * 0.6f + 0.7f);
 
         if (result.getType() == HitResult.Type.BLOCK) {
-            ParticleHelper.spawnParticleLine(this.level(), ParticleUtils.constructSimpleSpark(color, 0.1f, 80, 0.9f),
-                    this.position(), result.getLocation(), (int) Math.round(Math.sqrt(this.position().distanceToSqr(result.getLocation())) * this.tickCount * this.tickCount / 156 + 2), 0);
+            double distance = result.getLocation().subtract(this.position()).length();
+            ParticleHelper.spawnParticleLine(this.level(), ParticleUtils.constructSimpleSpark(color, 0.1f, 80, 0.85f),
+                    this.position(), result.getLocation(), (int) Math.round(distance * this.tickCount * this.tickCount / 156 + 2), 0);
 
             ParticleHelper.spawnParticleAABB(this.level(), ParticleUtils.constructSimpleSpark(new Color(72, 0, 255), 0.2f, 20, 0.65f),
                     new AABB(result.getLocation(), result.getLocation()), 15, 0.1);

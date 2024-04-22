@@ -1,8 +1,9 @@
-package com.qurenie.relics_thirteenflames.mixins;
+package com.qurenie.relics_thirteenflames.mixins.client;
 
 import com.qurenie.relics_thirteenflames.content.items.ItemKnefBow;
 import com.qurenie.relics_thirteenflames.content.items.ItemRonasShield;
 import com.qurenie.relics_thirteenflames.init.DamageSourceRegistry;
+import com.qurenie.relics_thirteenflames.mixins.LivingEntityMixin;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
