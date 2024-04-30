@@ -455,7 +455,7 @@ public class ItemMontuHammer
 
     @Override
     public int getFoilColor(@NotNull ItemStack stack) {
-        return new Color(60, 122, 0).getRGB();
+        return new Color(116, 229, 0).getRGB();
     }
 
 }

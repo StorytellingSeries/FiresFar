@@ -192,14 +192,15 @@ public class ItemKnefRose
 					this.addBones(stack, 1);
 				}
 				stack.getOrCreateTag().putInt("netherTicker", netherTicker);
-			}
+			} else {
 
-			int deterioTicker = NBTUtils.getInt(stack, "deteriorationTicker", 0);
-			if (this.getBones(stack) > 0 && deterioTicker++ >= this.getAbilityValue(stack, "undeath", "deterioration_rate")) {
-				deterioTicker = 0;
-				this.takeBones(stack, 1, false);
+				int deterioTicker = NBTUtils.getInt(stack, "deteriorationTicker", 0);
+				if (this.getBones(stack) > 0 && deterioTicker++ >= this.getAbilityValue(stack, "undeath", "deterioration_rate")) {
+					deterioTicker = 0;
+					this.takeBones(stack, 1, false);
+				}
+				NBTUtils.setInt(stack, "deteriorationTicker", deterioTicker);
 			}
-			NBTUtils.setInt(stack, "deteriorationTicker", deterioTicker);
 		}
 		super.inventoryTick(stack, level, entity, slot, isSelected);
 	}

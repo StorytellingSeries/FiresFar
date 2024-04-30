@@ -5,7 +5,7 @@
     "effect.relics_thirteenflames.poisson": "Rhonas' Venom",
 
     "item.relics_thirteenflames.knef_bow": "Knephmtyti's Moonbow",
-    "item.relics_thirteenflames.knef_rose": "Knephmtyti's Black Cock",
+    "item.relics_thirteenflames.knef_rose": "Knephmtyti's Black Rose",
     "item.relics_thirteenflames.ronas_sword": "Rhonas' Fang",
     "item.relics_thirteenflames.ronas_shield": "Rhonas' Shield",
     "item.relics_thirteenflames.montu_hammer": "Montu's Hammer",
@@ -98,7 +98,7 @@
     "tooltip.relics_thirteenflames.knef_rose.lore": "One of the «Flames», legendary artifacts scattered across the world.\nCreated by Knephmtyti, goddess of Death.",
     "tooltip.relics.knef_rose.leveling": "+1 experience point for each bone consumed by «Ghostflame Protection».\n+1 experience point for each time a «Living Flesh» attacks its target.\n+1 experience point for each split by «Unholy Rebirth»",
     "tooltip.relics.knef_rose.ability.undeath": "Ghostflame Protection",
-    "tooltip.relics.knef_rose.ability.undeath.description": "The Rose's unnatural flame protects its owner, using bones of the undead as fuel. You can put bones into the flower's kiln by clicking on it with a stack of bones. While the flame burns, it will prevent any damage from reaching the Rose's owner, expending some of the bones instead.",
+    "tooltip.relics.knef_rose.ability.undeath.description": "The Rose's unnatural flame protects its owner, using bones of the undead as fuel. You can put bones into the flower's kiln by clicking on it with a stack of bones. While the flame burns, it will prevent any damage from reaching the Rose's owner, expending some of the bones instead. While in the Nether, the Rose slowly replenishes its fuel.",
     "tooltip.relics.knef_rose.ability.undeath.stat.damage_taken.title": "Absorption Rate",
     "tooltip.relics.knef_rose.ability.undeath.stat.damage_taken.value": "%1$s HP per bone",
     "tooltip.relics.knef_rose.ability.undeath.stat.max_bones.title": "Bone Capacity",

@@ -264,7 +264,7 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
             stormcaller.shootFromRotation(pLivingEntity, pLivingEntity.getXRot(), pLivingEntity.getYRot(), 0.75f, 2.5f, 0);
             for (KnefProjectileSpecial proj : stormcaller.rays) pLevel.addFreshEntity(proj);
             pLevel.addFreshEntity(stormcaller);
-            addAbilityCooldown(pStack, "storm", 6/*00*/);
+            addAbilityCooldown(pStack, "storm", 600);
         } else if (this.getUseDuration(pStack) - pTimeCharged > 5) {
             if (!pLevel.isClientSide()) {
                 float fl = random.nextFloat();

@@ -38,12 +38,12 @@ public class KnefProjectile extends ThrowableProjectile
 {
 
     static Color[] colors = {
-            new Color(51, 255, 202),
-            new Color(108, 255, 156),
-            new Color(62, 255, 142),
-            new Color(78, 248, 255),
-            new Color(139, 255, 211),
-            new Color(65, 255, 220)
+            new Color(43, 210, 159),
+            new Color(88, 208, 155),
+            new Color(49, 203, 138),
+            new Color(77, 197, 142),
+            new Color(109, 199, 161),
+            new Color(102, 204, 172)
     };
 
     public Vec3 prevPos;

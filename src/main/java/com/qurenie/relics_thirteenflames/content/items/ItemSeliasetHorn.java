@@ -3,6 +3,7 @@ package com.qurenie.relics_thirteenflames.content.items;
 import com.google.common.base.Suppliers;
 import com.qurenie.relics_thirteenflames.client.particles.CircleTintData;
 import com.qurenie.relics_thirteenflames.client.render.item.EmissiveItemRenderer;
+import com.qurenie.relics_thirteenflames.client.render.item.SeliasetHornItemRenderer;
 import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
 import com.qurenie.relics_thirteenflames.net.PacketHornSounds;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
@@ -22,6 +23,7 @@ import it.hurts.sskirillss.relics.items.relics.base.data.leveling.misc.UpgradeOp
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootData;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.misc.LootCollections;
 import it.hurts.sskirillss.relics.utils.MathUtils;
+import it.hurts.sskirillss.relics.utils.NBTUtils;
 import it.hurts.sskirillss.relics.utils.Scheduler;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -121,6 +123,7 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
             int tick = this.getUseDuration(horn) - count;
             int segments = (int) Math.round(this.getAbilityValue(horn, "air_ray", "distance"));
 
+            Vec3 iniPos = living.getEyePosition(1).add(0, -0.45, 0);
             if (living.isShiftKeyDown()) {
                 for (int i = 1; i < segments * 2; i++) {
                     if (i < tick) {
@@ -128,7 +131,7 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
                         double radius = 0.2 + (i / 6.0);
                         Vec3 luk = living.getLookAngle();
                         Vec3 iStep = luk.scale(i);
-                        Vec3 iniPos = living.getEyePosition(1).add(0, -0.25, 0);
+
                         Vec3 x = !(luk.normalize().x < 0.001 && luk.normalize().z < 0.001) ? luk.normalize().cross(new Vec3(0, 1, 0)).normalize().scale(radius) : luk.normalize().cross(new Vec3(1, 0, 0)).normalize().scale(radius);
                         Vec3 z = luk.normalize().cross(x).normalize().scale(radius);
 
@@ -154,7 +157,6 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
                     double a = 360.0 / 5 * i + count * 7;
                     double radius = 0.1 * rng.nextFloat();
                     Vec3 luk = living.getLookAngle();
-                    Vec3 iniPos = living.getEyePosition(1).add(0, -0.25, 0);
                     Vec3 x = !(luk.normalize().x < 0.001 && luk.normalize().z < 0.001) ? luk.normalize().cross(new Vec3(0, 1, 0)).normalize().scale(radius) : luk.normalize().cross(new Vec3(1, 0, 0)).normalize().scale(radius);
                     Vec3 z = luk.normalize().cross(x).normalize().scale(radius);
 
@@ -184,7 +186,6 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
                         double radius = 0.4 + (i / 12.0);
                         Vec3 luk = living.getLookAngle();
                         Vec3 iStep = luk.scale(i);
-                        Vec3 iniPos = living.getEyePosition(1).add(0, -0.25, 0);
                         Vec3 x = !(luk.normalize().x < 0.001 && luk.normalize().z < 0.001) ? luk.normalize().cross(new Vec3(0, 1, 0)).normalize().scale(radius) : luk.normalize().cross(new Vec3(1, 0, 0)).normalize().scale(radius);
                         Vec3 z = luk.normalize().cross(x).normalize().scale(radius);
 
@@ -215,7 +216,7 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
     }
 
     public void releaseRay(Player player, ItemStack horn){
-        Vec3 initPos = player.position().add(0,player.getEyeHeight(),0);
+        Vec3 initPos = player.getEyePosition().add(0, -0.4, 0);
         double distance = this.getAbilityValue(horn, "air_ray", "distance");
 
 
@@ -252,7 +253,7 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
             double axisScalar = axis.dot(axis);
             double eScalar = eVec.dot(axis);
             Vec3 point = initPos.add(axis.scale( eScalar / axisScalar ));
-            return point.subtract(ePos).lengthSqr() < dist * dist && !e.equals(player);
+            return point.subtract(ePos).lengthSqr() < dist * dist && !e.equals(player) && (eVec.add(axis).length() > eVec.subtract(axis).length());
         });
     }
 
@@ -333,17 +334,19 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
     @Override
     public void inventoryTick(ItemStack stack, Level level, Entity entity, int slot, boolean isSelected) {
 
-        int activeTicker = stack.getOrCreateTag().getInt("activetick");
-        if (activeTicker > 0){
-            if (activeTicker-- % 60 == 0) {
-                this.releaseWave(level, entity);
-            }else{
-                int tick = 60 - activeTicker % 60;
-                this.tickWave(entity, stack, tick);
+        if(!level.isClientSide()) {
+            int activeTicker = NBTUtils.getInt(stack, "activetick", 0);
+            if (activeTicker > 0) {
+                if (activeTicker-- % 60 == 0) {
+                    this.releaseWave(level, entity);
+                } else {
+                    int tick = 60 - activeTicker % 60;
+                    this.tickWave(entity, stack, tick);
 
+                }
             }
+            NBTUtils.setInt(stack, "activetick", activeTicker);
         }
-        stack.getOrCreateTag().putInt("activetick", activeTicker);
         super.inventoryTick(stack, level, entity, slot, isSelected);
     }
 
@@ -366,7 +369,7 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
     }
 
     public void releaseWave(Level level, Entity entity){
-        level.playSound(entity, entity.blockPosition(), SoundsRegistry.SELI_HORN_WAVE.get(), SoundSource.MASTER, 1, 1);
+        level.playSound(null, entity.blockPosition(), SoundsRegistry.SELI_HORN_WAVE.get(), SoundSource.MASTER, 1, 1);
         releaseWaveParticles(level, entity);
     }
 
@@ -381,7 +384,7 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
 
                 float md = (1 - 2.5f / Math.abs(g)) * 0.9f;
                 Vec3 dir = new Vec3(x*md,g,y*md);
-                Vec3 ppos = entity.position().add(dir.multiply(0.3,0.3,0.3)).add(0,0.2,0);
+                Vec3 ppos = entity.position().add(dir.scale(0.3)).add(0,0.2,0);
 
                 Vec3 speed = dir.normalize().multiply(0.5,0.5,0.5);
                 for (int k = 0; k <= 3;k++){
@@ -397,9 +400,9 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
         }
         Vec3 ePos = entity.position();
         for(int i = 0; i < 14; i++){
-            double r = 0.512 * i + 0.3;
+            double r = 0.540 * i + 0.3;
             int count = (int) Math.round(2 * Math.PI * r * 6);
-            double r2 = r + 0.256;
+            double r2 = r + 0.270;
             int count2 = (int) Math.round(2 * Math.PI * r2 * 6);
             int finalI = i;
             Scheduler.schedule(i , () -> {
@@ -431,7 +434,7 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
     @Override
     public void initializeClient(Consumer<IClientItemExtensions> consumer) {
         consumer.accept(new IClientItemExtensions() {
-            final Supplier<EmissiveItemRenderer> renderer = Suppliers.memoize(EmissiveItemRenderer::new);
+            final Supplier<SeliasetHornItemRenderer> renderer = Suppliers.memoize(SeliasetHornItemRenderer::new);
 
             @Override
             public BlockEntityWithoutLevelRenderer getCustomRenderer() {

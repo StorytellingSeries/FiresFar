@@ -287,14 +287,6 @@ public class ItemRonasShield extends ShieldItem implements IColoredFoilItem, IRe
         return 20;
     }
 
-    @Override
-    public void inventoryTick(ItemStack stack, Level level, Entity entity, int slot, boolean isSelected) {
-        super.inventoryTick(stack, level, entity, slot, isSelected);
-
-//        Minecraft.getInstance().player.sendSystemMessage(Component.literal(String.valueOf(stack.getOrCreateTag().getInt("charges"))));
-//        Minecraft.getInstance().player.sendSystemMessage(Component.literal("-  " + String.valueOf(stack.getOrCreateTag().getFloat("blockeddmg"))));
-
-    }
 
     @Override
     public UseAnim getUseAnimation(ItemStack p_43105_) {
