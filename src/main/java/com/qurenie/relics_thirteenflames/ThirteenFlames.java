@@ -1,5 +1,6 @@
 package com.qurenie.relics_thirteenflames;
 
+import com.qurenie.relics_thirteenflames.content.items.scroll_of_truth.ScrollOfTruthInit;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
 import com.qurenie.relics_thirteenflames.init.ParticlesRegistry;
 import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
@@ -50,6 +51,7 @@ public class ThirteenFlames
 
         SoundsRegistry.registerSounds();
         ParticlesRegistry.PARTICLES.register(modEventBus);
+        ScrollOfTruthInit.MENU_TYPES.register(modEventBus);
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);

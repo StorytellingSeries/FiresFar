@@ -423,6 +423,10 @@ public class ItemMontuHammer
         return enchantment.category == EnchantmentCategory.WEAPON ||enchantment.category == EnchantmentCategory.DIGGER && enchantment != Enchantments.UNBREAKING;
     }
 
+    @Override
+    public boolean isEnchantable(ItemStack pStack) {
+        return true;
+    }
 
     @Mod.EventBusSubscriber(modid = ThirteenFlames.MODID,bus = Mod.EventBusSubscriber.Bus.FORGE,value = Dist.CLIENT)
     public static class EventHandler{

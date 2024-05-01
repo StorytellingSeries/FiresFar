@@ -238,6 +238,11 @@ public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
     }
 
     @Override
+    public boolean isEnchantable(ItemStack pStack) {
+        return true;
+    }
+
+    @Override
     public void inventoryTick(ItemStack stack, Level level, Entity entity, int slot, boolean isSelected) {
         super.inventoryTick(stack, level, entity, slot, isSelected);
         if (entity instanceof Player player && stack.is(this)) {

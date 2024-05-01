@@ -154,5 +154,9 @@
     "tooltip.relics.ronas_shield.ability.charge.stat.dmg.title": "Base Damage",
     "tooltip.relics.ronas_shield.ability.charge.stat.dmg.value": "%1$s",
     "tooltip.relics.ronas_shield.ability.charge.stat.stunduration.title": "Stun Duration",
-    "tooltip.relics.ronas_shield.ability.charge.stat.stunduration.value": "%1$s seconds"
+    "tooltip.relics.ronas_shield.ability.charge.stat.stunduration.value": "%1$s seconds",
+
+
+    "tooltip.relics_thirteenflames.scroll_of_truth.gui.addEnch": "Add:",
+    "tooltip.relics_thirteenflames.scroll_of_truth.gui.removeEnch": "Remove:"
 }

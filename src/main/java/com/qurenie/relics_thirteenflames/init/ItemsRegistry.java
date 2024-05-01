@@ -5,6 +5,7 @@ import com.qurenie.relics_thirteenflames.ThirteenFlames;
 import com.qurenie.relics_thirteenflames.client.render.item.EmissiveItemRenderer;
 import com.qurenie.relics_thirteenflames.client.render.item.RonasShieldItemRenderer;
 import com.qurenie.relics_thirteenflames.content.items.*;
+import com.qurenie.relics_thirteenflames.content.items.scroll_of_truth.ScrollOfTruth;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
@@ -44,6 +45,9 @@ public interface ItemsRegistry {
 
     @RegistryName("ronas_shield")
     ItemRonasShield RONAS_SHIELD = new ItemRonasShield(props().stacksTo(1).rarity(Rarity.RARE));
+
+    @RegistryName("scroll_of_truth")
+    ScrollOfTruth SCROLL_OF_TRUTH = new ScrollOfTruth(props().stacksTo(1).rarity(Rarity.RARE));
 
     static Item.Properties props()
     {

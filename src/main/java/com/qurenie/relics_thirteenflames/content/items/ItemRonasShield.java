@@ -287,6 +287,10 @@ public class ItemRonasShield extends ShieldItem implements IColoredFoilItem, IRe
         return 20;
     }
 
+    @Override
+    public boolean isEnchantable(ItemStack pStack) {
+        return true;
+    }
 
     @Override
     public UseAnim getUseAnimation(ItemStack p_43105_) {

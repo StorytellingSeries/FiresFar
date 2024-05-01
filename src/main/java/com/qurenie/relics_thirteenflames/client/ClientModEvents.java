@@ -8,11 +8,14 @@ import com.qurenie.relics_thirteenflames.client.render.entity.FallingRenderer;
 import com.qurenie.relics_thirteenflames.client.render.entity.LivingFleshRenderer;
 import com.qurenie.relics_thirteenflames.content.items.ItemRonasSword;
 import com.qurenie.relics_thirteenflames.client.render.entity.EntityRendererSeliasetSun;
+import com.qurenie.relics_thirteenflames.content.items.scroll_of_truth.ScrollOfTruthInit;
+import com.qurenie.relics_thirteenflames.content.items.scroll_of_truth.screen.ScrollOfTruthContainerScreen;
 import com.qurenie.relics_thirteenflames.init.*;
 import com.qurenie.relics_thirteenflames.init.register.RendererFactory;
 import it.hurts.sskirillss.relics.client.renderer.entities.NullRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
@@ -41,6 +44,7 @@ public class ClientModEvents {
 
     @SubscribeEvent
     public static void fmlclientsetup(FMLClientSetupEvent event) {
+        MenuScreens.register(ScrollOfTruthInit.SCROLL_OF_TRUTH_MENU.get(), ScrollOfTruthContainerScreen::new);
         event.enqueueWork(() -> {
 
             ItemProperties.register(ItemsRegistry.KNEF_BOW, new ResourceLocation("relics_thirteenflames", "pull"), (stack, world, living, a) -> {
@@ -109,7 +113,7 @@ public class ClientModEvents {
 
 
 
-                textureEmpty = new ResourceLocation("relics_thirteenflames", "textures/hud/acid_drops_empty.png");
+                textureEmpty = new ResourceLocation("relics_thirteenflames", "textures/hud/ronas_sword/acid_drops_empty.png");
                 RenderSystem.setShaderColor(0.5F, 0.8F, 0.5F, 1.0F);
                 RenderSystem.setShaderTexture(0, textureEmpty);
                 RenderSystem.enableBlend();
@@ -130,7 +134,7 @@ public class ClientModEvents {
                 RenderSystem.disableBlend();
 
                 int dropWidth = width / 6;
-                textureFull = new ResourceLocation("relics_thirteenflames", "textures/hud/acid_drops.png");
+                textureFull = new ResourceLocation("relics_thirteenflames", "textures/hud/ronas_sword/acid_drops.png");
                 RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
                 RenderSystem.setShaderTexture(0, textureFull);
                 RenderSystem.enableBlend();

@@ -14,4 +14,7 @@ public interface EntityModels {
 
     @RegistryName("living_flesh")
     IGeometryContainer LIVING_FLESH = create();
+
+    @RegistryName("scroll_of_truth")
+    IGeometryContainer SCROLL_OF_TRUTH = create();
 }

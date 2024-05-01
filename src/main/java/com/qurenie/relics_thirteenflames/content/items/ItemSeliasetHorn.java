@@ -113,6 +113,16 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
     }
 
     @Override
+    public int getEnchantmentValue(ItemStack stack) {
+        return 20;
+    }
+
+    @Override
+    public boolean isEnchantable(ItemStack pStack) {
+        return true;
+    }
+
+    @Override
     public void onUseTick(Level level, LivingEntity living, ItemStack horn,  int count) {
         if (living instanceof Player player){
             this.releaseRay(player, horn);
