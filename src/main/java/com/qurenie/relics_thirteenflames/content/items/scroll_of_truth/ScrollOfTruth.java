@@ -12,9 +12,12 @@ import it.hurts.sskirillss.relics.items.relics.base.data.leveling.LevelingData;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.StatData;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.misc.UpgradeOperation;
 import it.hurts.sskirillss.relics.utils.MathUtils;
+import it.hurts.sskirillss.relics.utils.NBTUtils;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -22,11 +25,14 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.entity.player.PlayerXpEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.network.NetworkHooks;
@@ -34,8 +40,10 @@ import org.jetbrains.annotations.Nullable;
 import org.zeith.hammerlib.net.Network;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.function.Consumer;
 
+@Mod.EventBusSubscriber
 public class ScrollOfTruth extends RelicItem {
 
     public ScrollOfTruth(Properties props){
@@ -55,22 +63,27 @@ public class ScrollOfTruth extends RelicItem {
         return super.use(level, player, hand);
     }
 
+    @Override
+    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag isAdvanced) {
+        tooltip.add(Component.translatable("tooltip.relics_thirteenflames.scroll_of_truth.lore").withStyle(ChatFormatting.GOLD).withStyle(ChatFormatting.ITALIC));
+        super.appendHoverText(stack, level, tooltip, isAdvanced);
+    }
 
     @Override
     public RelicData constructDefaultRelicData() {
         return RelicData.builder()
                 .abilities(AbilitiesData.builder()
                         .ability(AbilityData.builder("enchant")
-                                .maxLevel(10)
+                                .maxLevel(9)
                                 .stat(StatData.builder("costModifier")
-                                        .initialValue(-1.5,-1.3)
-                                        .thresholdValue(-1.5,-0.5)
-                                        .upgradeModifier(UpgradeOperation.ADD,0.1)
-                                        .formatValue(x->-MathUtils.round(x,1))
+                                        .initialValue(3.5, 3.3)
+                                        .upgradeModifier(UpgradeOperation.ADD,-0.2)
+                                        .formatValue(x -> MathUtils.round(x * 100,1))
                                         .build())
                                 .build())
                         .ability(AbilityData.builder("passive_effect")
                                 .maxLevel(2)
+                                .requiredPoints(3)
                                 .stat(StatData.builder("effectLevel")
                                         .initialValue(0,0)
                                         .thresholdValue(0,2)
@@ -102,7 +115,7 @@ public class ScrollOfTruth extends RelicItem {
     }
     public static float getCostModifier(ItemStack scroll){
         if(!(scroll.getItem() instanceof IRelicItem relic)) return -1;
-        return -(float) relic.getAbilityValue(scroll,"enchant","costModifier");
+        return (float) relic.getAbilityValue(scroll,"enchant","costModifier");
     }
 
     public static ScrollColorMode getMode(ItemStack item){
@@ -120,21 +133,15 @@ public class ScrollOfTruth extends RelicItem {
     }
     public static int getFullLevelCost(ScrollOfTruthContainerScreen.EnchantmentInstance inst){
         int base = getEnchantmentBaseLevelCost(inst.enchantment);
-        return base + inst.lvl - 1;
+        return base + (int)(base * inst.lvl * 0.25) - 1;
     }
     public static int getEnchantmentBaseLevelCost(Enchantment e){
         switch (e.getRarity()){
-            case COMMON -> {
-                return 1;
-            }
             case UNCOMMON -> {
                 return 2;
             }
-            case RARE -> {
+            case RARE, VERY_RARE -> {
                 return 3;
-            }
-            case VERY_RARE -> {
-                return 4;
             }
             default -> {
                 return 1;
@@ -164,6 +171,19 @@ public class ScrollOfTruth extends RelicItem {
             }
         }
 
+    }
+
+    @SubscribeEvent
+    public static void onXPChange(PlayerXpEvent.XpChange event){
+        if(event.getAmount() <= 0) return;
+        for(ItemStack stack : event.getEntity().getInventory().items) {
+            if(stack.getItem() instanceof  ScrollOfTruth scroll) {
+                int cntXP = NBTUtils.getInt(stack, "XPcounter", 0);
+                cntXP += event.getAmount();
+                scroll.spreadExperience(event.getEntity(), stack, cntXP / 5);
+                NBTUtils.setInt(stack, "XPcounter", cntXP % 5);
+            }
+        }
     }
 
     @Override

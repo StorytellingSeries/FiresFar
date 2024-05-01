@@ -11,6 +11,7 @@
     "item.relics_thirteenflames.montu_hammer": "Montu's Hammer",
     "item.relics_thirteenflames.seliaset_horn": "Seliaset's Horn",
     "item.relics_thirteenflames.seliaset_sun": "Seliaset's Sun",
+    "item.relics_thirteenflames.scroll_of_truth": "Scroll Of Truth",
 
     "tooltip.relics_thirteenflames.knef_bow.lore": "One of the «Flames», legendary artifacts scattered across the world.\nCreated by Knephmtyti, goddess of Death.",
     "tooltip.relics.knef_bow.leveling": "+1 experience point for each «Moonlight Arrows» hit. \n +1 experience point for each point of HP healed by «Heaven's Wrath».",
@@ -157,6 +158,19 @@
     "tooltip.relics.ronas_shield.ability.charge.stat.stunduration.value": "%1$s seconds",
 
 
-    "tooltip.relics_thirteenflames.scroll_of_truth.gui.addEnch": "Add:",
-    "tooltip.relics_thirteenflames.scroll_of_truth.gui.removeEnch": "Remove:"
+    "tooltip.relics_thirteenflames.scroll_of_truth.gui.addEnch": "Add",
+    "tooltip.relics_thirteenflames.scroll_of_truth.gui.removeEnch": "Remove",
+    "tooltip.relics_thirteenflames.scroll_of_truth.gui.levelCost": "XP Level cost:",
+    "tooltip.relics_thirteenflames.scroll_of_truth.gui.enchant": "Enchant",
+
+    "tooltip.relics_thirteenflames.scroll_of_truth.lore": "One of the «Flames», legendary artifacts scattered across the world.\nCreated by Khatinthep, god of Knowledge.",
+    "tooltip.relics.scroll_of_truth.leveling": "+1 experience point for each 5 points of vanilla EXP acquired.\n+1 experience point for each EXP level spent on enchanting.",
+    "tooltip.relics.scroll_of_truth.ability.enchant": "Arcane Library",
+    "tooltip.relics.scroll_of_truth.ability.enchant.description": ".",
+    "tooltip.relics.scroll_of_truth.ability.enchant.stat.costModifier.title": "Cost Modifier",
+    "tooltip.relics.scroll_of_truth.ability.enchant.stat.costModifier.value": "%1$s%%.",
+    "tooltip.relics.scroll_of_truth.ability.passive_effect": "Khatinthep's Techniques",
+    "tooltip.relics.scroll_of_truth.ability.passive_effect.description": ".",
+    "tooltip.relics.scroll_of_truth.ability.passive_effect.stat.effectLevel.title": "Level of Effects",
+    "tooltip.relics.scroll_of_truth.ability.passive_effect.stat.effectLevel.value": "%1$s уровень."
 }

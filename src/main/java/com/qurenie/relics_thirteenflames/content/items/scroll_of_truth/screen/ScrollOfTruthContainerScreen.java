@@ -19,6 +19,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.zeith.hammerlib.api.io.IAutoNBTSerializable;
@@ -96,7 +97,12 @@ public class ScrollOfTruthContainerScreen extends DefaultMenuScreen<ScrollOfTrut
             if (this.selectedEnchantButton != null) {
                 EnchantmentInstance instance = this.selectedEnchantButton.getEnchantment();
                 Enchantment e = instance.enchantment;
-                if (instance.lvl < e.getMaxLevel()){
+                int maxAllowedLevel = 0;
+                if(menu.scroll.getItem() instanceof ScrollOfTruth sot) {
+                    maxAllowedLevel = (int) (e.getMaxLevel() * sot.getAbilityPoints(menu.scroll, "enchant") / 9.0) + 1;
+                }
+                if (instance.lvl < e.getMaxLevel() && instance.lvl < maxAllowedLevel){
+//TODO: MaxLevel check
                     instance.lvl++;
                     selectedEnchantButton.setMessage(instance.enchantment.getFullname(instance.lvl));
                 }
@@ -112,7 +118,7 @@ public class ScrollOfTruthContainerScreen extends DefaultMenuScreen<ScrollOfTrut
                 }
             }
         });
-        Button enchantButton = new ScrollOfTruthButton(center - 42,relY + 100,82,20, Component.literal("Зачаровать"),(btn)->{
+        Button enchantButton = new ScrollOfTruthButton(center - 42,relY + 100,82,20, Component.translatable("tooltip.relics_thirteenflames.scroll_of_truth.gui.enchant"),(btn)->{
             if (EnchantPacket.mayEnchant(Minecraft.getInstance().player,menu.scroll,menu.fakeHandler.getStackInSlot(0),toEnchant.values())) {
                 enchantTicker = 19;
             }
@@ -135,8 +141,12 @@ public class ScrollOfTruthContainerScreen extends DefaultMenuScreen<ScrollOfTrut
         if (!itemInSlot.isEmpty() && !itemInSlot.isEnchanted()){
             Collection<Enchantment> allEnchantments = ForgeRegistries.ENCHANTMENTS.getValues();
             for (Enchantment e : allEnchantments){
-                if (e.canEnchant(itemInSlot)){
+                if (e.canEnchant(itemInSlot)
+                        && menu.scroll.getItem() instanceof ScrollOfTruth sot
+                        && e.getRarity().ordinal() <= sot.getAbilityPoints(menu.scroll, "enchant") * 0.375){
+
                     this.toSelect.put(e,new EnchantmentInstance(e,1));
+
                 }
             }
         }
@@ -161,6 +171,11 @@ public class ScrollOfTruthContainerScreen extends DefaultMenuScreen<ScrollOfTrut
 
         int yOffs = 0;
         for (var entry : toSelect.entrySet()){
+            boolean nonCompatibleFlag = false;
+            for(Enchantment ench : toEnchant.keySet()){
+                if(!ench.isCompatibleWith(entry.getKey())) nonCompatibleFlag = true;
+            }
+            if (nonCompatibleFlag) continue;
             EnchantmentHolderButton button = createEnchantmentButton(toSelectButtonsX, yOffs, Component.translatable("tooltip.relics_thirteenflames.scroll_of_truth.gui.addEnch"), entry);
             this.toSelectButtons.add(button);
             this.addWidget(button);
@@ -213,7 +228,7 @@ public class ScrollOfTruthContainerScreen extends DefaultMenuScreen<ScrollOfTrut
 
         if (!this.menu.fakeHandler.getStackInSlot(0).isEmpty()) {
             int cost = ScrollOfTruth.getFullEnchantmentCost(menu.scroll,this.toEnchant.values());
-            RenderTools.renderCenteredScaledText(guiGraphics,"Цена в уровнях: " + cost,relX + this.getScreenWidth()/2,relY + 87,0.95f);
+            RenderTools.renderCenteredScaledText(guiGraphics,Component.translatable("tooltip.relics_thirteenflames.scroll_of_truth.gui.levelCost").getString() + " " + cost,relX + this.getScreenWidth()/2,relY + 87,0.95f);
         }
         super.render(guiGraphics, mx, my, pTicks);
         this.renderTooltip(guiGraphics,mx,my);

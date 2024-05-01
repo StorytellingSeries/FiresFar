@@ -63,7 +63,7 @@ public class ScrollOfTruthISTER extends BlockEntityWithoutLevelRenderer {
             ScrollColorMode mode = ScrollColorMode.fromTag(scroll.getOrCreateTag());
             Color color = mode.color;
             this.scrollModel.renderToBuffer(matrices,src.getBuffer(RenderType.entityTranslucent(EMISSIVE)),
-                    light,OverlayTexture.NO_OVERLAY,
+                    15728880,OverlayTexture.NO_OVERLAY,
                     color.getRed()/255f,
                     color.getGreen()/255f,
                     color.getBlue()/255f,
