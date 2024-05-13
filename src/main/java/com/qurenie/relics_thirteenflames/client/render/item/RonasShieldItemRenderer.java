@@ -3,6 +3,7 @@ package com.qurenie.relics_thirteenflames.client.render.item;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
+import it.hurts.sskirillss.relics.utils.NBTUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -55,10 +56,13 @@ public class RonasShieldItemRenderer
             var override = overrides.get(i);
 
             int lightmap = uv2;
-            if (i == 0)
+            if (i <= 3)
                 lightmap = 15728880;
 
-            renderOverrride(override, transformType, pose, stack, bufferSource, null, lightmap, overlay);
+            if(i < 3) {
+                if(NBTUtils.getInt(stack, "charges", 0) >= 3 - i) renderOverrride(override, transformType, pose, stack, bufferSource, null, lightmap, overlay);
+            }
+            else renderOverrride(override, transformType, pose, stack, bufferSource, null, lightmap, overlay);
         }
     }
 

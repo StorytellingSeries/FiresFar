@@ -1,0 +1,7 @@
+{
+	"render_type": "translucent",
+	"parent": "relics_thirteenflames:item/builtin/ister",
+	"textures": {
+		"particle": "relics_thirteenflames:item/seliaset_sun/base.png"
+	}
+}

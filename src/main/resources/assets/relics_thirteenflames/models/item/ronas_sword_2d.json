@@ -1,0 +1,7 @@
+{
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "relics_thirteenflames:item/ronas_sword_2d",
+    "layer1": "relics_thirteenflames:item/ronas_sword_2d_drip"
+  }
+}

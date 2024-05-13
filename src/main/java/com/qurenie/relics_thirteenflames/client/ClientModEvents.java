@@ -49,8 +49,8 @@ public class ClientModEvents {
 
             ItemProperties.register(ItemsRegistry.KNEF_BOW, new ResourceLocation("relics_thirteenflames", "pull"), (stack, world, living, a) -> {
 
-                if (living != null && living.isUsingItem()) {
-                    return living.getUseItem() != stack ? 0.0F : (float) (stack.getUseDuration() - living.getUseItemRemainingTicks()) / 20.0F;
+                if (living != null && living.isUsingItem() && living.getUseItem() == stack) {
+                    return (float) (stack.getUseDuration() - living.getUseItemRemainingTicks()) / 20.0F;
                 } else {
                     return 0.0f;
                 }

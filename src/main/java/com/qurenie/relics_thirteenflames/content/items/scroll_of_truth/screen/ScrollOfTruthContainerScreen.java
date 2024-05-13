@@ -99,7 +99,7 @@ public class ScrollOfTruthContainerScreen extends DefaultMenuScreen<ScrollOfTrut
                 Enchantment e = instance.enchantment;
                 int maxAllowedLevel = 0;
                 if(menu.scroll.getItem() instanceof ScrollOfTruth sot) {
-                    maxAllowedLevel = (int) (e.getMaxLevel() * sot.getAbilityPoints(menu.scroll, "enchant") / 9.0) + 1;
+                    maxAllowedLevel = (int) (e.getMaxLevel() * sot.getAbilityPoints(menu.scroll, "enchant") / 10.0) + 1;
                 }
                 if (instance.lvl < e.getMaxLevel() && instance.lvl < maxAllowedLevel){
 //TODO: MaxLevel check

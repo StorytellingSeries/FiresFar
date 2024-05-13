@@ -230,7 +230,7 @@ public class ItemMontuHammer
                 Scheduler.schedule(Math.max(0, delay - 2), () ->
                 {
                     spreadExperience(ctx.getPlayer(), ctx.getItemInHand(), 1);
-                    UsableFallingBlockEntity fbe = UsableFallingBlockEntity.createFalling(level, height0, state);
+                    UsableFallingBlockEntity fbe = UsableFallingBlockEntity.createFalling(level, height0, state, ctx.getItemInHand());
                     Vec3 dist = new Vec3(height0.getX(), pos.getY(), height0.getZ()).subtract(new Vec3(pos.getX(), pos.getY(), pos.getZ())).yRot(rng.nextFloat(-10, 10) * Mth.DEG_TO_RAD);
                     Vec3 move = dist.normalize().scale(Math.min(0.6, 0.2 / dist.length())).add(new Vec3(rng.nextFloat(0.05f),0,0).yRot(rng.nextFloat(3.14f)));
                     fbe.setDeltaMovement(move.scale(rng.nextFloat(0.8f, 2.2f) + finalCntSpd * 10).add(0, rng.nextFloat(0.3f, 0.5f) + finalCntSpd, 0));
@@ -420,7 +420,7 @@ public class ItemMontuHammer
 
     @Override
     public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-        return enchantment.category == EnchantmentCategory.WEAPON ||enchantment.category == EnchantmentCategory.DIGGER && enchantment != Enchantments.UNBREAKING;
+        return enchantment.category == EnchantmentCategory.WEAPON && enchantment != Enchantments.SWEEPING_EDGE || enchantment.category == EnchantmentCategory.DIGGER && enchantment != Enchantments.UNBREAKING;
     }
 
     @Override

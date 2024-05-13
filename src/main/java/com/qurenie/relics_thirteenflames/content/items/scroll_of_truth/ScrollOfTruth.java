@@ -74,16 +74,16 @@ public class ScrollOfTruth extends RelicItem {
         return RelicData.builder()
                 .abilities(AbilitiesData.builder()
                         .ability(AbilityData.builder("enchant")
-                                .maxLevel(9)
+                                .maxLevel(10)
                                 .stat(StatData.builder("costModifier")
-                                        .initialValue(3.5, 3.3)
+                                        .initialValue(3, 2.8)
                                         .upgradeModifier(UpgradeOperation.ADD,-0.2)
-                                        .formatValue(x -> MathUtils.round(x * 100,1))
+                                        .formatValue(x -> (int)MathUtils.round(x * 100,0))
                                         .build())
                                 .build())
                         .ability(AbilityData.builder("passive_effect")
-                                .maxLevel(2)
-                                .requiredPoints(3)
+                                .maxLevel(1)
+                                .requiredPoints(5)
                                 .stat(StatData.builder("effectLevel")
                                         .initialValue(0,0)
                                         .thresholdValue(0,2)
@@ -92,7 +92,7 @@ public class ScrollOfTruth extends RelicItem {
                                         .build())
                                 .build())
                         .build())
-                .leveling(new LevelingData(100, 10, 100))
+                .leveling(new LevelingData(100, 15, 100))
 
                 .build();
     }
@@ -124,27 +124,32 @@ public class ScrollOfTruth extends RelicItem {
 
     public static int getFullEnchantmentCost(ItemStack scroll, Collection<ScrollOfTruthContainerScreen.EnchantmentInstance> instances){
         float costModifier = getCostModifier(scroll); //0.5 <- 1.5
-        int fullCost = 0;
+        float fullCost = 0;
         for (ScrollOfTruthContainerScreen.EnchantmentInstance inst : instances){
-            int cost = getFullLevelCost(inst);
+            float cost = getFullLevelCost(inst);
             fullCost += cost;
         }
-        return (int)Math.round(fullCost * costModifier);
+        return Math.round(Math.max(fullCost * costModifier, 0));
     }
-    public static int getFullLevelCost(ScrollOfTruthContainerScreen.EnchantmentInstance inst){
-        int base = getEnchantmentBaseLevelCost(inst.enchantment);
-        return base + (int)(base * inst.lvl * 0.25) - 1;
+    public static float getFullLevelCost(ScrollOfTruthContainerScreen.EnchantmentInstance inst){
+        float base = getEnchantmentBaseLevelCost(inst.enchantment);
+
+        return base + base * (inst.lvl - 1) * 0.35f;
     }
-    public static int getEnchantmentBaseLevelCost(Enchantment e){
+    public static float getEnchantmentBaseLevelCost(Enchantment e){
+        if(e.isCurse()) return -2.5f;
         switch (e.getRarity()){
+            case COMMON -> {
+                return 1f;
+            }
             case UNCOMMON -> {
-                return 2;
+                return 1.5f;
             }
             case RARE, VERY_RARE -> {
-                return 3;
+                return 2.2f;
             }
             default -> {
-                return 1;
+                return 10;
             }
         }
     }

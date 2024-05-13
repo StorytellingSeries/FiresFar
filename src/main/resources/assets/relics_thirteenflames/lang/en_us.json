@@ -166,11 +166,11 @@
     "tooltip.relics_thirteenflames.scroll_of_truth.lore": "One of the «Flames», legendary artifacts scattered across the world.\nCreated by Khatinthep, god of Knowledge.",
     "tooltip.relics.scroll_of_truth.leveling": "+1 experience point for each 5 points of vanilla EXP acquired.\n+1 experience point for each EXP level spent on enchanting.",
     "tooltip.relics.scroll_of_truth.ability.enchant": "Arcane Library",
-    "tooltip.relics.scroll_of_truth.ability.enchant.description": ".",
+    "tooltip.relics.scroll_of_truth.ability.enchant.description": "Using the Scroll will open an Enchantment menu, allowing you to select specific enchantments to put on an item. Leveling this ability unlocks more powerful enchantments.",
     "tooltip.relics.scroll_of_truth.ability.enchant.stat.costModifier.title": "Cost Modifier",
     "tooltip.relics.scroll_of_truth.ability.enchant.stat.costModifier.value": "%1$s%%.",
     "tooltip.relics.scroll_of_truth.ability.passive_effect": "Khatinthep's Techniques",
-    "tooltip.relics.scroll_of_truth.ability.passive_effect.description": ".",
+    "tooltip.relics.scroll_of_truth.ability.passive_effect.description": "The Scroll's arcane powers grant you permanent potion effects, indicated by the color of the scroll's seal. Use Shift + Mouse Wheel to change the applied effect.",
     "tooltip.relics.scroll_of_truth.ability.passive_effect.stat.effectLevel.title": "Level of Effects",
-    "tooltip.relics.scroll_of_truth.ability.passive_effect.stat.effectLevel.value": "%1$s уровень."
+    "tooltip.relics.scroll_of_truth.ability.passive_effect.stat.effectLevel.value": "%1$s."
 }

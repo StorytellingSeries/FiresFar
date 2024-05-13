@@ -252,14 +252,11 @@ public class KnefStormEntity extends Projectile {
                             this.tickCount, 4));
 
 
-                    float vol = (float) (20 / (this.getOwner() != null ? this.getOwner().distanceToSqr(endpos) : 20));
-                    if(this.getOwner() == null) {
-                        this.level().playSound(null, endpos.x, endpos.y, endpos.z, SoundEvents.LIGHTNING_BOLT_IMPACT, SoundSource.PLAYERS, vol, random.nextFloat() * 0.2f + 0.3f);
-                        this.level().playSound(null, endpos.x, endpos.y, endpos.z, SoundEvents.LIGHTNING_BOLT_THUNDER, SoundSource.PLAYERS, vol, random.nextFloat() * 0.3f + 1.5f);
-                    } else{
-                        this.level().playSound(null, this.getOwner(), SoundEvents.LIGHTNING_BOLT_IMPACT, SoundSource.PLAYERS, vol, random.nextFloat() * 0.2f + 0.3f);
-                        this.level().playSound(null, this.getOwner(), SoundEvents.LIGHTNING_BOLT_THUNDER, SoundSource.PLAYERS, vol, random.nextFloat() * 0.3f + 1.5f);
-                    }
+                    //float vol = (float) (20 / (this.getOwner() != null ? this.getOwner().distanceToSqr(endpos) : 20));
+
+                    this.level().playSound(null, endpos.x, endpos.y, endpos.z, SoundEvents.LIGHTNING_BOLT_IMPACT, SoundSource.PLAYERS, 3, random.nextFloat() * 0.2f + 0.3f);
+                    this.level().playSound(null, endpos.x, endpos.y, endpos.z, SoundEvents.LIGHTNING_BOLT_THUNDER, SoundSource.PLAYERS, 3, random.nextFloat() * 0.3f + 1.5f);
+
                     for(LivingEntity e : this.level().getEntitiesOfClass(LivingEntity.class, new AABB(finalEndpos,finalEndpos).inflate(2.2, 4, 2.2), e -> !e.getStringUUID().equals(this.getOwnerUUID()))){
                         e.hurt(e.damageSources().thrown(this, this.getOwner()), getDmg() * 5);
                     }
@@ -272,7 +269,7 @@ public class KnefStormEntity extends Projectile {
     }
 
     public void drawThinLightning(Level level, Vec3 start, Vec3 end, int segments, double jag, float d, Color color, int particleCount){
-        Vec3 pos = start;
+        Vec3 pos;
         Vec3 straightPos = start;
         Vec3 prevPos = start;
         ParticleHelper.spawnParticleAABB(level, ParticleUtils.constructSimpleSpark(color, 0.6f, 15, 0.68f),

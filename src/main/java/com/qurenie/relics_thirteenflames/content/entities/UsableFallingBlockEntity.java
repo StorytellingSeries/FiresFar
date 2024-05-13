@@ -2,9 +2,12 @@ package com.qurenie.relics_thirteenflames.content.entities;
 
 import com.mojang.logging.LogUtils;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
+import lombok.Getter;
+import lombok.Setter;
 import net.minecraft.CrashReportCategory;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
@@ -29,6 +32,8 @@ import net.minecraft.world.level.block.FallingBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.Vec3;
 import org.slf4j.Logger;
 
@@ -69,11 +74,16 @@ public class UsableFallingBlockEntity extends Entity {
         return this.getEntityData().get(LIFETIME);
     }
 
+    @Getter
+    @Setter
+    ItemStack hammer = ItemStack.EMPTY;
+
+
     public UsableFallingBlockEntity(EntityType<? extends UsableFallingBlockEntity> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
     }
 
-    public static UsableFallingBlockEntity createFalling(Level pLevel, BlockPos pos, BlockState pState) {
+    public static UsableFallingBlockEntity createFalling(Level pLevel, BlockPos pos, BlockState pState, ItemStack hammer) {
         UsableFallingBlockEntity ufbe = new UsableFallingBlockEntity(EntityRegistry.USABLE_FALLING, pLevel);
         ufbe.setBlockState(pState);
         ufbe.blocksBuilding = true;
@@ -83,6 +93,7 @@ public class UsableFallingBlockEntity extends Entity {
         ufbe.yo = pos.getY();
         ufbe.zo = pos.getZ();
         ufbe.setStartPos(ufbe.blockPosition());
+        ufbe.setHammer(hammer.copy());
         return ufbe;
     }
 
@@ -148,18 +159,16 @@ public class UsableFallingBlockEntity extends Entity {
                 if (!this.onGround() && this.getDeltaMovement().length() > 0) {
                     if (!this.level().isClientSide && (this.time > 100 && (blockpos.getY() <= this.level().getMinBuildHeight() || blockpos.getY() > this.level().getMaxBuildHeight()) || this.time > getLifeTime())) {
                         if (this.dropItem && this.level().getGameRules().getBoolean(GameRules.RULE_DOENTITYDROPS)) {
-                            this.spawnAtLocation(block);
+                            for(ItemStack stack : makeDrops(this.blockPosition(), blockState)) this.spawnAtLocation(stack);
                         }
                         this.discard();
                     }
                 } else {
-                    BlockState blockstate = this.level().getBlockState(blockpos);
+                    BlockState levelBlockState = this.level().getBlockState(blockpos);
                     this.setDeltaMovement(this.getDeltaMovement().multiply(0.7D, -0.5D, 0.7D));
-                    if (!blockstate.is(Blocks.MOVING_PISTON)) {
+                    if (!levelBlockState.is(Blocks.MOVING_PISTON)) {
                         if (!this.cancelDrop) {
-                            boolean canBeReplaced = blockstate.canBeReplaced(new DirectionalPlaceContext(this.level(), blockpos, Direction.DOWN, ItemStack.EMPTY, Direction.UP));
-                            boolean free = FallingBlock.isFree(this.level().getBlockState(blockpos.below()));
-                            boolean canSurviveNoFree = blockState.canSurvive(this.level(), blockpos) && !free;
+                            boolean canBeReplaced = levelBlockState.canBeReplaced(new DirectionalPlaceContext(this.level(), blockpos, Direction.DOWN, ItemStack.EMPTY, Direction.UP));
                             if (canBeReplaced) {
                                 if (blockState.hasProperty(BlockStateProperties.WATERLOGGED) && this.level().getFluidState(blockpos).getType() == Fluids.WATER) {
                                     setBlockState(blockState.setValue(BlockStateProperties.WATERLOGGED, Boolean.TRUE));
@@ -172,12 +181,12 @@ public class UsableFallingBlockEntity extends Entity {
 
                                 } else if (this.dropItem && this.level().getGameRules().getBoolean(GameRules.RULE_DOENTITYDROPS)) {
                                     this.discard();
-                                    this.spawnAtLocation(block);
+                                    for(ItemStack stack : makeDrops(this.blockPosition(), blockState)) this.spawnAtLocation(stack);
                                 }
                             } else {
                                 this.discard();
                                 if (this.dropItem && this.level().getGameRules().getBoolean(GameRules.RULE_DOENTITYDROPS)) {
-                                    this.spawnAtLocation(block);
+                                    for(ItemStack stack : makeDrops(this.blockPosition(), blockState)) this.spawnAtLocation(stack);
                                 }
                             }
                         } else {
@@ -191,6 +200,21 @@ public class UsableFallingBlockEntity extends Entity {
         }
     }
 
+    public NonNullList<ItemStack> makeDrops(BlockPos pos, BlockState state)
+    {
+        NonNullList<ItemStack> drops = NonNullList.create();
+        if(this.level() instanceof ServerLevel sl)
+        {
+            ItemStack tool = this.getHammer();
+
+            LootParams.Builder bl = new LootParams.Builder(sl)
+                    .withParameter(LootContextParams.BLOCK_STATE, state)
+                    .withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(pos))
+                    .withParameter(LootContextParams.TOOL, tool);
+            drops.addAll(state.getDrops(bl));
+        }
+        return drops;
+    }
 
     @Override
     public boolean causeFallDamage(float pFallDistance, float pMultiplier, DamageSource pSource) {

@@ -15,6 +15,8 @@ public class EntityRegistry {
     @RegistryName("knef_projectile")
     public static final EntityType<KnefProjectile> KNEF_PROJECTILE = Builder.of(KnefProjectile::new, MobCategory.MISC)
             .sized(0.1F, 0.1F)
+            .setUpdateInterval(1)
+            .updateInterval(1)
             .build("knef_projectile");
 
     @RegistryName("knef_projectile_special")

@@ -149,7 +149,7 @@ public class ItemRonasShield extends ShieldItem implements IColoredFoilItem, IRe
                                 .active(CastData.builder()
                                         .type(CastType.INSTANTANEOUS)
                                         .container(RelicContainer.INVENTORY)
-                                        .predicate("chargeCastPredicate", (p, stack) -> {
+                                        .castPredicate("chargeCastPredicate", (p, stack) -> {
                                             return p.getUseItem().equals(stack);
                                         })
                                         .build())
@@ -469,7 +469,7 @@ public class ItemRonasShield extends ShieldItem implements IColoredFoilItem, IRe
 
     @Override
     public int getFoilColor(@NotNull ItemStack stack) {
-        return /*0xFA9FEB7D*/ new Color(180, 16, 0).getRGB();
+        return /*0xFA9FEB7D*/ new Color(145, 43, 29).getRGB();
     }
 
 }

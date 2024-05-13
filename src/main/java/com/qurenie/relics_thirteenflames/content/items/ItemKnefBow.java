@@ -415,7 +415,7 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
 
     @Override
     public int getFoilColor(@NotNull ItemStack stack) {
-        return /*0xFA9FEB7D*/ new Color(0, 56, 48).getRGB(); //хекс коды люблю невероятно
+        return /*0xFA9FEB7D*/ new Color(0, 133, 108).getRGB(); //хекс коды люблю невероятно
     }
 
 }
