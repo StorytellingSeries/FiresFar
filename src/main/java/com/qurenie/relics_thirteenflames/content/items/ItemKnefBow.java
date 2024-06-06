@@ -294,6 +294,9 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
 
     @Override
     public void inventoryTick(ItemStack stack, Level level, Entity entity, int slot, boolean isSelected) {
+        if(!level.isClientSide() && entity instanceof LivingEntity l
+        && NBTUtils.getFloat(stack, "pull", 0) != (l.getUseItem() == stack ? (float) (stack.getUseDuration() - l.getUseItemRemainingTicks()) / 20.0F : 0))
+            NBTUtils.setFloat(stack, "pull", l.getUseItem() == stack ? (float) (stack.getUseDuration() - l.getUseItemRemainingTicks()) / 20.0F : 0);
         super.inventoryTick(stack, level, entity, slot, isSelected);
     }
 

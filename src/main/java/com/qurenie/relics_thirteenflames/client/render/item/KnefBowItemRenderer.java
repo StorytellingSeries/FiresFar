@@ -2,6 +2,7 @@ package com.qurenie.relics_thirteenflames.client.render.item;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
+import it.hurts.sskirillss.relics.utils.NBTUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.item.ItemProperties;
@@ -30,7 +31,7 @@ public class KnefBowItemRenderer
 
 
         int lightmap = 16711935;
-        float pull = ItemProperties.getProperty(ItemsRegistry.KNEF_BOW, new ResourceLocation("relics_thirteenflames", "pull")).call(stack, mc.level, mc.player, 0);
+        float pull = NBTUtils.getFloat(stack, "pull", 0);
 
         if (transformType == ItemDisplayContext.GUI || transformType == ItemDisplayContext.GROUND || transformType == ItemDisplayContext.FIXED) {
             if (pull < 0.1) {

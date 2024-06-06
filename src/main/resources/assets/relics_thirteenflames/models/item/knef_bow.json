@@ -47,7 +47,7 @@
 
     {
       "predicate": {
-        "alt": 0.5
+        "alt": 0.75
       },
       "model": "relics_thirteenflames:item/knef_bow_base"
     },
@@ -59,7 +59,7 @@
     },
     {
       "predicate": {
-        "alt": 0.5,
+        "alt": 0.75,
         "relics_thirteenflames:pull": 0.1
       },
       "model": "relics_thirteenflames:item/knef_bow_0"
@@ -73,7 +73,7 @@
     },
     {
       "predicate": {
-        "alt": 0.5,
+        "alt": 0.75,
         "relics_thirteenflames:pull": 0.65
       },
       "model": "relics_thirteenflames:item/knef_bow_1"
@@ -87,7 +87,7 @@
     },
     {
       "predicate": {
-        "alt": 0.5,
+        "alt": 0.75,
         "relics_thirteenflames:pull": 0.9
       },
       "model": "relics_thirteenflames:item/knef_bow_2"

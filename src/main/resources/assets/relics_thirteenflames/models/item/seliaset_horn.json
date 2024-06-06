@@ -1,19 +1,30 @@
 {
-	"render_type": "translucent",
-	"parent": "relics_thirteenflames:item/builtin/ister",
-	"textures": {
-		"particle": "relics_thirteenflames:item/seliaset_horn"
+	"parent": "forge:item/default",
+	"base": {
+		"parent": "relics_thirteenflames:item/seliaset_horn_3d"
+	},
+	"loader": "forge:separate_transforms",
+	"perspectives": {
+		"ground": {
+			"parent": "relics_thirteenflames:item/seliaset_horn2d"
+		},
+		"gui": {
+			"parent": "relics_thirteenflames:item/seliaset_horn_2d"
+		},
+		"fixed": {
+			"parent": "relics_thirteenflames:item/seliaset_horn_2d"
+		}
 	},
 	"overrides": [
 		{
 			"predicate": {
-				"alt": 0.5
+				"alt": 1
 			},
 			"model": "relics_thirteenflames:item/seliaset_horn_base"
 		},
 		{
 			"predicate": {
-				"alt": 0.75
+				"alt": 0
 			},
 			"model": "relics_thirteenflames:item/seliaset_horn_emissive"
 		}
@@ -46,14 +57,5 @@
 			"rotation": [0, -90, 0],
 			"translation": [-1.25, 1.75, 0]
 		}
-	},
-	"groups": [
-		{
-			"name": "model",
-			"origin": [0, -5.78568, -0.24731],
-			"color": 0,
-			"nbt": "{}",
-			"children": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-		}
-	]
+	}
 }

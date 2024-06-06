@@ -99,8 +99,8 @@ public class LivingFleshEntity
 		if(tickCount % 10 == 0)
 		{
 			// find attack target
-			var target = (Mob) level().getEntities(this, getBoundingBox().inflate(12),
-							e -> (e instanceof Enemy && e instanceof LivingEntity) || targetPriority(e) < 0
+			var target = level().getEntitiesOfClass(LivingEntity.class, getBoundingBox().inflate(12),
+							e -> e != this && (e instanceof Enemy || targetPriority(e) < 0)
 					)
 					.stream()
 					.min(Comparator.comparingDouble(e ->

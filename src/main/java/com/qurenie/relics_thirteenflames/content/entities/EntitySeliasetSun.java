@@ -338,6 +338,12 @@ public class EntitySeliasetSun
     }
 
     @Override
+    public boolean isAlive() {
+
+        return false;
+    }
+
+    @Override
     public void setupSystem(AnimationSystem.Builder builder) {
         builder.addLayers(new AnimationLayer.Builder(CommonLayerNames.ACTION));
     }

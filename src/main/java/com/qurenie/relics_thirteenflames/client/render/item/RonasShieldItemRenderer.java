@@ -6,6 +6,9 @@ import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
 import it.hurts.sskirillss.relics.utils.NBTUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.item.ItemProperties;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -22,10 +25,14 @@ public class RonasShieldItemRenderer
         var mc = Minecraft.getInstance();
         var ir = mc.getItemRenderer();
 
+
+
         var isterModel = ir.getModel(stack, mc.level, mc.player, 0);
         var overrides = isterModel.getOverrides().getOverrides();
 
-        if(mc.player != null && mc.player.getUseItem().is(ItemsRegistry.RONAS_SHIELD)) {
+        boolean blocking = NBTUtils.getBoolean(stack, "blocking", false);
+
+        if(mc.player != null && blocking) {
             if (transformType == ItemDisplayContext.THIRD_PERSON_LEFT_HAND) {
                 pose.translate(1.15, 0.5, 0);
                 pose.mulPose(Axis.YP.rotationDegrees(-65));
@@ -52,18 +59,18 @@ public class RonasShieldItemRenderer
             pose.mulPose(Axis.XN.rotationDegrees(-90));
         }
 
-        for (int i = overrides.size() - 1; i >= 0; i--) {
-            var override = overrides.get(i);
+        int lightmap = 16711935;
 
-            int lightmap = uv2;
-            if (i <= 3)
-                lightmap = 15728880;
+        int charges = NBTUtils.getInt(stack, "charges", 0);
 
-            if(i < 3) {
-                if(NBTUtils.getInt(stack, "charges", 0) >= 3 - i) renderOverrride(override, transformType, pose, stack, bufferSource, null, lightmap, overlay);
-            }
-            else renderOverrride(override, transformType, pose, stack, bufferSource, null, lightmap, overlay);
-        }
+        pose.pushPose();
+        renderOverrride(overrides.get(7 - charges), transformType, pose, stack, bufferSource, RenderType.cutout(), uv2, overlay);
+
+        //renderOverrride(overrides.get(3), transformType, pose, stack, bufferSource, null, lightmap, overlay);
+        pose.popPose();
+        pose.pushPose();
+        if(charges > 0) renderOverrride(overrides.get(3 - charges), transformType, pose, stack, bufferSource, null, lightmap, overlay);
+        pose.popPose();
     }
 
 }

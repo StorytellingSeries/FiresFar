@@ -1,0 +1,8 @@
+{
+  "render_type": "translucent",
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "relics_thirteenflames:item/knef_rose_2d_1",
+    "layer1": "relics_thirteenflames:item/knef_rose_2d_2"
+  }
+}

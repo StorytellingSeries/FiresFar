@@ -13,6 +13,7 @@ import com.qurenie.relics_thirteenflames.content.items.scroll_of_truth.screen.Sc
 import com.qurenie.relics_thirteenflames.init.*;
 import com.qurenie.relics_thirteenflames.init.register.RendererFactory;
 import it.hurts.sskirillss.relics.client.renderer.entities.NullRenderer;
+import it.hurts.sskirillss.relics.utils.NBTUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.MenuScreens;
@@ -24,6 +25,7 @@ import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
@@ -47,14 +49,25 @@ public class ClientModEvents {
         MenuScreens.register(ScrollOfTruthInit.SCROLL_OF_TRUTH_MENU.get(), ScrollOfTruthContainerScreen::new);
         event.enqueueWork(() -> {
 
-            ItemProperties.register(ItemsRegistry.KNEF_BOW, new ResourceLocation("relics_thirteenflames", "pull"), (stack, world, living, a) -> {
-
-                if (living != null && living.isUsingItem() && living.getUseItem() == stack) {
-                    return (float) (stack.getUseDuration() - living.getUseItemRemainingTicks()) / 20.0F;
-                } else {
-                    return 0.0f;
-                }
-            });
+//            ItemProperties.register(ItemsRegistry.KNEF_BOW, new ResourceLocation("relics_thirteenflames", "pull"), (stack, world, living, a) -> {
+//
+//                if (living != null && living.isUsingItem() && living.getUseItem().areShareTagsEqual(stack)) {
+//                    return (float) (stack.getUseDuration() - living.getUseItemRemainingTicks()) / 20.0F;
+//                } else {
+//                    return 0.0f;
+//                }
+//            });
+//
+//            ItemProperties.register(ItemsRegistry.RONAS_SHIELD, new ResourceLocation("relics_thirteenflames", "blocking"), (stack, world, living, a) -> {
+//
+//                if (living != null && living.getUseItem().areShareTagsEqual(stack) && living.isUsingItem()) {
+//                    if(!NBTUtils.getBoolean(stack, "blocking", true)) NBTUtils.setBoolean(stack, "blocking", true);
+//                    return 1F;
+//                } else {
+//                    if(NBTUtils.getBoolean(stack, "blocking", false)) NBTUtils.setBoolean(stack, "blocking", false);
+//                    return 0F;
+//                }
+//            });
         });
     }
 

@@ -31,33 +31,13 @@ public class KnefRoseItemRenderer
 		var emission = stack.getItem() instanceof ItemKnefRose r && r.getBones(stack) > 0;
 		
 		pose.pushPose();
-		
-		if(emission && transformType == ItemDisplayContext.GUI)
-		{
-			pose.translate(0.15, -0.15, 0);
-			pose.scale(0.8F, 0.8F, 0.8F);
+		if (transformType == ItemDisplayContext.GUI || transformType == ItemDisplayContext.GROUND || transformType == ItemDisplayContext.FIXED) {
+			renderOverrride(emission ? overrides.get(0) : overrides.get(1), transformType, pose, stack, bufferSource, null, uv2, overlay);
 		}
-
-		if (transformType == ItemDisplayContext.GROUND){
-			pose.translate(1,0.5,0);
-			pose.mulPose(Axis.ZN.rotationDegrees(90));
-		}
-		
-		for(int i = overrides.size() - 1; i >= 0; i--)
-		{
-			var override = overrides.get(i);
-			
-			int lightmap = uv2;
-
-			if(i == 0)
-			{
-				// Skip emissive layer when there are no bones
-				if(!emission) continue;
-				
-				lightmap = 15728880;
-			}
-			
-			renderOverrride(override, transformType, pose, stack, bufferSource, null, lightmap, overlay);
+		else {
+			renderOverrride(overrides.get(3), transformType, pose, stack, bufferSource, null, uv2, overlay);
+			int lightmap = 15728880;
+			if(emission) renderOverrride(overrides.get(2), transformType, pose, stack, bufferSource, null, lightmap, overlay);
 		}
 		pose.popPose();
 	}

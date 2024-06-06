@@ -1,6 +1,7 @@
 {
   "parent": "item/generated",
   "textures": {
-    "layer0": "relics_thirteenflames:item/seliaset_sun/seliaset_sun_2d"
+    "layer0": "relics_thirteenflames:item/seliaset_sun/seliaset_sun_2d_1",
+    "layer1": "relics_thirteenflames:item/seliaset_sun/seliaset_sun_2d_2"
   }
 }

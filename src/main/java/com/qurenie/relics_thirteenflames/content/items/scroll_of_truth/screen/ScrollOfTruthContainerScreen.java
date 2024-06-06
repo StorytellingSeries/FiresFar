@@ -17,6 +17,8 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
@@ -288,6 +290,11 @@ public class ScrollOfTruthContainerScreen extends DefaultMenuScreen<ScrollOfTrut
         }
     }
 
+    @Override
+    protected void slotClicked(Slot slot, int p_97779_, int p_97780_, ClickType p_97781_) {
+        if(slot != null && slot.getItem().areShareTagsEqual(menu.scroll)) return;
+        super.slotClicked(slot, p_97779_, p_97780_, p_97781_);
+    }
 
     @Override
     public boolean mouseScrolled(double mx, double my, double delta) {

@@ -44,6 +44,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -97,10 +98,10 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
     public void releaseUsing(ItemStack pStack, Level pLevel, LivingEntity pLivingEntity, int pTimeCharged) {
         super.releaseUsing(pStack, pLevel, pLivingEntity, pTimeCharged);
 
-        if(!pLevel.isClientSide() && pStack.is(this)) {
+        if(!pLevel.isClientSide() && pStack.is(this) && pLivingEntity instanceof ServerPlayer sPlayer) {
             List<ServerPlayer> players = pLevel.getEntitiesOfClass(ServerPlayer.class, new AABB(pLivingEntity.blockPosition()).inflate(20));
             for(ServerPlayer sp : players){
-                Network.sendTo(sp, new PacketHornSounds(true));
+                Network.sendTo(sp, new PacketHornSounds(sPlayer.getStringUUID(), sPlayer.position(), true));
             }
 
         }
@@ -217,10 +218,10 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
                 }
             }
         }
-        else {
+        else if(living instanceof ServerPlayer sPlayer) {
             List<ServerPlayer> players = level.getEntitiesOfClass(ServerPlayer.class, new AABB(living.blockPosition()).inflate(20));
             for(ServerPlayer sp : players){
-                Network.sendTo(sp, new PacketHornSounds(false));
+                Network.sendTo(sp, new PacketHornSounds(sPlayer.getStringUUID(), sPlayer.position(), false));
             }
         }
     }
@@ -317,9 +318,9 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
                                         .formatValue(x-> (int)Math.round(x))
                                         .build())
                                 .stat(StatData.builder("stunDuration")
-                                        .initialValue(0.5,1.5)
+                                        .initialValue(0.4, 0.6)
                                         .thresholdValue(0.5,4)
-                                        .upgradeModifier(UpgradeOperation.ADD,0.5)
+                                        .upgradeModifier(UpgradeOperation.ADD,0.3)
                                         .formatValue(x-> MathUtils.round(x,1))
                                         .build())
                                 .build())
@@ -371,8 +372,8 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
                 Vec3 b = le.position().subtract(entity.position());
                 Vec3 sp = b.normalize().multiply(2,2,2).add(0,0.5,0);
                 le.setDeltaMovement(sp);
-                if(!le.hasEffect(EffectRegistry.STUN.get()) && entity instanceof LivingEntity livin) this.spreadExperience(livin, stack, 1);
-                le.addEffect(new MobEffectInstance(EffectRegistry.STUN.get(),(int)Math.round(this.getAbilityValue(stack,"block","stunDuration")*20),0));
+                if(!le.hasEffect(MobEffects.MOVEMENT_SLOWDOWN) && entity instanceof LivingEntity livin) this.spreadExperience(livin, stack, 1);
+                le.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN,(int)Math.round(this.getAbilityValue(stack,"block","stunDuration")*20),3));
 
             }
         }
@@ -465,6 +466,8 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
 
         public Vec3 originPos;
 
+        public int controlledDuration = 10;
+
 
         public TootSoundInstance(SoundEvent p_119658_) {
             super(p_119658_, SoundSource.PLAYERS, SoundInstance.createUnseededRandom());
@@ -498,13 +501,15 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
             if (this.fade <= 0) {
                 this.stop();
             }
+            if(this.controlledDuration == 0 && fadeDirection > 0) this.fadeOut();
             fade = Mth.clamp(fade + fadeDirection, 0, 1);
             LocalPlayer player = Minecraft.getInstance().player;
             this.volume = (float) Mth.clamp( player == null ? 0 : 25f / player.distanceToSqr(originPos), 0.0F, 1.0F) * fade;
+            this.controlledDuration = Math.max(0, this.controlledDuration - 1);
         }
 
         public void fadeOut() {
-            this.fade = Math.min(this.fade, 40);
+            this.fade = Math.min(this.fade, 1);
             this.fadeDirection = -0.1f;
 
         }

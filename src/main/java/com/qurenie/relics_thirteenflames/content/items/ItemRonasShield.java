@@ -168,9 +168,9 @@ public class ItemRonasShield extends ShieldItem implements IColoredFoilItem, IRe
                                         .build()
                                 )
                                 .stat(StatData.builder("stunduration")
-                                        .initialValue(20, 30)
+                                        .initialValue(10, 20)
                                         .thresholdValue(0, 80)
-                                        .upgradeModifier(UpgradeOperation.ADD, 10)
+                                        .upgradeModifier(UpgradeOperation.ADD, 8)
                                         .formatValue(x -> MathUtils.round(x / 20, 1))
                                         .build()
                                 )
@@ -201,6 +201,12 @@ public class ItemRonasShield extends ShieldItem implements IColoredFoilItem, IRe
     @Override
     public boolean shouldCauseReequipAnimation(ItemStack oldStack, ItemStack newStack, boolean slotChanged) {
         return slotChanged;
+    }
+
+    @Override
+    public void inventoryTick(ItemStack stack, Level level, Entity entity, int p_41407_, boolean p_41408_) {
+        if(entity instanceof LivingEntity l && NBTUtils.getBoolean(stack, "blocking", false) != (l.getUseItem() == stack)) NBTUtils.setBoolean(stack, "blocking", l.getUseItem() == stack);
+        super.inventoryTick(stack, level, entity, p_41407_, p_41408_);
     }
 
     @Override
@@ -363,7 +369,7 @@ public class ItemRonasShield extends ShieldItem implements IColoredFoilItem, IRe
     public void rebuke(Player player, ItemStack shield) {
 
         if (shield.getItem() instanceof ItemRonasShield) {
-            int charges = shield.getOrCreateTag().getInt("charges");
+            int charges = NBTUtils.getInt(shield,"charges", 0);
 
             if (charges > 0) {
 
@@ -423,8 +429,7 @@ public class ItemRonasShield extends ShieldItem implements IColoredFoilItem, IRe
                     }
                 }
 
-
-                shield.getOrCreateTag().putInt("charges", 0);
+                //NBTUtils.setInt(shield, "charges", 0);
             }
         }
     }

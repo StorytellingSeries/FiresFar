@@ -93,10 +93,6 @@ public class KnefProjCarrier extends ThrowableProjectile
         super.tick();
 
         setDeltaMovement(motion);
-//        if(!this.level().isClientSide()){
-//            ServerLevel slevel = (ServerLevel) this.level();
-//            slevel.sendParticles(new CircleTintData(new Color(0, 51, 255), 0.2f, 20, 0.95f, false, false), this.getX(), this.getY(), this.getZ(), 1, 0, 0, 0, 0);
-//        }
 
         for (int i = 0; i < rays.size(); i++){
 
@@ -112,7 +108,6 @@ public class KnefProjCarrier extends ThrowableProjectile
             Vec3 pos = this.getPosition(1F)
                     .add(x.scale(Math.cos(Math.toRadians(a))))
                     .add(z.scale(Math.sin(Math.toRadians(a))))
-                    //.subtract(motion.scale((double) i / rays.size() * 2))
                     ;
 
             if(i % 2 == 0){
@@ -126,7 +121,7 @@ public class KnefProjCarrier extends ThrowableProjectile
 
             AABB box = this.getBoundingBox().inflate(7);
 
-            List<LivingEntity> targets = new ArrayList<>(this.level().getEntitiesOfClass(LivingEntity.class, box, e -> !(e.getStringUUID().equals(this.getOwnerUUID()) ) && e.hasLineOfSight(this)));
+            List<LivingEntity> targets = new ArrayList<>(this.level().getEntitiesOfClass(LivingEntity.class, box, e -> !(e.getStringUUID().equals(this.getOwnerUUID()) ) && e.isAlive() && e.hasLineOfSight(this)));
 
             if (!targets.isEmpty()) {
                 for (LivingEntity target : this.level().getEntitiesOfClass(LivingEntity.class, box.move(motion.scale(20)).inflate(1), e -> !(e.getStringUUID().equals(this.getOwnerUUID()))  && e.hasLineOfSight(this))) {
