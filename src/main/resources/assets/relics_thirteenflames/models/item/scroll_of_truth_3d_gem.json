@@ -1,0 +1,26 @@
+{
+	"parent": "relics_thirteenflames:item/scroll_of_truth_3d_base",
+	"textures": {
+		"2": "relics_thirteenflames:item/scroll_of_truth/scroll_item_rgb_emissive",
+		"particle": "relics_thirteenflames:item/scroll_of_truth/scroll_item_rgb_emissive"
+	},
+	"display": {
+		"thirdperson_righthand": {
+			"translation": [0, 7, 0]
+		},
+		"thirdperson_lefthand": {
+			"translation": [0, 7, 0]
+		},
+		"firstperson_righthand": {
+			"rotation": [0, -32, 5],
+			"translation": [0.5, 8.75, -2.5]
+		},
+		"firstperson_lefthand": {
+			"rotation": [0, -32, 5],
+			"translation": [0.5, 8.75, -2.5]
+		},
+		"head": {
+			"translation": [0, 1.75, -7]
+		}
+	}
+}

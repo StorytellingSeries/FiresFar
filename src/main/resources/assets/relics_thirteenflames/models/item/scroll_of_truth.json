@@ -1,3 +1,44 @@
 {
-  "parent": "builtin/entity"
+  "parent": "forge:item/default",
+  "base": {
+    "parent": "relics_thirteenflames:item/scroll_of_truth_3d"
+  },
+  "loader": "forge:separate_transforms",
+  "perspectives": {
+    "ground": {
+      "parent": "relics_thirteenflames:item/scroll_of_truth_2d"
+    },
+    "gui": {
+      "parent": "relics_thirteenflames:item/scroll_of_truth_2d"
+    },
+    "fixed": {
+      "parent": "relics_thirteenflames:item/scroll_of_truth_2d"
+    }
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "alt": 3
+      },
+      "model": "relics_thirteenflames:item/scroll_of_truth_3d_base"
+    },
+    {
+      "predicate": {
+        "alt": 2
+      },
+      "model": "relics_thirteenflames:item/scroll_of_truth_3d_gem"
+    },
+    {
+      "predicate": {
+        "alt": 1
+      },
+      "model": "relics_thirteenflames:item/scroll_of_truth_2d_base"
+    },
+    {
+      "predicate": {
+        "alt": 0
+      },
+      "model": "relics_thirteenflames:item/scroll_of_truth_2d_gem"
+    }
+  ]
 }

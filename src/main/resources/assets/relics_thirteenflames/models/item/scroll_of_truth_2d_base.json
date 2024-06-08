@@ -1,0 +1,7 @@
+{
+  "render_type": "cutout",
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "relics_thirteenflames:item/scroll_of_truth/scroll_of_truth_2d"
+  }
+}

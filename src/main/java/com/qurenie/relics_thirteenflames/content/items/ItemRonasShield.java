@@ -429,7 +429,7 @@ public class ItemRonasShield extends ShieldItem implements IColoredFoilItem, IRe
                     }
                 }
 
-                //NBTUtils.setInt(shield, "charges", 0);
+                NBTUtils.setInt(shield, "charges", 0);
             }
         }
     }
