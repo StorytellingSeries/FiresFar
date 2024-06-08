@@ -4,23 +4,15 @@ import com.qurenie.relics_thirteenflames.content.items.ItemSeliasetHorn;
 import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.registries.ForgeRegistries;
-import org.apache.commons.lang3.Validate;
 import org.zeith.hammerlib.net.IPacket;
 import org.zeith.hammerlib.net.MainThreaded;
 import org.zeith.hammerlib.net.PacketContext;
-import oshi.util.tuples.Pair;
 
 import java.util.HashMap;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static com.qurenie.relics_thirteenflames.net.PacketHornSounds.TootsManager.tootMap;
 
@@ -79,12 +71,12 @@ public class PacketHornSounds
                     toot.fadeOut();
                 else if (!Minecraft.getInstance().getSoundManager().isActive(toot)) {
                     toot.originPos = originPos;
-                    toot.controlledDuration = 10;
+                    toot.unconfirmedDuration = 10;
                     toot.fadeIn();
                     toot.setFade(0.02f);
                     Minecraft.getInstance().getSoundManager().play(toot);
                 } else {
-                    toot.controlledDuration = 10;
+                    toot.unconfirmedDuration = 10;
                     toot.originPos = originPos;
                 }
             } else {

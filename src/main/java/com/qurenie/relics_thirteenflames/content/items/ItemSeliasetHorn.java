@@ -2,13 +2,10 @@ package com.qurenie.relics_thirteenflames.content.items;
 
 import com.google.common.base.Suppliers;
 import com.qurenie.relics_thirteenflames.client.particles.CircleTintData;
-import com.qurenie.relics_thirteenflames.client.render.item.EmissiveItemRenderer;
 import com.qurenie.relics_thirteenflames.client.render.item.SeliasetHornItemRenderer;
 import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
 import com.qurenie.relics_thirteenflames.net.PacketHornSounds;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
-import it.hurts.sskirillss.relics.init.EffectRegistry;
-import it.hurts.sskirillss.relics.items.relics.base.IRelicItem;
 import it.hurts.sskirillss.relics.items.relics.base.RelicItem;
 import it.hurts.sskirillss.relics.items.relics.base.data.RelicData;
 import it.hurts.sskirillss.relics.items.relics.base.data.cast.CastData;
@@ -31,9 +28,7 @@ import net.minecraft.client.particle.Particle;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance;
-import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.resources.sounds.SoundInstance;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -41,7 +36,6 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -51,7 +45,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.UseAnim;
-import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
@@ -60,7 +53,6 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.zeith.hammerlib.api.items.IColoredFoilItem;
@@ -466,7 +458,7 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
 
         public Vec3 originPos;
 
-        public int controlledDuration = 10;
+        public int unconfirmedDuration = 10;
 
 
         public TootSoundInstance(SoundEvent p_119658_) {
@@ -501,11 +493,11 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
             if (this.fade <= 0) {
                 this.stop();
             }
-            if(this.controlledDuration == 0 && fadeDirection > 0) this.fadeOut();
+            if(this.unconfirmedDuration == 0 && fadeDirection > 0) this.fadeOut();
             fade = Mth.clamp(fade + fadeDirection, 0, 1);
             LocalPlayer player = Minecraft.getInstance().player;
             this.volume = (float) Mth.clamp( player == null ? 0 : 25f / player.distanceToSqr(originPos), 0.0F, 1.0F) * fade;
-            this.controlledDuration = Math.max(0, this.controlledDuration - 1);
+            this.unconfirmedDuration = Math.max(0, this.unconfirmedDuration - 1);
         }
 
         public void fadeOut() {

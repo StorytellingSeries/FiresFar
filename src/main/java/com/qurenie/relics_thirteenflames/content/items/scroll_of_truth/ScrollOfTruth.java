@@ -1,6 +1,7 @@
 package com.qurenie.relics_thirteenflames.content.items.scroll_of_truth;
 
 import com.qurenie.relics_thirteenflames.ThirteenFlames;
+import com.qurenie.relics_thirteenflames.client.render.item.ScrollOfTruthItemRenderer;
 import com.qurenie.relics_thirteenflames.content.items.scroll_of_truth.screen.ScrollOfTruthContainerScreen;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
 import it.hurts.sskirillss.relics.items.relics.base.IRelicItem;
@@ -196,7 +197,7 @@ public class ScrollOfTruth extends RelicItem {
         super.initializeClient(consumer);
         consumer.accept(new IClientItemExtensions() {
 
-            private ScrollOfTruthISTER ister = new ScrollOfTruthISTER();
+            private ScrollOfTruthItemRenderer ister = new ScrollOfTruthItemRenderer();
             @Override
             public BlockEntityWithoutLevelRenderer getCustomRenderer() {
                 return ister;

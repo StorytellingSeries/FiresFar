@@ -149,7 +149,7 @@ public class ItemRonasShield extends ShieldItem implements IColoredFoilItem, IRe
                                 .active(CastData.builder()
                                         .type(CastType.INSTANTANEOUS)
                                         .container(RelicContainer.INVENTORY)
-                                        .castPredicate("chargeCastPredicate", (p, stack) -> {
+                                        .castPredicate("chargecast", (p, stack) -> {
                                             return p.getUseItem().equals(stack);
                                         })
                                         .build())
@@ -429,7 +429,7 @@ public class ItemRonasShield extends ShieldItem implements IColoredFoilItem, IRe
                     }
                 }
 
-                //NBTUtils.setInt(shield, "charges", 0);
+                NBTUtils.setInt(shield, "charges", 0);
             }
         }
     }
