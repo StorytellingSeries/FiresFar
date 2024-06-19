@@ -6,7 +6,7 @@
 	"loader": "forge:separate_transforms",
 	"perspectives": {
 		"ground": {
-			"parent": "relics_thirteenflames:item/seliaset_horn2d"
+			"parent": "relics_thirteenflames:item/seliaset_horn_2d"
 		},
 		"gui": {
 			"parent": "relics_thirteenflames:item/seliaset_horn_2d"

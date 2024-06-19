@@ -232,6 +232,9 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
                 Vec3 entityPos = e.position().add(0, e.getEyeHeight(), 0);
                 Vec3 b = entityPos.subtract(initPos).add(player.getLookAngle());
                 double efficiency = this.getAbilityValue(horn, "air_ray", "efficiency") / 20;
+
+                if(e.getMaxHealth() > 50) efficiency = Mth.clamp(efficiency - (e.getMaxHealth() - 50.0) / 10.0, 0, efficiency);
+
                 Vec3 speed = b.normalize().multiply(efficiency, efficiency, efficiency);
                 if (player.isShiftKeyDown()) {
                     speed = speed.reverse();
@@ -288,7 +291,7 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
                                         .thresholdValue(2, 5)
                                         .initialValue(3, 3.5)
                                         .upgradeModifier(UpgradeOperation.ADD,0.3)
-                                        .formatValue(x-> (int) MathUtils.round(x * 20,0))
+                                        .formatValue(x-> (int) MathUtils.round(x,0))
                                         .build())
                                 .build())
                         .ability(AbilityData.builder("block")

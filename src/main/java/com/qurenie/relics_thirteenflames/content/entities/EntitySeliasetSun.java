@@ -153,7 +153,7 @@ public class EntitySeliasetSun
             if (--burnMonstersCooldown < 0 && tickCount % 5 == 0) {
                 boolean gen = false;
 
-                for (Monster mon : this.level().getEntitiesOfClass(Monster.class, getBoundingBox().inflate(radStat * 2), mon -> mon.getMobType() != MobType.UNDEAD && mon.getTarget() instanceof Player)) {
+                for (Monster mon : this.level().getEntitiesOfClass(Monster.class, getBoundingBox().inflate(radStat * 1), mon -> mon.getMobType() != MobType.UNDEAD)) {
                     mon.setSecondsOnFire(10);
                     gen = true;
                 }

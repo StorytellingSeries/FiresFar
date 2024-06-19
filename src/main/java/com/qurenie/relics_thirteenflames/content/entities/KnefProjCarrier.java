@@ -121,10 +121,10 @@ public class KnefProjCarrier extends ThrowableProjectile
 
             AABB box = this.getBoundingBox().inflate(7);
 
-            List<LivingEntity> targets = new ArrayList<>(this.level().getEntitiesOfClass(LivingEntity.class, box, e -> !(e.getStringUUID().equals(this.getOwnerUUID()) ) && e.isAlive() && e.hasLineOfSight(this)));
+            List<LivingEntity> targets = new ArrayList<>(this.level().getEntitiesOfClass(LivingEntity.class, box, this::isValidTarget));
 
             if (!targets.isEmpty()) {
-                for (LivingEntity target : this.level().getEntitiesOfClass(LivingEntity.class, box.move(motion.scale(20)).inflate(1), e -> !(e.getStringUUID().equals(this.getOwnerUUID()))  && e.hasLineOfSight(this))) {
+                for (LivingEntity target : this.level().getEntitiesOfClass(LivingEntity.class, box.move(motion.scale(20)).inflate(1), this::isValidTarget)) {
                     if (!targets.contains(target)) targets.add(target);
                 }
 
@@ -155,11 +155,10 @@ public class KnefProjCarrier extends ThrowableProjectile
         }
     }
 
-    @SubscribeEvent
-    public void onLevelUnload(PlayerEvent.PlayerLoggedOutEvent event) {
-        this.rays.clear();
-        this.discard();
+    private boolean isValidTarget(LivingEntity e){
+        return !(e.getStringUUID().equals(this.getOwnerUUID())) && !e.isInvulnerable() && e.isAlive() && e.hasLineOfSight(this);
     }
+
     @Override
     public void checkDespawn() {
         if(this.tickCount > 240 || rays.isEmpty()){

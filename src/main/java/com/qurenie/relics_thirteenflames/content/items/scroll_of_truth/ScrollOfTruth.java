@@ -12,6 +12,8 @@ import it.hurts.sskirillss.relics.items.relics.base.data.leveling.AbilityData;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.LevelingData;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.StatData;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.misc.UpgradeOperation;
+import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootData;
+import it.hurts.sskirillss.relics.items.relics.base.data.loot.misc.LootCollections;
 import it.hurts.sskirillss.relics.utils.MathUtils;
 import it.hurts.sskirillss.relics.utils.NBTUtils;
 import net.minecraft.ChatFormatting;
@@ -94,7 +96,7 @@ public class ScrollOfTruth extends RelicItem {
                                 .build())
                         .build())
                 .leveling(new LevelingData(100, 15, 100))
-
+                .loot(LootData.builder().entry(LootCollections.END).build())
                 .build();
     }
 

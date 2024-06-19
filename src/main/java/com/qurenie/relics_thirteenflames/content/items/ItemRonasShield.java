@@ -19,12 +19,15 @@ import it.hurts.sskirillss.relics.items.relics.base.data.leveling.AbilityData;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.LevelingData;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.StatData;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.misc.UpgradeOperation;
+import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootData;
+import it.hurts.sskirillss.relics.items.relics.base.data.loot.misc.LootCollections;
 import it.hurts.sskirillss.relics.utils.EntityUtils;
 import it.hurts.sskirillss.relics.utils.MathUtils;
 import it.hurts.sskirillss.relics.utils.NBTUtils;
 import it.hurts.sskirillss.relics.utils.ParticleUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
@@ -41,10 +44,7 @@ import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.ShieldItem;
-import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.item.*;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
@@ -60,6 +60,7 @@ import net.minecraftforge.event.entity.living.LivingKnockBackEvent;
 import net.minecraftforge.event.entity.living.ShieldBlockEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.zeith.hammerlib.api.items.IColoredFoilItem;
@@ -67,6 +68,7 @@ import org.zeith.hammerlib.net.Network;
 
 import java.awt.*;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 import java.util.function.Consumer;
@@ -179,6 +181,7 @@ public class ItemRonasShield extends ShieldItem implements IColoredFoilItem, IRe
                         .build()
                 )
                 .leveling(new LevelingData(100, 15, 100))
+                .loot(LootData.builder().entry(LootCollections.DESERT).build())
                 .build();
     }
 
@@ -195,7 +198,59 @@ public class ItemRonasShield extends ShieldItem implements IColoredFoilItem, IRe
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag isAdvanced) {
         tooltip.add(Component.translatable("tooltip.relics_thirteenflames.ronas_shield.lore").withStyle(ChatFormatting.GOLD).withStyle(ChatFormatting.ITALIC));
+
+
+        if(level == null || !level.isClientSide()) return;
+
+        constructRelicTooltipBecauseIRelicItemDoesntFuckingWork(stack, tooltip);
+
         super.appendHoverText(stack, level, tooltip, isAdvanced);
+
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private void constructRelicTooltipBecauseIRelicItemDoesntFuckingWork(ItemStack stack, List<Component> tooltip) {
+
+        Item item = stack.getItem();
+
+        if (!(item instanceof IRelicItem relic))
+            return;
+
+        LocalPlayer player = Minecraft.getInstance().player;
+
+        tooltip.add(Component.literal(" "));
+
+        if (relic.isItemResearched(player)) {
+            if (Screen.hasShiftDown()) {
+                RelicData relicData = relic.getRelicData();
+
+                if (relicData == null)
+                    return;
+
+                Map<String, AbilityData> abilities = relicData.getAbilities().getAbilities();
+
+                tooltip.add(Component.literal("▶ ").withStyle(ChatFormatting.DARK_GREEN)
+                        .append(Component.translatable("tooltip.relics.relic.tooltip.abilities").withStyle(ChatFormatting.GREEN)));
+
+                for (Map.Entry<String, AbilityData> entry : abilities.entrySet()) {
+                    String id = ForgeRegistries.ITEMS.getKey(item).getPath();
+                    String name = entry.getKey();
+
+                    if (!relic.canUseAbility(stack, name))
+                        continue;
+
+                    tooltip.add(Component.literal("   ◆ ").withStyle(ChatFormatting.GREEN)
+                            .append(Component.translatable("tooltip.relics." + id + ".ability." + name).withStyle(ChatFormatting.YELLOW))
+                            .append(Component.literal(" - ").withStyle(ChatFormatting.WHITE))
+                            .append(Component.translatable("tooltip.relics." + id + ".ability." + name + ".description").withStyle(ChatFormatting.GRAY)));
+                }
+            } else {
+                tooltip.add(Component.translatable("tooltip.relics.relic.tooltip.shift").withStyle(ChatFormatting.GRAY));
+            }
+        } else
+            tooltip.add(Component.translatable("tooltip.relics.relic.tooltip.table").withStyle(ChatFormatting.GRAY));
+
+        tooltip.add(Component.literal(" "));
     }
 
     @Override
