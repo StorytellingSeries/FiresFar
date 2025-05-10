@@ -6,12 +6,10 @@ import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import it.hurts.sskirillss.relics.items.relics.base.IRelicItem;
 import it.hurts.sskirillss.relics.utils.ParticleUtils;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -19,7 +17,6 @@ import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
-import net.minecraftforge.network.NetworkHooks;
 
 import java.awt.*;
 import java.util.List;
@@ -120,13 +117,13 @@ public class FartCloudEntity extends Projectile {
                             int appliedAmplifier = e.getEffect(EffectsRegistry.POISSON).getAmplifier() + 1;
                             if (appliedAmplifier <= maxAmp) {
                                 e.addEffect(new PoisonEffectInstance(EffectsRegistry.POISSON, duration + appliedAmplifier * 20, appliedAmplifier, false, true, true, getSword()));
-                                if (rng.nextFloat() < 0.25f && this.getOwner() instanceof LivingEntity livin) relic.spreadExperience(livin, getSword(), 1);
+                                if (rng.nextFloat() < 0.25f && this.getOwner() instanceof LivingEntity livin) relic.spreadRelicExperience(livin, getSword(), 1);
                             } else {
                                 e.addEffect(new PoisonEffectInstance(EffectsRegistry.POISSON, duration + maxAmp * 20, maxAmp, false, true, true, getSword()));
                             }
                         } else {
                             e.addEffect(new PoisonEffectInstance(EffectsRegistry.POISSON, duration, 0, false, true, true, getSword()));
-                            if (rng.nextFloat() < 0.25f && this.getOwner() instanceof LivingEntity livin) relic.spreadExperience(livin, getSword(), 1);
+                            if (rng.nextFloat() < 0.25f && this.getOwner() instanceof LivingEntity livin) relic.spreadRelicExperience(livin, getSword(), 1);
                         }
                     }
                 }
@@ -147,11 +144,11 @@ public class FartCloudEntity extends Projectile {
     }
 
     @Override
-    protected void defineSynchedData() {
-        this.entityData.define(RADIUS, 5F);
-        this.entityData.define(LIFETIME, 20);
-        this.entityData.define(MAX_AMP, 0);
-        this.entityData.define(DURATION, 2);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(RADIUS, 5F);
+        builder.define(LIFETIME, 20);
+        builder.define(MAX_AMP, 0);
+        builder.define(DURATION, 2);
     }
 
     @Override

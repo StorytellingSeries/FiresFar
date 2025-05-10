@@ -18,14 +18,15 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.common.Mod;
 
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-@Mod.EventBusSubscriber
+//@EventBusSubscriber
 public class KnefDischarge extends ThrowableProjectile
 {
 
@@ -127,7 +128,7 @@ public class KnefDischarge extends ThrowableProjectile
     }
 
     @Override
-    public void onRemovedFromWorld() {
+    public void onRemovedFromLevel() {
         spark(10, 0.04, 0.15f);
         spark(15, 0.01, 0.15f);
         AABB box = this.getBoundingBox().inflate(getRadius()).move(0, -getRadius() * 0.5, 0).expandTowards(0, -3, 0);
@@ -168,7 +169,7 @@ public class KnefDischarge extends ThrowableProjectile
                 }
             }
         }
-        super.onRemovedFromWorld();
+        super.onRemovedFromLevel();
     }
 
     public void drawJaggedLightning(Level level, Vec3 start, Vec3 end, int sliceIterations, double maxJagMultiplier, float d, Color color, boolean doStartBurst){
@@ -206,10 +207,10 @@ public class KnefDischarge extends ThrowableProjectile
     }
 
     @Override
-    protected void defineSynchedData() {
-        this.entityData.define(RADIUS, 5F);
-        this.entityData.define(DMG, 5F);
-        this.entityData.define(OWNER_UUID, "");
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(RADIUS, 5F);
+        builder.define(DMG, 5F);
+        builder.define(OWNER_UUID, "");
     }
 
     @Override

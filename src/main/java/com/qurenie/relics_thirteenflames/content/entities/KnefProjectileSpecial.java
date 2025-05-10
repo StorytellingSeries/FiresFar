@@ -4,14 +4,17 @@ import com.qurenie.relics_thirteenflames.init.EntityRegistry;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import it.hurts.sskirillss.relics.utils.ParticleUtils;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.ThrowableProjectile;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -27,7 +30,12 @@ public class KnefProjectileSpecial extends ThrowableProjectile
         super(type, world);
         this.color = new Color(100, 255, 178);
     }
-
+    
+    @Override
+    protected void defineSynchedData(SynchedEntityData.@NotNull Builder p_326003_) {
+    
+    }
+    
     @Override
     public void tick() {
         if(this.getOwner() == null) this.discard();
@@ -71,10 +79,6 @@ public class KnefProjectileSpecial extends ThrowableProjectile
     @SubscribeEvent
     public void onLevelUnload(PlayerEvent.PlayerLoggedOutEvent event) {
         this.discard();
-    }
-
-    @Override
-    protected void defineSynchedData() {
     }
 
     @Override

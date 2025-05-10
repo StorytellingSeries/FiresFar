@@ -2,7 +2,6 @@ package com.qurenie.relics_thirteenflames.client;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.qurenie.relics_thirteenflames.ThirteenFlames;
-import com.qurenie.relics_thirteenflames.client.particles.CircleTintFactory;
 import com.qurenie.relics_thirteenflames.client.render.entity.CommonRenderer;
 import com.qurenie.relics_thirteenflames.client.render.entity.FallingRenderer;
 import com.qurenie.relics_thirteenflames.client.render.entity.LivingFleshRenderer;
@@ -13,40 +12,33 @@ import com.qurenie.relics_thirteenflames.content.items.scroll_of_truth.screen.Sc
 import com.qurenie.relics_thirteenflames.init.*;
 import com.qurenie.relics_thirteenflames.init.register.RendererFactory;
 import it.hurts.sskirillss.relics.client.renderer.entities.NullRenderer;
-import it.hurts.sskirillss.relics.utils.NBTUtils;
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.MenuScreens;
+import net.minecraft.client.gui.LayeredDraw;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.EntityRenderersEvent;
-import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
-import net.minecraftforge.client.event.RegisterParticleProvidersEvent;
-import net.minecraftforge.client.gui.overlay.ForgeGui;
-import net.minecraftforge.client.gui.overlay.IGuiOverlay;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
+import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import org.zeith.hammeranims.api.geometry.IGeometryContainer;
 import org.zeith.hammeranims.api.tile.IAnimatedEntity;
 
 
-@Mod.EventBusSubscriber(modid = ThirteenFlames.MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = ThirteenFlames.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class ClientModEvents {
 
 
     @SubscribeEvent
-    public static void fmlclientsetup(FMLClientSetupEvent event) {
-        MenuScreens.register(ScrollOfTruthInit.SCROLL_OF_TRUTH_MENU.get(), ScrollOfTruthContainerScreen::new);
+    public static void fmlclientsetup(RegisterMenuScreensEvent event) {
+        event.register(ScrollOfTruthInit.SCROLL_OF_TRUTH_MENU.get(), ScrollOfTruthContainerScreen::new);
     }
 
 
@@ -79,17 +71,19 @@ public class ClientModEvents {
     }
 
     @SubscribeEvent
-    public static void registerOverlays(RegisterGuiOverlaysEvent event) {
-        event.registerBelow(new ResourceLocation("minecraft", "title_text"), "poison_overlay", new PoisonOverlay());
+    public static void registerOverlays(RegisterGuiLayersEvent event) {
+        event.registerBelow(ResourceLocation.fromNamespaceAndPath("minecraft", "title"),
+                ResourceLocation.fromNamespaceAndPath(ThirteenFlames.MODID, "poison_overlay"), new PoisonOverlay());
     }
 
-    public static class PoisonOverlay implements IGuiOverlay {
+    public static class PoisonOverlay implements LayeredDraw.Layer {
 
         @Override
-        public void render(ForgeGui gui, GuiGraphics guiGraphics, float partialTick, int screenWidth, int screenHeight) {
+        public void render(GuiGraphics guiGraphics, DeltaTracker tracker) {
 
             Minecraft MC = Minecraft.getInstance();
             LocalPlayer player = MC.player;
+            
             Entity looked = MC.crosshairPickEntity;
 
             if (player != null && player.getMainHandItem().getItem() instanceof ItemRonasSword relic && looked instanceof LivingEntity livin) {
@@ -102,9 +96,7 @@ public class ClientModEvents {
                 int x;
                 int y;
 
-
-
-                textureEmpty = new ResourceLocation("relics_thirteenflames", "textures/hud/ronas_sword/acid_drops_empty.png");
+                textureEmpty = ResourceLocation.fromNamespaceAndPath("relics_thirteenflames", "textures/hud/ronas_sword/acid_drops_empty.png");
                 RenderSystem.setShaderColor(0.5F, 0.8F, 0.5F, 1.0F);
                 RenderSystem.setShaderTexture(0, textureEmpty);
                 RenderSystem.enableBlend();
@@ -112,10 +104,10 @@ public class ClientModEvents {
                 width = 72;
                 height = 16;
 
-                int maxStacks = (int) relic.getAbilityValue(player.getMainHandItem(), "spit", "maxstacks");
+                int maxStacks = (int) relic.getStatValue(player.getMainHandItem(), "spit", "maxstacks");
 
-                x = screenWidth / 2 - (width - 12 * (6 - maxStacks)) / 2 / scale;
-                y = screenHeight / 2 + 20;
+                x = guiGraphics.guiWidth() / 2 - (width - 12 * (6 - maxStacks)) / 2 / scale;
+                y = guiGraphics.guiHeight() / 2 + 20;
                 manager.bindForSetup(textureEmpty);
 
                 int croppedWidth = width - 12 * (6 - maxStacks);
@@ -125,7 +117,7 @@ public class ClientModEvents {
                 RenderSystem.disableBlend();
 
                 int dropWidth = width / 6;
-                textureFull = new ResourceLocation("relics_thirteenflames", "textures/hud/ronas_sword/acid_drops.png");
+                textureFull = ResourceLocation.fromNamespaceAndPath("relics_thirteenflames", "textures/hud/ronas_sword/acid_drops.png");
                 RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
                 RenderSystem.setShaderTexture(0, textureFull);
                 RenderSystem.enableBlend();

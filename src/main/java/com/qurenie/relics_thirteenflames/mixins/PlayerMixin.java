@@ -1,9 +1,7 @@
 package com.qurenie.relics_thirteenflames.mixins;
 
-import com.qurenie.relics_thirteenflames.content.items.ItemKnefBow;
 import com.qurenie.relics_thirteenflames.content.items.scroll_of_truth.ScrollOfTruth;
 import com.qurenie.relics_thirteenflames.init.DamageSourceRegistry;
-import it.hurts.sskirillss.relics.utils.NBTUtils;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -19,7 +17,7 @@ import java.util.Objects;
 @Mixin(Player.class)
 public abstract class PlayerMixin extends LivingEntityMixin {
 
-    @Inject(method = "hurt", at = @At(value = "HEAD"), cancellable = true)
+    @Inject(method = "hurt", at = @At(value = "HEAD"), cancellable = true, remap = false)
     public void hurt(DamageSource pSource, float pAmount, CallbackInfoReturnable<Boolean> cir) {
         if(Objects.equals(pSource, DamageSourceRegistry.SUCC)){
             super.hurt(pSource, pAmount, cir);
@@ -27,13 +25,13 @@ public abstract class PlayerMixin extends LivingEntityMixin {
         }
     }
 
-    @Inject(method = "onEnchantmentPerformed", at = @At("HEAD"))
+    @Inject(method = "onEnchantmentPerformed", at = @At("HEAD"), remap = false)
     public void onEnchantmentPerformed(ItemStack pEnchantedItem, int pLevelCost, CallbackInfo ci) {
         Player deez = ((Player)(Object)this);
         if(deez == null) return;
         for(ItemStack stack : deez.getInventory().items) {
             if(stack.getItem() instanceof  ScrollOfTruth scroll) {
-                scroll.spreadExperience(deez, stack, pLevelCost);
+                scroll.spreadRelicExperience(deez, stack, pLevelCost);
             }
         }
     }

@@ -22,8 +22,9 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 
 import java.awt.*;
 import java.util.HashSet;
@@ -91,8 +92,8 @@ public class PoisonWaveProjectile extends ThrowableProjectile
                         flatluk.scale(dist.length() + 0.1).yRot((float) ((-spreadAngle + spreadAngle / particlesPer * j * 2) * Mth.DEG_TO_RAD))
                 ).add(this.position().subtract(startVec.add(flatluk.scale(dist.length() + 0.1))));
 
-                int duration = (int) Math.round(relic.getAbilityValue(sword, "spit", "poisondur") * 20);
-                int maxAmp = (int) Math.round(relic.getAbilityValue(sword, "spit", "maxstacks") - 1);
+                int duration = (int) Math.round(relic.getStatValue(sword, "spit", "poisondur") * 20);
+                int maxAmp = (int) Math.round(relic.getStatValue(sword, "spit", "maxstacks") - 1);
                 List<LivingEntity> eList = level().getEntitiesOfClass(LivingEntity.class, new AABB(vec, vec).inflate(0.2), e -> !Objects.equals(e, this.getOwner()) && !entityBlackList.contains(e) );
                 entityBlackList.addAll(eList);
                 for(LivingEntity lE : eList){
@@ -103,13 +104,13 @@ public class PoisonWaveProjectile extends ThrowableProjectile
                         int appliedAmplifier = lE.getEffect(EffectsRegistry.POISSON).getAmplifier() + 1;
                         if (appliedAmplifier <= maxAmp) {
                             lE.addEffect(new PoisonEffectInstance(EffectsRegistry.POISSON, duration + appliedAmplifier * 20, appliedAmplifier, false, true, false, sword));
-                            if (rng.nextFloat() < 0.25f) relic.spreadExperience(p, sword, 1);
+                            if (rng.nextFloat() < 0.25f) relic.spreadRelicExperience(p, sword, 1);
                         } else {
                             lE.addEffect(new PoisonEffectInstance(EffectsRegistry.POISSON, duration + maxAmp * 20, maxAmp, false, true, false, sword));
                         }
                     } else {
                         lE.addEffect(new PoisonEffectInstance(EffectsRegistry.POISSON, duration, 0, false, true, false, sword));
-                        if (rng.nextFloat() < 0.25f) relic.spreadExperience(p, sword, 1);
+                        if (rng.nextFloat() < 0.25f) relic.spreadRelicExperience(p, sword, 1);
                     }
                 }
 
@@ -154,8 +155,8 @@ public class PoisonWaveProjectile extends ThrowableProjectile
     }
 
     @Override
-    protected void defineSynchedData() {
-        this.entityData.define(MAX_RANGE, 4f);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(MAX_RANGE, 4f);
     }
 
     @Override

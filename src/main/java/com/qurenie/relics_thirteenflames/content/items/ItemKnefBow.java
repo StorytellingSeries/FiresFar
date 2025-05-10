@@ -1,8 +1,6 @@
 package com.qurenie.relics_thirteenflames.content.items;
 
-import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMultimap;
-import com.qurenie.relics_thirteenflames.client.render.item.KnefBowItemRenderer;
 import com.qurenie.relics_thirteenflames.content.entities.KnefProjCarrier;
 import com.qurenie.relics_thirteenflames.content.entities.KnefProjectile;
 import com.qurenie.relics_thirteenflames.content.entities.KnefProjectileSpecial;
@@ -11,32 +9,27 @@ import com.qurenie.relics_thirteenflames.init.DamageSourceRegistry;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
 import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
+import it.hurts.sskirillss.relics.init.RelicContainerRegistry;
 import it.hurts.sskirillss.relics.items.relics.base.RelicItem;
 import it.hurts.sskirillss.relics.items.relics.base.data.RelicData;
 import it.hurts.sskirillss.relics.items.relics.base.data.cast.CastData;
 import it.hurts.sskirillss.relics.items.relics.base.data.cast.misc.CastType;
-import it.hurts.sskirillss.relics.items.relics.base.data.cast.misc.RelicContainer;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.AbilitiesData;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.AbilityData;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.LevelingData;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.StatData;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.misc.UpgradeOperation;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootData;
-import it.hurts.sskirillss.relics.items.relics.base.data.loot.misc.LootCollections;
-import it.hurts.sskirillss.relics.items.relics.base.data.style.StyleData;
+import it.hurts.sskirillss.relics.items.relics.base.data.loot.misc.LootEntries;
 import it.hurts.sskirillss.relics.utils.MathUtils;
-import it.hurts.sskirillss.relics.utils.NBTUtils;
 import it.hurts.sskirillss.relics.utils.ParticleUtils;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
-import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.damagesource.DamageSources;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -50,27 +43,21 @@ import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-import net.minecraftforge.event.entity.living.LivingHurtEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.zeith.hammerlib.api.items.IColoredFoilItem;
 
 import java.awt.*;
 import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 
-import static net.minecraftforge.common.ForgeMod.WATER_TYPE;
+import static com.qurenie.relics_thirteenflames.init.ComponentRegistry.PULL;
+import static com.qurenie.relics_thirteenflames.init.ComponentRegistry.SHIFTING;
 
-@Mod.EventBusSubscriber
 public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
 
 
     public ItemKnefBow(Properties properties) {
-
+    
         super(properties);
         ImmutableMultimap.Builder<Attribute, AttributeModifier> builder = ImmutableMultimap.builder();
     }
@@ -109,7 +96,7 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
                         .ability(AbilityData.builder("swim")
                                 .maxLevel(5)
                                 .active(CastData.builder()
-                                        .container(RelicContainer.INVENTORY)
+                                        .container(RelicContainerRegistry.INVENTORY.get())
                                         .type(CastType.TOGGLEABLE)
                                         .build())
                                 .stat(StatData.builder("speed")
@@ -164,14 +151,14 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
                         .build()
                 )
                 .leveling(new LevelingData(100, 20, 100))
-                .loot(LootData.builder().entry(LootCollections.AQUATIC).build())
+                .loot(LootData.builder().entry(LootEntries.AQUATIC).build())
                 .build();
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag isAdvanced) {
+    public void appendHoverText(ItemStack stack, @Nullable TooltipContext context, List<Component> tooltip, TooltipFlag isAdvanced) {
         tooltip.add(Component.translatable("tooltip.relics_thirteenflames.knef_bow.lore").withStyle(ChatFormatting.GOLD).withStyle(ChatFormatting.ITALIC));
-        super.appendHoverText(stack, level, tooltip, isAdvanced);
+        super.appendHoverText(stack, context, tooltip, isAdvanced);
     }
 
     @Override
@@ -188,18 +175,18 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
 
     @Override
     public void releaseUsing(@NotNull ItemStack pStack, @NotNull Level pLevel, LivingEntity pLivingEntity, int pTimeCharged) {
-        if(!(pLivingEntity instanceof Player )|| (isAbilityTicking(pStack, "swim") && pLivingEntity.isInWaterOrRain())) return;
+        if(!(pLivingEntity instanceof Player)|| (isAbilityTicking(pStack, "swim") && pLivingEntity.isInWaterOrRain())) return;
 
-        float baseDmg = (float) getAbilityValue(pStack, "shot", "dmg");
-        boolean isShitting = NBTUtils.getBoolean(pStack, "shifting", false);
-        if (!isShitting || !canUseAbility(pStack, "storm") || isAbilityOnCooldown(pStack, "storm")) {
-            if (this.getUseDuration(pStack) - pTimeCharged > 19) {
+        float baseDmg = (float) getStatValue(pStack, "shot", "dmg");
+        boolean isShitting = pLivingEntity.isShiftKeyDown();
+        if (!isShitting || !isAbilityUnlocked(pStack, "storm") || isAbilityOnCooldown(pStack, "storm")) {
+            if (this.getUseDuration(pStack, pLivingEntity) - pTimeCharged > 19) {
                 if (!pLevel.isClientSide()) {
                     float fl = random.nextFloat();
                     pLevel.playSound(null, pLivingEntity.getX(), pLivingEntity.getY(), pLivingEntity.getZ(), SoundsRegistry.KNEF_BOW_SHOT.get(), SoundSource.MASTER, 0.5f, 1.8f - fl * 0.15f);
                     pLevel.playSound(null, pLivingEntity.getX(), pLivingEntity.getY(), pLivingEntity.getZ(), SoundsRegistry.KNEF_BOW_SHOT.get(), SoundSource.MASTER, 0.5f, 0.6f);
                 }
-                int count = (int) getAbilityValue(pStack, "shot", "rays");
+                int count = (int) getStatValue(pStack, "shot", "rays");
 
                 Vec3 pos = pLivingEntity.getEyePosition(1f).add(pLivingEntity.getLookAngle().scale(1.6))
                         .add(pLivingEntity.getLookAngle()
@@ -211,7 +198,8 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
                         .add(0, -0.13, 0).subtract(pLivingEntity.getLookAngle().scale(1.4));
                 KnefProjCarrier carrier = new KnefProjCarrier(EntityRegistry.KNEF_PROJECTILE_CARRIER, pLevel)
                         .setRays(
-                                KnefProjectile.makeList(count, pLevel, pLivingEntity, pos, pLivingEntity.getLookAngle().scale(0.3), baseDmg, pStack.getEnchantmentLevel(Enchantments.POWER_ARROWS), pStack)
+                                KnefProjectile.makeList(count, pLevel, pLivingEntity, pos, pLivingEntity.getLookAngle().scale(0.3), baseDmg,
+                                        pStack.getEnchantmentLevel(pLevel.holderOrThrow(Enchantments.POWER)), pStack)
                         );
                 carrier.setPos(pos);
                 carrier.setOwner(pLivingEntity);
@@ -219,7 +207,7 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
                 carrier.shootFromRotation(pLivingEntity, pLivingEntity.getXRot(), pLivingEntity.getYRot(), 0.75f, 1f, 0);
                 pLevel.addFreshEntity(carrier);
                 for (KnefProjectile proj : carrier.rays) pLevel.addFreshEntity(proj);
-            } else if (this.getUseDuration(pStack) - pTimeCharged > 5) {
+            } else if (this.getUseDuration(pStack, pLivingEntity) - pTimeCharged > 5) {
                 if (!pLevel.isClientSide()) {
                     float fl = random.nextFloat();
                     pLevel.playSound(null, pLivingEntity.getX(), pLivingEntity.getY(), pLivingEntity.getZ(), SoundsRegistry.KNEF_BOW_SHOT.get(), SoundSource.MASTER, 0.5f, 1.75f + fl * 0.1f);
@@ -237,12 +225,12 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
                 proj.setOwner(pLivingEntity);
                 proj.setOwnerUUID(pLivingEntity.getStringUUID());
                 proj.setBaseDmg(baseDmg);
-                proj.setPowerEnch(pStack.getEnchantmentLevel(Enchantments.POWER_ARROWS));
+                proj.setPowerEnch(pStack.getEnchantmentLevel(pLevel.holderOrThrow(Enchantments.POWER)));
                 proj.setBow(pStack);
                 proj.shootFromRotation(pLivingEntity, pLivingEntity.getXRot(), pLivingEntity.getYRot(), 0.75f, 1f, 0);
                 pLevel.addFreshEntity(proj);
             }
-        } else if (this.getUseDuration(pStack) - pTimeCharged > 19 && !isAbilityOnCooldown(pStack, "storm")/* && !pLevel.isClientSide()*/) {
+        } else if (this.getUseDuration(pStack, pLivingEntity) - pTimeCharged > 19 && !isAbilityOnCooldown(pStack, "storm")/* && !pLevel.isClientSide()*/) {
             pLevel.playSound(null, pLivingEntity.getX(), pLivingEntity.getY(), pLivingEntity.getZ(), SoundsRegistry.KNEF_BOW_SHOT.get(), SoundSource.MASTER, 0.7f, 0.6f);
             pLevel.playSound(null, pLivingEntity.getX(), pLivingEntity.getY(), pLivingEntity.getZ(), SoundsRegistry.KNEF_BOW_SHOT.get(), SoundSource.MASTER, 0.6f, 0.3f);
 
@@ -268,7 +256,7 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
             for (KnefProjectileSpecial proj : stormcaller.rays) pLevel.addFreshEntity(proj);
             pLevel.addFreshEntity(stormcaller);
             addAbilityCooldown(pStack, "storm", 600);
-        } else if (this.getUseDuration(pStack) - pTimeCharged > 5) {
+        } else if (this.getUseDuration(pStack, pLivingEntity) - pTimeCharged > 5) {
             if (!pLevel.isClientSide()) {
                 float fl = random.nextFloat();
                 pLevel.playSound(null, pLivingEntity.getX(), pLivingEntity.getY(), pLivingEntity.getZ(), SoundsRegistry.KNEF_BOW_SHOT.get(), SoundSource.MASTER, 0.5f, 1.75f + fl * 0.1f);
@@ -286,25 +274,26 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
             proj.setOwner(pLivingEntity);
             proj.setOwnerUUID(pLivingEntity.getStringUUID());
             proj.setBaseDmg(baseDmg);
-            proj.setPowerEnch(pStack.getEnchantmentLevel(Enchantments.POWER_ARROWS));
+            
+            proj.setPowerEnch(pStack.getEnchantmentLevel(pLevel.holderOrThrow(Enchantments.POWER)));
             proj.setBow(pStack);
             proj.setFree(false);
             proj.shootFromRotation(pLivingEntity, pLivingEntity.getXRot(), pLivingEntity.getYRot(), 0.75f, 1f, 0);
             pLevel.addFreshEntity(proj);
         }
-        NBTUtils.setBoolean(pStack, "shifting", false);
+        pStack.set(SHIFTING, false);
     }
 
     @Override
     public void inventoryTick(ItemStack stack, Level level, Entity entity, int slot, boolean isSelected) {
         if(!level.isClientSide() && entity instanceof LivingEntity l
-        && NBTUtils.getFloat(stack, "pull", 0) != (l.getUseItem() == stack ? (float) (stack.getUseDuration() - l.getUseItemRemainingTicks()) / 20.0F : 0))
-            NBTUtils.setFloat(stack, "pull", l.getUseItem() == stack ? (float) (stack.getUseDuration() - l.getUseItemRemainingTicks()) / 20.0F : 0);
+        && stack.getOrDefault(PULL, 0f) != (l.getUseItem() == stack ? (float) (stack.getUseDuration(l) - l.getUseItemRemainingTicks()) / 20.0F : 0))
+            stack.set( PULL, l.getUseItem() == stack ? (float) (stack.getUseDuration(l) - l.getUseItemRemainingTicks()) / 20.0F : 0);
         super.inventoryTick(stack, level, entity, slot, isSelected);
     }
 
     @Override
-    public int getUseDuration(ItemStack pStack) {
+    public int getUseDuration(ItemStack pStack, LivingEntity entity) {
         return 72000;
     }
 
@@ -320,7 +309,7 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
 
             if (!p.isCreative()) {
                 if (living.getHealth() > 1)
-                    living.hurt(DamageSourceRegistry.SUCC, living.getMaxHealth() * (float) getAbilityValue(stack, "shot", "drain") * 0.02f);
+                    living.hurt(DamageSourceRegistry.SUCC, living.getMaxHealth() * (float) getStatValue(stack, "shot", "drain") * 0.02f);
                 else living.kill();
             }
             living.hurtTime = 0;
@@ -330,18 +319,18 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
             living.setSwimming(false);
             Vec3 luk = p.getLookAngle();
             Vec3 motion = living.getDeltaMovement();
-            double spid = getAbilityValue(stack, "swim", "speed") / 5;
+            double spid = getStatValue(stack, "swim", "speed") / 5;
 
             AABB aoe = living.getBoundingBox().inflate(2);
             for (LivingEntity target : living.level().getEntitiesOfClass(LivingEntity.class, aoe, e -> !e.getUUID().equals(living.getUUID()))) {
-                target.hurt(p.damageSources().playerAttack(p), (float) getAbilityValue(stack, "swim", "dmg"));
+                target.hurt(p.damageSources().playerAttack(p), (float) getStatValue(stack, "swim", "dmg"));
                 Vec3 awayctor = target.position().subtract(living.position()).subtract(motion);
                 target.push(awayctor.x() * 1 / awayctor.length(), awayctor.y() * 1 / awayctor.length(), awayctor.z() * 1 / awayctor.length());
             }
 
             p.setDeltaMovement(0,0,0);
             p.push(luk.x() * spid, luk.y() * spid, luk.z() * spid);
-            p.startAutoSpinAttack(2);
+            p.startAutoSpinAttack(2, (float) getStatValue(stack, "swim", "dmg") ,stack);
             p.fallDistance = 0;
             for (int i = 0; i < 12; i++) {
 
@@ -368,11 +357,11 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
                         pos.x(), pos.y(), pos.z(), 0, 0, 0);
             }
         } else if(living instanceof Player p){
-            if (this.getUseDuration(stack) - count < 19) {
+            if (this.getUseDuration(stack, p) - count < 19) {
                 if (!p.isCreative()) {
                     if (living.getHealth() > 1) {
-                        boolean isShitting = NBTUtils.getBoolean(stack, "shifting", false);
-                        living.hurt(DamageSourceRegistry.SUCC, living.getMaxHealth() * (float) getAbilityValue(stack, "shot", "drain") * (isShitting ? 0.1f : 0.05f));
+                        boolean isShitting = stack.getOrDefault(SHIFTING, false);
+                        living.hurt(DamageSourceRegistry.SUCC, living.getMaxHealth() * (float) getStatValue(stack, "shot", "drain") * (isShitting ? 0.1f : 0.05f));
                     }
                     else living.kill();
                 }
@@ -386,29 +375,21 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
     @Override
     public InteractionResultHolder<ItemStack> use(Level pLevel, Player pPlayer, InteractionHand pHand) {
         ItemStack itemstack = pPlayer.getItemInHand(pHand);
-        NBTUtils.setBoolean(itemstack, "shifting", pPlayer.isShiftKeyDown());
+        itemstack.set(SHIFTING, pPlayer.isShiftKeyDown());
         pPlayer.startUsingItem(pHand);
         return InteractionResultHolder.consume(itemstack);
     }
-
+    
     @Override
-    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-        consumer.accept(new IClientItemExtensions() {
-            final Supplier<KnefBowItemRenderer> renderer = Suppliers.memoize(KnefBowItemRenderer::new);
-
-            @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
-                return renderer.get();
-            }
-        });
+    public boolean isPrimaryItemFor(ItemStack stack, Holder<Enchantment> enchantment) {
+        return enchantment.is(Enchantments.POWER);
     }
-
-
+    
     @Override
-    public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-        return enchantment == Enchantments.POWER_ARROWS;
+    public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
+        return isPrimaryItemFor(stack, enchantment);
     }
-
+    
     @Override
     public int getEnchantmentValue(ItemStack stack) {
         return 20;

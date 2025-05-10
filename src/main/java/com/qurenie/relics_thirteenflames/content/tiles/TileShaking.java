@@ -4,11 +4,12 @@ import com.qurenie.relics_thirteenflames.content.blocks.BlockShaking;
 import com.qurenie.relics_thirteenflames.net.PacketPlaySound;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.player.Player;
@@ -16,7 +17,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.zeith.hammeranims.api.animation.interp.Query;
@@ -46,8 +46,7 @@ public class TileShaking
 
     @NBTSerializable("Fragile")
     protected boolean _fragile;
-
-    @NBTSerializable("Behavior")
+    
     protected BlockShaking.ShakeBehavior _behavior = BlockShaking.BEHAVIOR_JUMP;
 
     // -- Properties for sync --
@@ -58,7 +57,26 @@ public class TileShaking
     protected final PropertyBool fragile = new PropertyBool(DirectStorage.create(nv -> _fragile = nv, () -> _fragile));
     protected final PropertyString behavior = new PropertyString(DirectStorage.create(__ -> _behavior = BlockShaking.getBehavior(__), () -> _behavior.id()));
     // -------------------------
-
+    
+    
+    @Override
+    protected void saveAdditional(CompoundTag nbt, HolderLookup.Provider provider) {
+        nbt.putString("behaviour", _behavior.id());
+        nbt.putFloat("intensity", _intensity);
+        nbt.putBoolean("physicallyShift", _physicallyShift);
+        nbt.putBoolean("fragile", _fragile);
+        nbt.putFloat("speed", _speed);
+    }
+    
+    @Override
+    public void readNBT(CompoundTag nbt, HolderLookup.Provider provider) {
+        _behavior = BlockShaking.getBehavior(nbt.getString("behaviour"));
+        _intensity = nbt.getFloat("intensity");
+        _physicallyShift = nbt.getBoolean("physicallyShift");
+        _fragile = nbt.getBoolean("fragile");
+        _speed = nbt.getFloat("speed");
+    }
+    
     public TileShaking(BlockEntityType<?> type, BlockPos pos, BlockState state)
     {
         super(type, pos, state);
@@ -66,6 +84,7 @@ public class TileShaking
         dispatcher.registerProperty("behavior", behavior);
         dispatcher.registerProperty("speed", speed);
         dispatcher.registerProperty("intensity", intensity);
+        dispatcher.registerProperty("physicallyShift", physicallyShift);
     }
 
     public void withBehavior(BlockShaking.ShakeConfiguration behavior)
@@ -115,7 +134,6 @@ public class TileShaking
         if(query.anim_time >= query.anim_duration)
         {
             deform();
-            return;
         }
     }
 
@@ -179,15 +197,5 @@ public class TileShaking
     {
         return _physicallyShift;
     }
-
-    @Override
-    public AABB getRenderBoundingBox()
-    {
-        BlockState st = getBlock();
-
-        VoxelShape prev = st.getShape(level, worldPosition);
-        if(prev.isEmpty()) prev = Block.box(0, 0, 0, 16, 16, 16);
-
-        return prev.bounds().move(getOffset(1F)).move(worldPosition);
-    }
+    
 }

@@ -14,6 +14,8 @@ import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
+import org.jetbrains.annotations.NotNull;
+import org.joml.Matrix4fStack;
 import org.joml.Quaternionf;
 import org.zeith.hammeranims.api.tile.IAnimatedEntity;
 
@@ -26,10 +28,10 @@ public class CommonRenderer<T extends LivingEntity & IAnimatedEntity>
         super(manager, new SimpleBedrockModel<>(modelConfiguration), shadowSize);
         this.texture = texture;
     }
-
+    
     @Override
-    protected void setupRotations(T pEntityLiving, PoseStack pMatrixStack, float pAgeInTicks, float pRotationYaw, float pPartialTicks) {
-        super.setupRotations(pEntityLiving, pMatrixStack, pAgeInTicks, pRotationYaw, pPartialTicks);
+    protected void setupRotations(@NotNull T pEntityLiving, @NotNull PoseStack pMatrixStack, float pAgeInTicks, float pRotationYaw, float pPartialTicks, float p_320045_) {
+        super.setupRotations(pEntityLiving, pMatrixStack, pAgeInTicks, pRotationYaw, pPartialTicks, p_320045_);
         pMatrixStack.translate(0, 1.5F, 0);
         pMatrixStack.mulPose(Axis.XP.rotationDegrees(180f));
         pMatrixStack.mulPose(Axis.YP.rotationDegrees(180f));
@@ -48,9 +50,9 @@ public class CommonRenderer<T extends LivingEntity & IAnimatedEntity>
         float f = (float) Math.atan(pMouseX / 40.0F);
         float f1 = (float) Math.atan(pMouseY / 40.0F);
 
-        PoseStack posestack = RenderSystem.getModelViewStack();
-        posestack.pushPose();
-        posestack.translate(pPosX, pPosY, 1050.0D);
+        Matrix4fStack posestack = RenderSystem.getModelViewStack();
+        posestack.pushMatrix();
+        posestack.translate((float) pPosX, (float) pPosY, 1050.0F);
         posestack.scale(1.0F, 1.0F, -1.0F);
         RenderSystem.applyModelViewMatrix();
         PoseStack posestack1 = new PoseStack();
@@ -88,7 +90,7 @@ public class CommonRenderer<T extends LivingEntity & IAnimatedEntity>
         pLivingEntity.setXRot(f4);
         pLivingEntity.yHeadRotO = f5;
         pLivingEntity.yHeadRot = f6;
-        posestack.popPose();
+        posestack.popMatrix();
         RenderSystem.applyModelViewMatrix();
         Lighting.setupFor3DItems();
     }
@@ -102,9 +104,9 @@ public class CommonRenderer<T extends LivingEntity & IAnimatedEntity>
 		float scaleF = size;
 		//if(entity instanceof IToroScaledEntity t) scaleF = t.getToroScale();
 
-        PoseStack matrixStack = RenderSystem.getModelViewStack();
-        matrixStack.pushPose();
-        matrixStack.translate((double) x * (double) scale, (double) y * (double) scale, 1050.0 * (double) scale);
+        Matrix4fStack matrixStack = RenderSystem.getModelViewStack();
+        matrixStack.pushMatrix();
+        matrixStack.translate((float) x * scale, (float) y * scale, 1050.0f * scale);
         matrixStack.scale(1.0F, 1.0F, -1.0F);
         RenderSystem.applyModelViewMatrix();
         matrixStack2.pushPose();
@@ -145,7 +147,7 @@ public class CommonRenderer<T extends LivingEntity & IAnimatedEntity>
         entity.yHeadRotO = k;
         entity.yHeadRot = l;
 
-        matrixStack.popPose();
+        matrixStack.popMatrix();
         matrixStack2.popPose();
         RenderSystem.applyModelViewMatrix();
         Lighting.setupFor3DItems();

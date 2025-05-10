@@ -1,23 +1,14 @@
 package com.qurenie.relics_thirteenflames.init;
 
-import com.google.common.base.Suppliers;
 import com.qurenie.relics_thirteenflames.ThirteenFlames;
-import com.qurenie.relics_thirteenflames.client.render.item.EmissiveItemRenderer;
-import com.qurenie.relics_thirteenflames.client.render.item.RonasShieldItemRenderer;
 import com.qurenie.relics_thirteenflames.content.items.*;
 import com.qurenie.relics_thirteenflames.content.items.scroll_of_truth.ScrollOfTruth;
-import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
-import net.minecraft.world.item.ShieldItem;
 import net.minecraft.world.item.Tiers;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import org.zeith.hammerlib.annotations.Ref;
 import org.zeith.hammerlib.annotations.RegistryName;
 import org.zeith.hammerlib.annotations.SimplyRegister;
-
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 @SimplyRegister(creativeTabs = {@Ref(
         value = ThirteenFlames.class,

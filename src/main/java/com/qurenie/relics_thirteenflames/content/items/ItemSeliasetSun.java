@@ -1,7 +1,5 @@
 package com.qurenie.relics_thirteenflames.content.items;
 
-import com.google.common.base.Suppliers;
-import com.qurenie.relics_thirteenflames.client.render.item.SeliasetSunItemRenderer;
 import com.qurenie.relics_thirteenflames.content.entities.EntitySeliasetSun;
 import it.hurts.sskirillss.relics.items.relics.base.RelicItem;
 import it.hurts.sskirillss.relics.items.relics.base.data.RelicData;
@@ -11,10 +9,9 @@ import it.hurts.sskirillss.relics.items.relics.base.data.leveling.LevelingData;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.StatData;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.misc.UpgradeOperation;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootData;
-import it.hurts.sskirillss.relics.items.relics.base.data.loot.misc.LootCollections;
+import it.hurts.sskirillss.relics.items.relics.base.data.loot.misc.LootEntries;
 import it.hurts.sskirillss.relics.utils.MathUtils;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -25,14 +22,10 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.zeith.hammerlib.api.items.IColoredFoilItem;
 
 import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 public class ItemSeliasetSun
 		extends RelicItem implements IColoredFoilItem
@@ -40,21 +33,6 @@ public class ItemSeliasetSun
 	public ItemSeliasetSun(Properties properties)
 	{
 		super(properties);
-	}
-	
-	@Override
-	public void initializeClient(Consumer<IClientItemExtensions> consumer)
-	{
-		consumer.accept(new IClientItemExtensions()
-		{
-			final Supplier<SeliasetSunItemRenderer> renderer = Suppliers.memoize(SeliasetSunItemRenderer::new);
-			
-			@Override
-			public BlockEntityWithoutLevelRenderer getCustomRenderer()
-			{
-				return renderer.get();
-			}
-		});
 	}
 	
 	@Override
@@ -84,9 +62,9 @@ public class ItemSeliasetSun
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag isAdvanced) {
+	public void appendHoverText(@NotNull ItemStack stack, @NotNull TooltipContext context, List<Component> tooltip, TooltipFlag isAdvanced) {
 		tooltip.add(Component.translatable("tooltip.relics_thirteenflames.seliaset_horn.lore").withStyle(ChatFormatting.GOLD).withStyle(ChatFormatting.ITALIC));
-		super.appendHoverText(stack, level, tooltip, isAdvanced);
+		super.appendHoverText(stack, context, tooltip, isAdvanced);
 	}
 
 	@Override
@@ -111,8 +89,8 @@ public class ItemSeliasetSun
 						.build())
 				.leveling(new LevelingData(100, 10, 100))
 				.loot(LootData.builder()
-						.entry(LootCollections.JUNGLE)
-						.entry(LootCollections.VILLAGE)
+						.entry(LootEntries.TROPIC)
+						.entry(LootEntries.VILLAGE)
 						.build())
 				.build();
 	}

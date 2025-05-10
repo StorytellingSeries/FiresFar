@@ -8,6 +8,8 @@ import org.zeith.hammerlib.net.IPacket;
 import org.zeith.hammerlib.net.MainThreaded;
 import org.zeith.hammerlib.net.PacketContext;
 
+import static com.qurenie.relics_thirteenflames.init.ComponentRegistry.SCROLL_COLOR_MODE;
+
 @MainThreaded
 public class ScrollChangeModePacket implements IPacket {
 
@@ -35,14 +37,14 @@ public class ScrollChangeModePacket implements IPacket {
         ServerPlayer sender = ctx.getSender();
         ItemStack item = sender.getMainHandItem();
         if (item.is(ItemsRegistry.SCROLL_OF_TRUTH)){
-            ScrollColorMode colorMode = ScrollColorMode.fromTag(item.getOrCreateTag());
+            ScrollColorMode colorMode = item.getOrDefault(SCROLL_COLOR_MODE, ScrollColorMode.GRAY);
             ScrollColorMode newMode;
             if (colorMode.id + delta > -1) {
                 newMode = ScrollColorMode.values()[(colorMode.id + delta) % ScrollColorMode.values().length];
             }else{
                 newMode = ScrollColorMode.values()[ScrollColorMode.values().length - 1];
             }
-            newMode.toTag(item.getOrCreateTag());
+            item.set(SCROLL_COLOR_MODE, newMode);
         }
     }
 }

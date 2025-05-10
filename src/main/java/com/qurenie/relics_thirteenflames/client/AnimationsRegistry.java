@@ -1,23 +1,23 @@
 package com.qurenie.relics_thirteenflames.client;
 
 import com.qurenie.relics_thirteenflames.ThirteenFlames;
-import net.minecraft.Util;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.registries.RegisterEvent;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.Enchantments;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.neoforge.registries.RegisterEvent;
 import org.zeith.hammeranims.api.HammerAnimationsApi;
-import org.zeith.hammeranims.api.animation.Animation;
 import org.zeith.hammeranims.api.animation.IAnimationContainer;
 import org.zeith.hammeranims.api.animation.IAnimationSource;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
-@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(bus = EventBusSubscriber.Bus.MOD)
 public class AnimationsRegistry
 {
 
@@ -27,12 +27,10 @@ public class AnimationsRegistry
 	public static void registerAnimations(RegisterEvent event)
 	{
 		var reg = HammerAnimationsApi.animations();
-		if(event.getRegistryKey().equals(reg.getRegistryKey()))
+		if(event.getRegistry().equals(reg))
 			for(var e : TO_REGISTER.entrySet())
-				reg.register(e.getKey(), e.getValue());
+				event.register(HammerAnimationsApi.Keys.ANIMATION_CONTAINERS, e.getKey(), e::getValue);
 	}
-
-
 	
 	public static IAnimationContainer register(String path)
 	{

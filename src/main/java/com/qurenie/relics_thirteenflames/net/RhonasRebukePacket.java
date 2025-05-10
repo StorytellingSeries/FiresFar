@@ -17,8 +17,6 @@ import org.zeith.hammerlib.net.PacketContext;
 @MainThreaded
 public class RhonasRebukePacket implements IPacket {
 
-
-
     public RhonasRebukePacket(){
     }
 
@@ -37,7 +35,8 @@ public class RhonasRebukePacket implements IPacket {
     public void serverExecute(PacketContext ctx) {
         IPacket.super.serverExecute(ctx);
         ServerPlayer sender = ctx.getSender();
-        if(!(sender.getUseItem().getItem() instanceof ItemRonasShield shit)) return;
-        shit.rebuke(sender, sender.getUseItem());
+        var used = sender.getItemInHand(sender.getUsedItemHand());
+        if(!(used.getItem() instanceof ItemRonasShield shit)) return;
+        shit.rebuke(sender, used);
     }
 }

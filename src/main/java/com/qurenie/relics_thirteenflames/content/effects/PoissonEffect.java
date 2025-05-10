@@ -1,9 +1,9 @@
 package com.qurenie.relics_thirteenflames.content.effects;
 
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.LivingEntity;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
@@ -15,16 +15,16 @@ public class PoissonEffect extends MobEffect {
     }
 
     @Override
-    public void applyEffectTick(LivingEntity pLivingEntity, int pAmplifier) {
+    public boolean applyEffectTick(@NotNull LivingEntity pLivingEntity, int pAmplifier) {
         super.applyEffectTick(pLivingEntity, pAmplifier);
         int invulTime = pLivingEntity.invulnerableTime;
         pLivingEntity.hurt(pLivingEntity.level().damageSources().magic(), 1.0f + pAmplifier * 0.2f);
         pLivingEntity.invulnerableTime = invulTime;
+        return true;
     }
-
+    
     @Override
-    public boolean isDurationEffectTick(int pDuration, int pAmplifier) {
-
+    public boolean shouldApplyEffectTickThisTick(int pDuration, int pAmplifier) {
         int j = 20 - pAmplifier * 3;
         if (j > 0) {
             return pDuration % j == 0;

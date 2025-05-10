@@ -8,6 +8,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import org.jetbrains.annotations.NotNull;
 
 public class LivingFleshRenderer
 		extends CommonRenderer<LivingFleshEntity>
@@ -26,15 +27,14 @@ public class LivingFleshRenderer
 	}
 	
 	@Override
-	protected void renderNameTag(LivingFleshEntity pEntity, Component pDisplayName, PoseStack pMatrixStack, MultiBufferSource pBuffer, int pPackedLight)
-	{
+	protected void renderNameTag(LivingFleshEntity p_114498_, Component p_114499_, PoseStack p_114500_, MultiBufferSource p_114501_, int p_114502_, float p_316698_) {
 	}
 	
 	@Override
-	protected void setupRotations(LivingFleshEntity pEntityLiving, PoseStack pMatrixStack, float pAgeInTicks, float pRotationYaw, float pPartialTicks)
-	{
+	protected void setupRotations(@NotNull LivingFleshEntity pEntityLiving, @NotNull PoseStack pMatrixStack, float pAgeInTicks, float pRotationYaw, float pPartialTicks, float p_320045_) {
 		float sc = getScale(pEntityLiving);
 		pMatrixStack.scale(sc, sc, sc);
-		super.setupRotations(pEntityLiving, pMatrixStack, pAgeInTicks, pRotationYaw, pPartialTicks);
+		super.setupRotations(pEntityLiving, pMatrixStack, pAgeInTicks, pRotationYaw, pPartialTicks, p_320045_);
 	}
+
 }

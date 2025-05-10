@@ -50,14 +50,12 @@ public class SimpleBedrockModel<T extends Entity & IAnimatedEntity>
 	}
 	
 	@Override
-	public void renderToBuffer(PoseStack matrixStackIn, VertexConsumer bufferIn, int packedLightIn, int packedOverlayIn, float red, float green, float blue, float alpha)
-	{
+	public void renderToBuffer(PoseStack matrixStackIn, VertexConsumer bufferIn, int packedLightIn, int packedOverlayIn, int color) {
 		renderData.apply(matrixStackIn, bufferIn, packedLightIn, packedOverlayIn);
-		renderData.red = red;
-		renderData.green = green;
-		renderData.blue = blue;
+		renderData.applyColor(color);
 		model.renderModel(renderData);
 	}
+	
 	
 	public IRenderableBone getRoot()
 	{

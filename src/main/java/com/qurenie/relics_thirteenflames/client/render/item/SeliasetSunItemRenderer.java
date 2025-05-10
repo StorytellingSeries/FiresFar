@@ -74,7 +74,7 @@ public class SeliasetSunItemRenderer
 		bodySize.set(0);
 		outerSize.set(0);
 		model.renderToBuffer(pose, pBuffer.getBuffer(RenderType.entitySolid(TEXTURE)),
-				pPackedLight, OverlayTexture.NO_OVERLAY, 1, 1, 1, 1
+				pPackedLight, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF
 		);
 		bodySize.set(tmp1);
 		outerSize.set(tmp2);
@@ -82,11 +82,11 @@ public class SeliasetSunItemRenderer
 		// Then render translucent parts
 		
 		model.renderToBuffer(pose, pBuffer.getBuffer(RenderType.entityTranslucent(TEXTURE)),
-				pPackedLight, OverlayTexture.NO_OVERLAY, 1, 1, 1, 1
+				pPackedLight, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF
 		);
 		
 		model.renderToBuffer(pose, pBuffer.getBuffer(RenderType.entityTranslucentEmissive(TEXTURE_EMISSIVE)),
-				pPackedLight, OverlayTexture.NO_OVERLAY, 1, 1, 1, 1
+				pPackedLight, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF
 		);
 		
 		pose.popPose();

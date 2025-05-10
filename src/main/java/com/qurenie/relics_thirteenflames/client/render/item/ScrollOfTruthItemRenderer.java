@@ -15,6 +15,8 @@ import org.zeith.hammerlib.client.render.TintingVertexConsumer;
 
 import java.awt.*;
 
+import static com.qurenie.relics_thirteenflames.init.ComponentRegistry.SCROLL_COLOR_MODE;
+
 public class ScrollOfTruthItemRenderer
 		extends ZeithTechISTER
 {
@@ -33,12 +35,7 @@ public class ScrollOfTruthItemRenderer
 		var isterModel = ir.getModel(stack, mc.level, mc.player, 0);
 		var overrides = isterModel.getOverrides().getOverrides();
 
-		boolean hasColor = stack.getTag() != null && stack.getTag().contains("scrollColorMode");
-		Color color;
-		if (hasColor) {
-			ScrollColorMode mode = ScrollColorMode.fromTag(stack.getOrCreateTag());
-			color = mode.color;
-		} else color = ScrollColorMode.RED.color;
+		Color color = stack.getOrDefault(SCROLL_COLOR_MODE, ScrollColorMode.RED).color;
 
 		int lightmap = 15728880;
 

@@ -17,11 +17,12 @@ import java.util.Objects;
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin {
 
-    @Shadow
+    @Shadow(remap = false)
     private DamageSource lastDamageSource;
-    @Shadow
+    @Shadow(remap = false)
     private long lastDamageStamp;
-    @Inject(method = "hurt", at = @At(value = "HEAD"), cancellable = true)
+    
+    @Inject(method = "hurt", at = @At(value = "HEAD"), remap = false)
     public void hurt(DamageSource pSource, float pAmount, CallbackInfoReturnable<Boolean> cir) {
         if(Objects.equals(pSource, DamageSourceRegistry.SUCC)){
             this.lastDamageSource = DamageSourceRegistry.SUCC;
@@ -38,7 +39,7 @@ public abstract class LivingEntityMixin {
         }
     }
 
-    @Inject(method = "getHurtSound", at = @At(value = "HEAD"), cancellable = true)
+    @Inject(method = "getHurtSound", at = @At(value = "HEAD"), cancellable = true, remap = false)
     public void getHurtSound(DamageSource pSource, CallbackInfoReturnable<SoundSource> cir) {
         if(Objects.equals(pSource, DamageSourceRegistry.SUCC)){
             cir.setReturnValue(null);

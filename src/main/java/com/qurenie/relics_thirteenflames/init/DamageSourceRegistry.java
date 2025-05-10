@@ -8,24 +8,25 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageType;
-import net.minecraftforge.event.server.ServerStartedEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.server.ServerStartedEvent;
 
-@Mod.EventBusSubscriber(modid = ThirteenFlames.MODID,bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber
 public class DamageSourceRegistry {
-
-    public static final ResourceKey<DamageType> SUCC_TYPE = ResourceKey.create(Registries.DAMAGE_TYPE, new ResourceLocation(ThirteenFlames.MODID,"succ"));
+    
+    public static final ResourceKey<DamageType> SUCC_TYPE = ResourceKey.create(Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath(ThirteenFlames.MODID, "succ"));
     public static DamageSource SUCC;
-
+    
     @SubscribeEvent
-    public static void initiateDamageSources(ServerStartedEvent event){
+    public static void initiateDamageSources(ServerStartedEvent event) {
         initializeDamageSources(event.getServer().registryAccess());
     }
-    public static void initializeDamageSources(RegistryAccess access){
+    
+    public static void initializeDamageSources(RegistryAccess access) {
         Registry<DamageType> types = access.registryOrThrow(Registries.DAMAGE_TYPE);
         SUCC = new DamageSource(types.getHolderOrThrow(SUCC_TYPE));
-
+        
     }
-
+    
 }

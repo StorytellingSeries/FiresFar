@@ -1,0 +1,44 @@
+modLoader = "javafml" #mandatory
+loaderVersion = "[1,)" #mandatory This is typically bumped every Minecraft version by Forge. See our download page for lists of versions.
+license = "All rights reserved"
+
+[[mixins]]
+config = "relics_thirteenflames.mixins.json"
+
+[[mods]] #mandatory
+# The modid of the mod
+modId = "relics_thirteenflames" #mandatory
+enumExtensions="enumextensions.json"
+version = "0.1.7.5" #mandatory
+displayName = "Relics: Thirteen Flames" #mandatory
+logoFile = "examplemod.png" #optional
+#credits="Thanks for this example mod goes to Java" #optional
+authors = "Storytelling Team" #optional
+description = '''
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed mollis lacinia magna. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Sed sagittis luctus odio eu tempus. Interdum et malesuada fames ac ante ipsum primis in faucibus. Pellentesque volutpat ligula eget lacus auctor sagittis. In hac habitasse platea dictumst. Nunc gravida elit vitae sem vehicula efficitur. Donec mattis ipsum et arcu lobortis, eleifend sagittis sem rutrum. Cras pharetra quam eget posuere fermentum. Sed id tincidunt justo. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+'''
+
+# A dependency - use the . to indicate dependency for a specific modid. Dependencies are optional.
+[[dependencies.relics_thirteenflames]]
+modId = "neoforge"
+type="required"
+versionRange = "[21.1.147,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.relics_thirteenflames]] #optional
+modId = "relics" #mandatory
+mandatory = true #mandatory
+versionRange = "[0.7.1,)" #mandatory
+type="required"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.relics_thirteenflames]]
+modId = "minecraft"
+mandatory = true
+type = "required"
+# This version range declares a minimum of the current minecraft version up to but not including the next major version
+versionRange = "[1.21, 1.22)"
+ordering = "NONE"
+side = "BOTH"

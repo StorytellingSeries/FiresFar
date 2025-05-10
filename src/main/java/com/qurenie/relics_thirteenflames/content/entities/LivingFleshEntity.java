@@ -2,14 +2,11 @@ package com.qurenie.relics_thirteenflames.content.entities;
 
 import com.qurenie.relics_thirteenflames.client.AnimationsRegistry;
 import com.qurenie.relics_thirteenflames.content.items.ItemKnefRose;
-import com.qurenie.relics_thirteenflames.init.EntityDataSerializersTF;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import it.hurts.sskirillss.relics.items.relics.base.IRelicItem;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -24,15 +21,17 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
 import org.zeith.hammeranims.api.animsys.ConfiguredAnimation;
 import org.zeith.hammerlib.HammerLib;
 import org.zeith.hammerlib.util.java.Cast;
 
 import java.awt.*;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Objects;
 import java.util.UUID;
+
+import static com.qurenie.relics_thirteenflames.init.EntityDataSerializers.ROSE_STATS;
 
 
 public class LivingFleshEntity
@@ -41,7 +40,8 @@ public class LivingFleshEntity
 	private static final EntityDataAccessor<Float> DATA_SCALE = SynchedEntityData.defineId(LivingFleshEntity.class, EntityDataSerializers.FLOAT);
 
 	private static final EntityDataAccessor<String> OWNER_UUID = SynchedEntityData.defineId(LivingFleshEntity.class, EntityDataSerializers.STRING);
-	private static final EntityDataAccessor<ItemKnefRose.RoseStats> DATA_STATS = SynchedEntityData.defineId(LivingFleshEntity.class, EntityDataSerializersTF.KNEF_ROSE_STATS);
+	
+	private static final EntityDataAccessor<ItemKnefRose.RoseStats> DATA_STATS = SynchedEntityData.defineId(LivingFleshEntity.class, ROSE_STATS.get());
 
 	public String getOwnerUUID() {
 		return this.getEntityData().get(OWNER_UUID);
@@ -63,7 +63,7 @@ public class LivingFleshEntity
 	public boolean isAttacking()
 	{
 		var target = getTarget();
-		return target != null && !target.isDeadOrDying() && target.isAddedToWorld();
+		return target != null && !target.isDeadOrDying() && target.isAddedToLevel();
 	}
 	
 	public int attackCd;
@@ -76,14 +76,14 @@ public class LivingFleshEntity
 	}
 	
 	@Override
-	public boolean hurt(DamageSource pSource, float pAmount)
+	public boolean hurt(@NotNull DamageSource pSource, float pAmount)
 	{
 		pAmount = Math.min(4F, pAmount);
 		return super.hurt(pSource, pAmount);
 	}
 	
 	@Override
-	protected void actuallyHurt(DamageSource pDamageSource, float pDamageAmount)
+	protected void actuallyHurt(@NotNull DamageSource pDamageSource, float pDamageAmount)
 	{
 		pDamageAmount = Math.min(4F, pDamageAmount);
 		super.actuallyHurt(pDamageSource, pDamageAmount);
@@ -127,7 +127,7 @@ public class LivingFleshEntity
 					attackCd = 20;
 					target.hurt(this.level().damageSources().mobAttack(this), getDamage());
 					if(getStats().rose.getItem() instanceof IRelicItem relic) {
-						relic.spreadExperience(this.level().getPlayerByUUID(UUID.fromString(getOwnerUUID())), getStats().rose, 1);
+						relic.spreadRelicExperience(this.level().getPlayerByUUID(UUID.fromString(getOwnerUUID())), getStats().rose, 1);
 					}
 				}
 			}
@@ -166,7 +166,7 @@ public class LivingFleshEntity
 		).normalize().scale(0.01));
 		ent.setOwnerUUID(this.getOwnerUUID());
 		if(getStats().rose.getItem() instanceof IRelicItem relic) {
-			relic.spreadExperience(this.level().getPlayerByUUID(UUID.fromString(getOwnerUUID())), getStats().rose, 1);
+			relic.spreadRelicExperience(this.level().getPlayerByUUID(UUID.fromString(getOwnerUUID())), getStats().rose, 1);
 		}
 		return ent;
 	}
@@ -174,7 +174,7 @@ public class LivingFleshEntity
 	protected boolean hasSplit;
 
 	@Override
-	public void die(DamageSource pDamageSource)
+	public void die(@NotNull DamageSource pDamageSource)
 	{
 		super.die(pDamageSource);
 		
@@ -190,7 +190,7 @@ public class LivingFleshEntity
 				int splits = stats.generateSplits(random);
 				for(int i = 0; i < splits; i++)
 				{
-					var splitStats = stats.split(random);
+					var splitStats = stats.split();
 					float splitScale = getScale() * splitStats.splitScale / 100F;
 					
 					var ent = createSplit()
@@ -207,7 +207,7 @@ public class LivingFleshEntity
 		cloud.setPos(this.getBoundingBox().getCenter());
 		try {
 			cloud.setOwner(this.level().getPlayerByUUID(UUID.fromString(getOwnerUUID())));
-		} catch (IllegalArgumentException e) {}
+		} catch (IllegalArgumentException ignored) {}
 		ParticleHelper.spawnEnginedParticles(this.level(), ParticleTypes.CLOUD, this.getBoundingBox().getCenter(), 60, getScale() / 2, getScale() / 2, getScale() / 2, 0.05, 0.6f, 20, new Color(10, 10, 10), 0.8f);
 		this.level().addFreshEntity(cloud);
 	}
@@ -254,12 +254,12 @@ public class LivingFleshEntity
 	}
 	
 	@Override
-	protected void defineSynchedData()
-	{
-		super.defineSynchedData();
-		this.entityData.define(DATA_SCALE, 1F);
-		this.entityData.define(DATA_STATS, new ItemKnefRose.RoseStats(ItemStack.EMPTY));
-		this.entityData.define(OWNER_UUID, "");
+	protected void defineSynchedData(SynchedEntityData.@NotNull Builder builder) {
+		super.defineSynchedData(builder);
+		
+		builder.define(DATA_SCALE, 1F);
+		builder.define(DATA_STATS, new ItemKnefRose.RoseStats(ItemStack.EMPTY));
+		builder.define(OWNER_UUID, "");
 	}
 	
 	@Override
@@ -303,7 +303,7 @@ public class LivingFleshEntity
 	public void addAdditionalSaveData(CompoundTag pCompound)
 	{
 		pCompound.putFloat("Scale", getScale());
-		pCompound.put("Stats", getStats().serializeNBT());
+		pCompound.put("Stats", getStats().serializeNBT(registryAccess()));
 		pCompound.putString("OwnerUUID", getOwnerUUID());
 		super.addAdditionalSaveData(pCompound);
 	}
@@ -312,7 +312,7 @@ public class LivingFleshEntity
 	public void readAdditionalSaveData(CompoundTag pCompound)
 	{
 		setScale(pCompound.getFloat("Scale"));
-		setStats(new ItemKnefRose.RoseStats(pCompound.getCompound("Stats")));
+		setStats(new ItemKnefRose.RoseStats(this.registryAccess(), pCompound.getCompound("Stats")));
 		setOwnerUUID(pCompound.getString("OwnerUUID"));
 		super.readAdditionalSaveData(pCompound);
 	}

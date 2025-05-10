@@ -103,9 +103,9 @@ public class DeathlyFartCloudEntity extends Projectile {
     }
 
     @Override
-    protected void defineSynchedData() {
-        this.entityData.define(RADIUS, 5F);
-        this.entityData.define(LIFETIME, 20);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(RADIUS, 5F);
+        builder.define(LIFETIME, 20);
     }
 
     @Override

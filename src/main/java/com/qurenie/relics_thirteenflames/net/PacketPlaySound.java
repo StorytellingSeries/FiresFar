@@ -1,13 +1,13 @@
 package com.qurenie.relics_thirteenflames.net;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.apache.commons.lang3.Validate;
 import org.zeith.hammerlib.net.IPacket;
 import org.zeith.hammerlib.net.MainThreaded;
@@ -51,7 +51,7 @@ public class PacketPlaySound
     public void read(FriendlyByteBuf buf)
     {
         this.pos = new Vec3(buf.readDouble(), buf.readDouble(), buf.readDouble());
-        this.sound = ForgeRegistries.SOUND_EVENTS.getValue(buf.readResourceLocation());
+        this.sound = BuiltInRegistries.SOUND_EVENT.get(buf.readResourceLocation());
         this.source = buf.readEnum(SoundSource.class);
         this.volume = buf.readFloat();
         this.pitch = buf.readFloat();

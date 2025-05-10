@@ -1,10 +1,10 @@
 {
 	"render_type": "translucent",
-	"parent": "forge:item/default",
+	"parent": "neoforge:item/default",
 	"textures": {
 		"particle": "relics_thirteenflames:item/seliaset_sun/base.png"
 	},
-	"loader": "forge:separate_transforms",
+	"loader": "neoforge:separate_transforms",
 	"base": {
 		"parent": "relics_thirteenflames:item/seliaset_sun_3d"
 	},

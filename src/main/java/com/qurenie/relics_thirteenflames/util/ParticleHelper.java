@@ -10,8 +10,8 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.zeith.hammerlib.net.Network;
 
 import java.awt.*;
@@ -71,7 +71,7 @@ public class ParticleHelper {
                 double d0 = maxSpeed * dx;
                 double d2 = maxSpeed * dy;
                 double d4 = maxSpeed * dz;
-                level.addParticle(options, true, x, y, z, d0, d2, d4);
+                level.addParticle(options, x, y, z, d0, d2, d4);
             } else {
                 for (int i = 0; i < count; ++i) {
                     double d1 = level.random.nextGaussian() * dx;
@@ -80,7 +80,7 @@ public class ParticleHelper {
                     double d6 = level.random.nextGaussian() * maxSpeed;
                     double d7 = level.random.nextGaussian() * maxSpeed;
                     double d8 = level.random.nextGaussian() * maxSpeed;
-                    level.addParticle(options, true, x + d1, y + d3, z + d5, d6, d7, d8);
+                    level.addParticle(options, x + d1, y + d3, z + d5, d6, d7, d8);
                 }
             }
         else for (int i = 0; i < count; ++i) {

@@ -15,11 +15,13 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.ThrowableProjectile;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.*;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 
 import java.awt.*;
 
@@ -98,7 +100,7 @@ public class KnefRaindrop extends ThrowableProjectile
         if(pResult.getEntity() instanceof LivingEntity living) {
             if (this.getOwner() != null && pResult.getEntity().equals(this.getOwner())) {
                 living.heal(living.getMaxHealth() * getHeal());
-                if(getBow().getItem() instanceof IRelicItem relic) relic.spreadExperience(living, getBow(), Math.round(Math.min(living.getMaxHealth() * getHeal(), living.getMaxHealth() - living.getHealth())));
+                if(getBow().getItem() instanceof IRelicItem relic) relic.spreadRelicExperience(living, getBow(), Math.round(Math.min(living.getMaxHealth() * getHeal(), living.getMaxHealth() - living.getHealth())));
             } else {
                 pResult.getEntity().hurt(level().damageSources().thrown(this, this.getOwner()), getDmg());
                 pResult.getEntity().invulnerableTime = 0;
@@ -149,9 +151,8 @@ public class KnefRaindrop extends ThrowableProjectile
     }
 
     @Override
-    protected void defineSynchedData() {
-
-        this.entityData.define(BASE_DMG, 2);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(BASE_DMG, 2);
     }
 
     @Override

@@ -1,11 +1,11 @@
 {
-  "type": "relics:relic_gen",
+  "type": "relics:relic_loot",
   "conditions": [
     {
       "condition": "minecraft:alternative",
       "terms": [
         {
-          "condition": "forge:loot_table_id",
+          "condition": "neoforge:loot_table_id",
           "loot_table_id": "minecraft:chests/jungle_temple"
         }
       ]

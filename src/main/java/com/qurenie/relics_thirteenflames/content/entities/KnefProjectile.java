@@ -1,6 +1,5 @@
 package com.qurenie.relics_thirteenflames.content.entities;
 
-import com.qurenie.relics_thirteenflames.client.particles.CircleTintData;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
 import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
@@ -24,8 +23,9 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -131,13 +131,13 @@ public class KnefProjectile extends ThrowableProjectile
 
         if(level().isClientSide) {
             double distance = this.position().subtract(prevPos == null ? this.position() : prevPos).length();
-            ParticleHelper.spawnParticleLine(this.level(), ParticleUtils.constructSimpleSpark(color, 0.1f, 35, 0.89f),
-                    prevPos, this.position(), (int) Math.round(distance * getParticleCount()), 0.001);
+            ParticleHelper.spawnParticleLine(this.level(), ParticleUtils.constructSimpleSpark(color, 0.24f, 25, 0.75f),
+                    prevPos, this.position(), (int) Math.round(distance * getParticleCount() / 3), 0.003);
         }
 
         if(isFree()){
             if(this.target != null && target.hasLineOfSight(this) && this.target.isAlive()){
-                this.setDeltaMovement(getDeltaMovement().add(target.getBoundingBox().getCenter().subtract(this.position()).normalize().scale(0.1f)));
+                this.setDeltaMovement(getDeltaMovement().add(target.getBoundingBox().getCenter().subtract(new Vec3(0, 0.2, 0)).subtract(this.position()).normalize().scale(0.2f)));
             } else if(target == null || !target.isAlive()){
                 List<LivingEntity> targets = new ArrayList<>(this.level().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(7), e -> !(e.getStringUUID().equals(this.getOwnerUUID())) && e.hasLineOfSight(this)));
                 if(!targets.isEmpty()) this.target = targets.get(rng.nextInt(targets.size()));
@@ -158,13 +158,13 @@ public class KnefProjectile extends ThrowableProjectile
 
             if(result.getEntity().hurt(this.damageSources().thrown(this, owner), getBaseDmg() + getPowerEnch() / 2f)) {
 
-                ParticleHelper.spawnParticles(this.level(), new CircleTintData(colors[rng.nextInt(colors.length)], 0.1f, 0, 11, 0.5f, false),
+                ParticleHelper.spawnParticles(this.level(), ParticleUtils.constructSimpleSpark(colors[rng.nextInt(colors.length)], 0.1f, 11, 0.5f),
                         this.getPosition(1), 10, 0, 0, 0, 0.08);
-                ParticleHelper.spawnParticles(this.level(), new CircleTintData(colors[rng.nextInt(colors.length)], 0.1f, 0, 11, 0.5f, false),
+                ParticleHelper.spawnParticles(this.level(), ParticleUtils.constructSimpleSpark(colors[rng.nextInt(colors.length)], 0.1f, 11, 0.5f),
                         this.getPosition(1), 10, 0, 0, 0, 0.08);
 
                 if(this.bow.getItem() instanceof IRelicItem relic && owner instanceof LivingEntity livin){
-                    relic.spreadExperience(livin, bow, 1);
+                    relic.spreadRelicExperience(livin, bow, 1);
                 }
 
                 result.getEntity().invulnerableTime = 0;
@@ -185,13 +185,13 @@ public class KnefProjectile extends ThrowableProjectile
                 ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
 
         if (!this.level().isClientSide()) {
-            ParticleHelper.spawnParticleLine(this.level(), ParticleUtils.constructSimpleSpark(color, 0.1f, 80, 0.9f),
+            ParticleHelper.spawnParticleLine(this.level(), ParticleUtils.constructSimpleSpark(color, 0.2f, 80, 0.9f),
                     this.position(), result.getLocation(), (int) Math.round(Math.sqrt(this.position().distanceToSqr(result.getLocation())) * 10), 0.001);
 
-            ParticleHelper.spawnParticles(this.level(), new CircleTintData(colors[rng.nextInt(colors.length)], 0.1f, 0, 11, 0.5f, false),
-                    result.getLocation().x(), result.getLocation().y(), result.getLocation().z(), 10, 0, 0, 0, 0.08);
-            ParticleHelper.spawnParticles(this.level(), new CircleTintData(colors[rng.nextInt(colors.length)], 0.1f, 0, 11, 0.5f, false),
-                    result.getLocation().x(), result.getLocation().y(), result.getLocation().z(), 10, 0, 0, 0, 0.08);
+            ParticleHelper.spawnParticles(this.level(), ParticleUtils.constructSimpleSpark(colors[rng.nextInt(colors.length)], 0.2f, 11, 0.5f),
+                    result.getLocation().x(), result.getLocation().y(), result.getLocation().z(), 3, 0, 0, 0, 0.08);
+            ParticleHelper.spawnParticles(this.level(), ParticleUtils.constructSimpleSpark(colors[rng.nextInt(colors.length)], 0.2f, 11, 0.5f),
+                    result.getLocation().x(), result.getLocation().y(), result.getLocation().z(), 3, 0, 0, 0, 0.08);
 
             Entity owner = ((ServerLevel) this.level()).getEntity(UUID.fromString(this.getOwnerUUID()));
             float vol = owner == null ? 10 : (float) (10 / owner.distanceToSqr(this.position()));
@@ -235,15 +235,14 @@ public class KnefProjectile extends ThrowableProjectile
     public void onLevelUnload(PlayerEvent.PlayerLoggedOutEvent event) {
         this.discard();
     }
-
+    
     @Override
-    protected void defineSynchedData() {
-
-        this.entityData.define(POWER_ENCH, 0);
-        this.entityData.define(BASE_DMG, 2f);
-        this.entityData.define(PARTICLE_COUNT, 12);
-        this.entityData.define(FREE, false);
-        this.entityData.define(OWNER_UUID, "");
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(POWER_ENCH, 0);
+        builder.define(BASE_DMG, 2f);
+        builder.define(PARTICLE_COUNT, 12);
+        builder.define(FREE, false);
+        builder.define(OWNER_UUID, "");
     }
 
     @Override

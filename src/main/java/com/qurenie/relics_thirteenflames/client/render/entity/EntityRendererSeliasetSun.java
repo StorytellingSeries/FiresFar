@@ -74,14 +74,14 @@ public class EntityRendererSeliasetSun
 		bodySize.set(0);
 		outerSize.set(0);
 		this.model.renderToBuffer(pose, src.getBuffer(RenderType.entitySolid(altTexture ? BIG_TEXTURE_EMISSIVE : TEXTURE_EMISSIVE)),
-				light, OverlayTexture.NO_OVERLAY, 1, 1, 1, 1
+				light, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF
 		);
 		bodySize.set(tmp1);
 		outerSize.set(tmp2);
 		
 		// Then render translucent parts
 		this.model.renderToBuffer(pose, src.getBuffer(RenderType.entityTranslucent(altTexture ? BIG_TEXTURE : TEXTURE)),
-				light, OverlayTexture.NO_OVERLAY, 1, 1, 1, 1
+				light, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF
 		);
 		pose.popPose();
 		

@@ -8,6 +8,8 @@ import org.zeith.hammerlib.net.IPacket;
 import org.zeith.hammerlib.net.MainThreaded;
 import org.zeith.hammerlib.net.PacketContext;
 
+import static com.qurenie.relics_thirteenflames.init.ComponentRegistry.MONTU_AOE;
+
 @MainThreaded
 public class HammerAOEChangePacket implements IPacket {
 
@@ -39,14 +41,14 @@ public class HammerAOEChangePacket implements IPacket {
         ServerPlayer sender = ctx.getSender();
         ItemStack item = sender.getMainHandItem();
         if (item.is(ItemsRegistry.MONTU_HAMMER)){
-            int aoe = item.getOrCreateTag().getInt("montuAOE");
+            int aoe = item.getComponents().getOrDefault(MONTU_AOE.get(), 0);
             int newAOE;
             if (aoe + delta >= 0) {
                 newAOE = (aoe + delta) % (maxAOE + 1);
             }else{
                 newAOE = maxAOE;
             }
-            item.getOrCreateTag().putInt("montuAOE", newAOE);
+            item.set(MONTU_AOE.get(), newAOE);
         }
     }
 }

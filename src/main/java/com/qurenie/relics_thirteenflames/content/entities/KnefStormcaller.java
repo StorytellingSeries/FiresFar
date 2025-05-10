@@ -22,8 +22,10 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -167,17 +169,17 @@ public class KnefStormcaller extends ThrowableProjectile
                 if(owner != null) {
                     KnefStormEntity storm = new KnefStormEntity(EntityRegistry.KNEF_STORM, this.level());
                     storm.setPos(this.getPosition(1F));
-                    storm.setRadius((float) relic.getAbilityValue(getBow(), "storm", "radius"));
-                    storm.setLifeTime((int) (relic.getAbilityValue(getBow(), "storm", "dur") * 20));
+                    storm.setRadius((float) relic.getStatValue(getBow(), "storm", "radius"));
+                    storm.setLifeTime((int) (relic.getStatValue(getBow(), "storm", "dur") * 20));
                     storm.setOwner(owner);
                     storm.setOwnerUUID(owner.getStringUUID());
-                    storm.setFreq((int) Math.round(4 - relic.getAbilityPoints(getBow(), "storm") * 0.6));
+                    storm.setFreq((int) Math.round(4 - relic.getAbilityLevel(getBow(), "storm") * 0.6));
                     storm.setBow(getBow());
-                    storm.setDmg((float) relic.getAbilityValue(getBow(), "storm", "dmg") + getBow().getEnchantmentLevel(Enchantments.POWER_ARROWS) / 2.5f);
-                    storm.setHeal((float) relic.getAbilityValue(getBow(), "storm", "heal") / 100);
+                    storm.setDmg((float) relic.getStatValue(getBow(), "storm", "dmg") + getBow().getEnchantmentLevel(level().holderOrThrow(Enchantments.POWER)) / 2.5f);
+                    storm.setHeal((float) relic.getStatValue(getBow(), "storm", "heal") / 100);
                     this.level().addFreshEntity(storm);
                     this.level().playSound(null, owner,
-                            relic.getAbilityValue(getBow(), "storm", "radius") > 5 ? SoundsRegistry.KNEF_BOW_STORM.get() : SoundsRegistry.KNEF_BOW_STORM_SHORT.get(),
+                            relic.getStatValue(getBow(), "storm", "radius") > 5 ? SoundsRegistry.KNEF_BOW_STORM.get() : SoundsRegistry.KNEF_BOW_STORM_SHORT.get(),
                             SoundSource.PLAYERS, random.nextFloat() * 0.6f + 1f, random.nextFloat() * 0.2f + 0.8f);
                 }
             }
@@ -201,8 +203,8 @@ public class KnefStormcaller extends ThrowableProjectile
                 discharge.setOwner(owner);
                 discharge.setOwnerUUID(this.getOwnerUUID());
                 discharge.shotPos = pos;
-                discharge.setRadius((float) (relic.getAbilityValue(getBow(), "storm", "radius") * 0.8f));
-                discharge.setDmg((float) (relic.getAbilityValue(getBow(), "storm", "dmg") + getBow().getEnchantmentLevel(Enchantments.POWER_ARROWS) / 2.5f) * 6);
+                discharge.setRadius((float) (relic.getStatValue(getBow(), "storm", "radius") * 0.8f));
+                discharge.setDmg((float) (relic.getStatValue(getBow(), "storm", "dmg") + getBow().getEnchantmentLevel(level().holderOrThrow(Enchantments.POWER)) / 2.5f) * 6);
                 discharge.shootFromRotation(this, 0, -90, 0.0f, 0.0f, 0);
                 this.level().addFreshEntity(discharge);
             }
@@ -210,16 +212,16 @@ public class KnefStormcaller extends ThrowableProjectile
 
         this.discard();
     }
-
+    
     @Override
-    public void onRemovedFromWorld() {
+    public void onRemovedFromLevel() {
         for(Entity e : rays) e.discard();
         rays.clear();
-        super.onRemovedFromWorld();
+        super.onRemovedFromLevel();
     }
 
     @Override
-    protected void onHitEntity(EntityHitResult result) {
+    protected void onHitEntity(@NotNull EntityHitResult result) {
         if(!this.level().isClientSide()) {
             Entity owner = ((ServerLevel) this.level()).getEntity(UUID.fromString(this.getOwnerUUID()));
             if (owner != null && this.getBow().getItem() instanceof IRelicItem relic) {
@@ -230,8 +232,8 @@ public class KnefStormcaller extends ThrowableProjectile
                 discharge.setOwner(owner);
                 discharge.setOwnerUUID(this.getOwnerUUID());
                 discharge.shotPos = pos;
-                discharge.setRadius((float) (relic.getAbilityValue(getBow(), "storm", "radius") * 0.8f));
-                discharge.setDmg((float) (relic.getAbilityValue(getBow(), "storm", "dmg") + getBow().getEnchantmentLevel(Enchantments.POWER_ARROWS) / 2.5f) * 6);
+                discharge.setRadius((float) (relic.getStatValue(getBow(), "storm", "radius") * 0.8f));
+                discharge.setDmg((float) (relic.getStatValue(getBow(), "storm", "dmg") + getBow().getEnchantmentLevel(level().holderOrThrow(Enchantments.POWER)) / 2.5f) * 6);
                 discharge.shootFromRotation(this, 0, -90, 0.0f, 0.0f, 0);
                 this.level().addFreshEntity(discharge);
             }
@@ -253,22 +255,22 @@ public class KnefStormcaller extends ThrowableProjectile
 
 
     @Override
-    protected void defineSynchedData() {
-        this.entityData.define(BOW, ItemStack.EMPTY);
-        this.entityData.define(OWNER_UUID, "owneruuid");
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(BOW, ItemStack.EMPTY);
+        builder.define(OWNER_UUID, "owneruuid");
     }
 
     @Override
     protected void readAdditionalSaveData(CompoundTag compound) {
         super.readAdditionalSaveData(compound);
-        setBow(ItemStack.of(compound.getCompound("bow")));
+        setBow(ItemStack.parse(registryAccess(), compound.getCompound("bow")).get());
         setOwnerUUID(compound.getString("owneruuid"));
     }
 
     @Override
     protected void addAdditionalSaveData(CompoundTag compound) {
         super.addAdditionalSaveData(compound);
-        compound.put("bow", getBow().save(new CompoundTag()));
+        compound.put("bow", getBow().save(registryAccess(), new CompoundTag()));
         compound.putString("owneruuid", getOwnerUUID());
     }
 

@@ -3,6 +3,7 @@ package com.qurenie.relics_thirteenflames.client.render.item;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
+import it.hurts.sskirillss.relics.items.relics.SpaceDissectorItem;
 import it.hurts.sskirillss.relics.utils.NBTUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -12,6 +13,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
+
+import static com.qurenie.relics_thirteenflames.init.ComponentRegistry.BLOCKED;
+import static com.qurenie.relics_thirteenflames.init.ComponentRegistry.RHONAS_CHARGES;
 
 public class RonasShieldItemRenderer
         extends ZeithTechISTER {
@@ -25,13 +29,10 @@ public class RonasShieldItemRenderer
         var mc = Minecraft.getInstance();
         var ir = mc.getItemRenderer();
 
-
-
         var isterModel = ir.getModel(stack, mc.level, mc.player, 0);
         var overrides = isterModel.getOverrides().getOverrides();
-
-        boolean blocking = NBTUtils.getBoolean(stack, "blocking", false);
-
+        
+        boolean blocking = stack.getOrDefault(BLOCKED, false);
         if(mc.player != null && blocking) {
             if (transformType == ItemDisplayContext.THIRD_PERSON_LEFT_HAND) {
                 pose.translate(1.15, 0.5, 0);
@@ -61,7 +62,7 @@ public class RonasShieldItemRenderer
 
         int lightmap = 16711935;
 
-        int charges = NBTUtils.getInt(stack, "charges", 0);
+        int charges = stack.getOrDefault(RHONAS_CHARGES, 0);
 
         pose.pushPose();
         renderOverrride(overrides.get(7 - charges), transformType, pose, stack, bufferSource, RenderType.cutout(), uv2, overlay);

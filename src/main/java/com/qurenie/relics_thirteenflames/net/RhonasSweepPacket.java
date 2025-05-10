@@ -5,6 +5,7 @@ import com.qurenie.relics_thirteenflames.content.items.ItemRonasSword;
 import com.qurenie.relics_thirteenflames.init.EffectsRegistry;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -23,15 +24,15 @@ public class RhonasSweepPacket implements IPacket {
 
 
     @Override
-    public void write(FriendlyByteBuf buf) {
+    public void write(RegistryFriendlyByteBuf buf) {
         IPacket.super.write(buf);
-        buf.writeItem(sword);
+        ItemStack.STREAM_CODEC.encode(buf, sword);
     }
 
     @Override
-    public void read(FriendlyByteBuf buf) {
+    public void read(RegistryFriendlyByteBuf buf) {
         IPacket.super.read(buf);
-        this.sword = buf.readItem();
+        this.sword = ItemStack.STREAM_CODEC.decode(buf);
     }
 
     @Override

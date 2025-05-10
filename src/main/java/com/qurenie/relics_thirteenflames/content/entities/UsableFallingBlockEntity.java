@@ -54,12 +54,12 @@ public class UsableFallingBlockEntity extends Entity {
     private static final EntityDataAccessor<BlockState> BLOCK_STATE = SynchedEntityData.defineId(UsableFallingBlockEntity.class, EntityDataSerializers.BLOCK_STATE);
 
     public void setBlockState(@Nullable BlockState state) {
-        this.entityData.set(BLOCK_STATE, state);
+        entityData.set(BLOCK_STATE, state);
     }
 
     @Nullable
     public BlockState getBlockState() {
-        return this.entityData.get(BLOCK_STATE);
+        return entityData.get(BLOCK_STATE);
     }
 
     protected static final EntityDataAccessor<BlockPos> DATA_START_POS = SynchedEntityData.defineId(UsableFallingBlockEntity.class, EntityDataSerializers.BLOCK_POS);
@@ -106,11 +106,11 @@ public class UsableFallingBlockEntity extends Entity {
     }
 
     public void setStartPos(BlockPos pStartPos) {
-        this.entityData.set(DATA_START_POS, pStartPos);
+        entityData.set(DATA_START_POS, pStartPos);
     }
 
     public BlockPos getStartPos() {
-        return this.entityData.get(DATA_START_POS);
+        return entityData.get(DATA_START_POS);
     }
 
     @Override
@@ -119,10 +119,10 @@ public class UsableFallingBlockEntity extends Entity {
     }
 
     @Override
-    protected void defineSynchedData() {
-        this.entityData.define(DATA_START_POS, BlockPos.ZERO);
-        this.entityData.define(LIFETIME, 600);
-        this.entityData.define(BLOCK_STATE, Blocks.AIR.defaultBlockState());
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(DATA_START_POS, BlockPos.ZERO);
+        builder.define(LIFETIME, 600);
+        builder.define(BLOCK_STATE, Blocks.AIR.defaultBlockState());
     }
 
     /**
@@ -151,7 +151,7 @@ public class UsableFallingBlockEntity extends Entity {
 
             this.move(MoverType.SELF, this.getDeltaMovement());
             if (!this.level().isClientSide) {
-//                if(random.nextBoolean()) ParticleHelper.spawnParticleEntity(new CircleTintData(new Color(85, 255, 0),
+//                if(random.nextBoolean()) ParticleHelper.spawnParticleEntity(ParticleUtils.constructSimpleSpark(new Color(85, 255, 0),
 //                        0.1f,40, 0.91F, false), this, 1, 0.02);
                 BlockPos blockpos = this.blockPosition();
                 double d0 = this.getDeltaMovement().lengthSqr();

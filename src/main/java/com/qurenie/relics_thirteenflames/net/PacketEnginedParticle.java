@@ -5,11 +5,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.core.particles.ParticleOptions;
-import net.minecraft.core.particles.ParticleType;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.zeith.hammerlib.net.IPacket;
 import org.zeith.hammerlib.net.MainThreaded;
 import org.zeith.hammerlib.net.PacketContext;
@@ -51,9 +50,7 @@ public class PacketEnginedParticle implements IPacket {
     }
 
     @Override
-    public void write(FriendlyByteBuf buf) {
-        buf.writeId(BuiltInRegistries.PARTICLE_TYPE, options.getType());
-        options.writeToNetwork(buf);
+    public void write(RegistryFriendlyByteBuf buf) {
         buf.writeDouble(spawnX);
         buf.writeDouble(spawnY);
         buf.writeDouble(spawnZ);
@@ -66,12 +63,11 @@ public class PacketEnginedParticle implements IPacket {
         buf.writeFloat(g);
         buf.writeFloat(b);
         buf.writeFloat(alpha);
+        ParticleTypes.STREAM_CODEC.encode(buf, this.options);
     }
 
     @Override
-    public void read(FriendlyByteBuf buf) {
-        ParticleType<?> particletype = buf.readById(BuiltInRegistries.PARTICLE_TYPE);
-        this.options = this.readParticle(buf, particletype);
+    public void read(RegistryFriendlyByteBuf buf) {
         this.spawnX = buf.readDouble();
         this.spawnY = buf.readDouble();
         this.spawnZ = buf.readDouble();
@@ -84,10 +80,7 @@ public class PacketEnginedParticle implements IPacket {
         this.g = buf.readFloat();
         this.b = buf.readFloat();
         this.alpha = buf.readFloat();
-    }
-
-    private <T extends ParticleOptions> T readParticle(FriendlyByteBuf pBuffer, ParticleType<T> pParticleType) {
-        return pParticleType.getDeserializer().fromNetwork(pParticleType, pBuffer);
+        this.options = ParticleTypes.STREAM_CODEC.decode(buf);
     }
 
     @Override

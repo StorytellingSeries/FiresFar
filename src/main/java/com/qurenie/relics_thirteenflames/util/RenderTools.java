@@ -7,7 +7,6 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 
 public class RenderTools {
@@ -16,41 +15,41 @@ public class RenderTools {
 
     public static void blitWithBlend(PoseStack matrices, float x, float y, float texPosX, float texPosY, float width, float height, float texWidth, float texHeight, float zOffset, float alpha) {
         RenderSystem.enableBlend();
-        RenderSystem.setShader(GameRenderer::getPositionColorTexShader);
-        BufferBuilder vertex = Tesselator.getInstance().getBuilder();
-        float u1 = texPosX / (float) texWidth;
-        float u2 = (texPosX + width) / (float) texWidth;
-        float v1 = texPosY / (float) texHeight;
-        float v2 = (texPosY + height) / (float) texHeight;
+        RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
+        Tesselator tesselator = Tesselator.getInstance();
+        float u1 = texPosX / texWidth;
+        float u2 = (texPosX + width) / texWidth;
+        float v1 = texPosY / texHeight;
+        float v2 = (texPosY + height) / texHeight;
         Matrix4f m = matrices.last().pose();
-        vertex.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR_TEX);
-        vertex.vertex(m, x, y, zOffset).color(1, 1, 1, alpha).uv(u1, v1).endVertex();
-        vertex.vertex(m, x, y + height, zOffset).color(1, 1, 1, alpha).uv(u1, v2).endVertex();
-        vertex.vertex(m, x + width, y + height, zOffset).color(1, 1, 1, alpha).uv(u2, v2).endVertex();
-        vertex.vertex(m, x + width, y, zOffset).color(1, 1, 1, alpha).uv(u2, v1).endVertex();
+        var builder = tesselator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR_NORMAL);
+        builder.addVertex(m, x, y, zOffset).setColor(1, 1, 1, alpha).setUv(u1, v1);
+        builder.addVertex(m, x, y + height, zOffset).setColor(1, 1, 1, alpha).setUv(u1, v2);
+        builder.addVertex(m, x + width, y + height, zOffset).setColor(1, 1, 1, alpha).setUv(u2, v2);
+        builder.addVertex(m, x + width, y, zOffset).setColor(1, 1, 1, alpha).setUv(u2, v1);
 
 
-        BufferUploader.drawWithShader(vertex.end());
+        BufferUploader.drawWithShader(builder.buildOrThrow());
         RenderSystem.disableBlend();
     }
 
     public static void blitWithBlend(PoseStack matrices, float x, float y, float texPosX, float texPosY, float width, float height, float texWidth, float texHeight, float zOffset, float r, float g, float b, float alpha) {
         RenderSystem.enableBlend();
-        RenderSystem.setShader(GameRenderer::getPositionColorTexShader);
-        BufferBuilder vertex = Tesselator.getInstance().getBuilder();
+        RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
+        Tesselator tesselator = Tesselator.getInstance();
         float u1 = texPosX / (float) texWidth;
         float u2 = (texPosX + width) / (float) texWidth;
         float v1 = texPosY / (float) texHeight;
         float v2 = (texPosY + height) / (float) texHeight;
         Matrix4f m = matrices.last().pose();
-        vertex.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR_TEX);
-        vertex.vertex(m, x, y, zOffset).color(r, g, b, alpha).uv(u1, v1).endVertex();
-        vertex.vertex(m, x, y + height, zOffset).color(r, g, b, alpha).uv(u1, v2).endVertex();
-        vertex.vertex(m, x + width, y + height, zOffset).color(r, g, b, alpha).uv(u2, v2).endVertex();
-        vertex.vertex(m, x + width, y, zOffset).color(r, g, b, alpha).uv(u2, v1).endVertex();
+        var buider = tesselator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
+        buider.addVertex(m, x, y, zOffset).setColor(r, g, b, alpha).setUv(u1, v1);
+        buider.addVertex(m, x, y + height, zOffset).setColor(r, g, b, alpha).setUv(u1, v2);
+        buider.addVertex(m, x + width, y + height, zOffset).setColor(r, g, b, alpha).setUv(u2, v2);
+        buider.addVertex(m, x + width, y, zOffset).setColor(r, g, b, alpha).setUv(u2, v1);
 
 
-        BufferUploader.drawWithShader(vertex.end());
+        BufferUploader.drawWithShader(buider.buildOrThrow());
         RenderSystem.disableBlend();
     }
 

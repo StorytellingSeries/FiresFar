@@ -6,6 +6,6 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(Particle.class)
 public interface ParticleAccessor {
-    @Accessor
+    @Accessor(remap = false)
     void setAlpha(float alpha);
 }

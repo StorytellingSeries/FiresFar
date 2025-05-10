@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class LivingEntityRendererMixin {
 
 
-    @Inject(method = "getOverlayCoords", at = @At(value = "HEAD"), cancellable = true)
+    @Inject(method = "getOverlayCoords", at = @At(value = "HEAD"), cancellable = true, remap = false)
     private static void getOverlayCoords(LivingEntity pLivingEntity, float pU, CallbackInfoReturnable<Integer> cir) {
         cir.setReturnValue(OverlayTexture.pack(OverlayTexture.u(pU), OverlayTexture.v((pLivingEntity.hurtTime > 0 || pLivingEntity.deathTime > 0) && pLivingEntity.getLastDamageSource() != DamageSourceRegistry.SUCC)));
         cir.cancel();

@@ -1,9 +1,9 @@
 {
-  "parent": "forge:item/default",
+  "parent": "neoforge:item/default",
   "base": {
     "parent": "relics_thirteenflames:item/ronas_sword_3d"
   },
-  "loader": "forge:separate_transforms",
+  "loader": "neoforge:separate_transforms",
   "perspectives": {
     "ground": {
       "parent": "relics_thirteenflames:item/ronas_sword_2d"

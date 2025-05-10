@@ -18,7 +18,7 @@ import java.util.Objects;
 public class GameRendererMixin {
 
 
-    @Inject(method = "bobHurt", at = @At(value = "HEAD"), cancellable = true)
+    @Inject(method = "bobHurt", at = @At(value = "HEAD"), cancellable = true, remap = false)
     public void bobHurt(PoseStack pMatrixStack, float pPartialTicks, CallbackInfo ci) {
         Player player = Minecraft.getInstance().player;
         if(player != null && Objects.equals(player.getLastDamageSource(), DamageSourceRegistry.SUCC)) ci.cancel();

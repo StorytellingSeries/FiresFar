@@ -1,15 +1,14 @@
 package com.qurenie.relics_thirteenflames.client.render.item;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
 import it.hurts.sskirillss.relics.utils.NBTUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.item.ItemProperties;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
+
+import static com.qurenie.relics_thirteenflames.init.ComponentRegistry.PULL;
 
 public class KnefBowItemRenderer
         extends ZeithTechISTER {
@@ -31,7 +30,7 @@ public class KnefBowItemRenderer
 
 
         int lightmap = 16711935;
-        float pull = NBTUtils.getFloat(stack, "pull", 0);
+        float pull = stack.getOrDefault(PULL, 0f);
 
         if (transformType == ItemDisplayContext.GUI || transformType == ItemDisplayContext.GROUND || transformType == ItemDisplayContext.FIXED) {
             if (pull < 0.1) {

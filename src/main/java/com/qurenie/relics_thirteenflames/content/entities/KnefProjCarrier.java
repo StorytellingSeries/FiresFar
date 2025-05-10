@@ -11,8 +11,9 @@ import net.minecraft.world.entity.projectile.ThrowableProjectile;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,8 +46,8 @@ public class KnefProjCarrier extends ThrowableProjectile
 
 
     @Override
-    protected void defineSynchedData() {
-        this.entityData.define(OWNER_UUID, "");
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(OWNER_UUID, "");
     }
 
     @Override

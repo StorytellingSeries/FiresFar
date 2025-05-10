@@ -9,10 +9,13 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.client.model.data.ModelData;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.neoforged.neoforge.client.model.data.ModelData;
 import org.zeith.hammerlib.client.render.tile.IBESR;
 
 public class TESRShaking
@@ -24,7 +27,18 @@ public class TESRShaking
     {
         this.dispatcher = Minecraft.getInstance().getBlockRenderer();
     }
-
+    
+    @Override
+    public AABB getRenderBoundingBox(TileShaking blockEntity)
+    {
+        BlockState st = blockEntity.getBlock();
+        
+        VoxelShape prev = st.getShape(blockEntity.getLevel(), blockEntity.getBlockPos());
+        if(prev.isEmpty()) prev = Block.box(0, 0, 0, 16, 16, 16);
+        
+        return prev.bounds().move(blockEntity.getOffset(1F)).move(blockEntity.getBlockPos());
+    }
+    
     @Override
     public void render(TileShaking entity, float partial, PoseStack matrix, MultiBufferSource buf, int lighting, int overlay)
     {

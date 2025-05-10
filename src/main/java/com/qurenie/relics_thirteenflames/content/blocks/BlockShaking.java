@@ -1,43 +1,56 @@
 package com.qurenie.relics_thirteenflames.content.blocks;
 
+import com.mojang.serialization.MapCodec;
 import com.qurenie.relics_thirteenflames.content.tiles.TileShaking;
 import com.qurenie.relics_thirteenflames.init.BlocksRegistry;
 import com.qurenie.relics_thirteenflames.init.TilesRegistry;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.piston.PistonBaseBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import net.neoforged.neoforge.common.Tags;
+import net.neoforged.neoforge.common.util.INBTSerializable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.UnknownNullability;
 import org.zeith.hammeranims.api.animation.interp.DoubleInterpolation;
 import org.zeith.hammeranims.api.animation.interp.InterpolatedDouble;
 import org.zeith.hammeranims.api.animation.interp.Vec3Animation;
 import org.zeith.hammerlib.api.blocks.INoItemBlock;
 import org.zeith.hammerlib.api.forge.BlockAPI;
-import org.zeith.hammerlib.api.io.NBTSerializer;
+import org.zeith.hammerlib.api.io.IAutoNBTSerializable;
+import org.zeith.hammerlib.api.io.NBTSerializable;
 import org.zeith.hammerlib.api.io.serializers.INBTSerializer;
 import org.zeith.hammerlib.util.java.Cast;
 
 import java.util.HashMap;
 
-public class BlockShaking
-        extends BaseEntityBlock
-        implements INoItemBlock
+import static net.minecraft.world.level.block.Blocks.MOVING_PISTON;
+
+public class BlockShaking extends BaseEntityBlock implements INoItemBlock
 {
     protected static final HashMap<String, ShakeBehavior> REGISTRY = new HashMap<>();
 
@@ -56,12 +69,19 @@ public class BlockShaking
                     InterpolatedDouble.constant(0)
             ))
     ));
+    
+    public static final MapCodec<BlockShaking> CODEC = simpleCodec(BlockShaking::new);
 
     public BlockShaking(Properties pProperties)
     {
         super(pProperties.lightLevel(state -> state.getValue(BlockStateProperties.POWER)).noOcclusion().dynamicShape());
     }
-
+    
+    @Override
+    public @NotNull MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
+    }
+    
     @Override
     public VoxelShape getBlockSupportShape(BlockState pState, BlockGetter pReader, BlockPos pPos)
     {
@@ -77,7 +97,7 @@ public class BlockShaking
         if(te != null)
         {
             var box = te.getBlock().getInteractionShape(pLevel, pPos);
-            if(box != null && te.doPhysShift())
+            if(te.doPhysShift())
             {
                 Vec3 offset = te.getOffset(0.5F);
                 return box.move(offset.x, offset.y, offset.z);
@@ -102,7 +122,7 @@ public class BlockShaking
         if(te != null)
         {
             var box = te.getBlock().getCollisionShape(pLevel, pPos, pContext);
-            if(box != null && te.doPhysShift())
+            if(te.doPhysShift())
             {
                 Vec3 offset = te.getOffset(0.5F);
                 return box.move(offset.x, offset.y, offset.z);
@@ -156,6 +176,9 @@ public class BlockShaking
 
     public static void shake(BlockState state, Level level, BlockPos pos, ShakeConfiguration config)
     {
+        if (state.getDestroySpeed(level, pos) == -1.0F || state.liquid())
+            return;
+        
         int light = level.getLightEmission(pos);
         level.setBlockAndUpdate(pos, BlocksRegistry.SHAKING.defaultBlockState()
                 .setValue(BlockStateProperties.POWER, Mth.clamp(light, 0, 15)));
@@ -204,10 +227,9 @@ public class BlockShaking
     {
         return REGISTRY.getOrDefault(id, BEHAVIOR_JUMP);
     }
-
+    
     @Override
-    public ItemStack getCloneItemStack(BlockState state, HitResult target, BlockGetter level, BlockPos pos, Player player)
-    {
+    public ItemStack getCloneItemStack(BlockState state, HitResult target, LevelReader level, BlockPos pos, Player player) {
         var te = Cast.cast(level.getBlockEntity(pos), TileShaking.class);
         if(te != null) return te.getBlock().getCloneItemStack(target, level, pos, player);
         return ItemStack.EMPTY;
@@ -231,28 +253,21 @@ public class BlockShaking
         }
     }
 
-    public record ShakeBehavior(String id, float duration, Vec3Animation animation)
-    {
+    public record ShakeBehavior(String id,
+                                float duration,
+                                Vec3Animation animation) {
         public ShakeConfiguration normal()
         {
             return new ShakeConfiguration(this);
         }
-    }
-
-    @NBTSerializer(ShakeBehavior.class)
-    public static class ShakeBehaviorSerializer
-            implements INBTSerializer<ShakeBehavior>
-    {
-        @Override
-        public void serialize(CompoundTag nbt, String key, @NotNull ShakeBehavior value)
-        {
-            nbt.putString(key, value.id());
+        
+        public void save(CompoundTag tag, HolderLookup.@NotNull Provider provider) {
+            tag.putString("ShakeBehaviour", id);
         }
-
-        @Override
-        public @Nullable ShakeBehavior deserialize(CompoundTag nbt, String key)
-        {
-            return getBehavior(nbt.getString(key));
+        
+        public static ShakeBehavior create(CompoundTag tag, HolderLookup.Provider provider) {
+            return REGISTRY.get(tag.getString("ShakeBehaviour"));
         }
+        
     }
 }

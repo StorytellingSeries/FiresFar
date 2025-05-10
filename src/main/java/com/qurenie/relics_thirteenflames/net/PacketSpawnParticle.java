@@ -2,13 +2,13 @@ package com.qurenie.relics_thirteenflames.net;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.core.Registry;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import org.apache.logging.log4j.util.Cast;
 import org.zeith.hammerlib.net.IPacket;
 import org.zeith.hammerlib.net.MainThreaded;
 import org.zeith.hammerlib.net.PacketContext;
@@ -38,9 +38,9 @@ public class PacketSpawnParticle implements IPacket {
     }
 
     @Override
-    public void write(FriendlyByteBuf buf) {
-        buf.writeId(BuiltInRegistries.PARTICLE_TYPE, options.getType());
-        options.writeToNetwork(buf);
+    public void write(RegistryFriendlyByteBuf buf) {
+        buf.writeResourceLocation(BuiltInRegistries.PARTICLE_TYPE.getKey(options.getType()));
+        options.getType().streamCodec().encode(buf, Cast.cast(options));
         buf.writeDouble(spawnX);
         buf.writeDouble(spawnY);
         buf.writeDouble(spawnZ);
@@ -50,8 +50,8 @@ public class PacketSpawnParticle implements IPacket {
     }
 
     @Override
-    public void read(FriendlyByteBuf buf) {
-        ParticleType<?> particletype = buf.readById(BuiltInRegistries.PARTICLE_TYPE);
+    public void read(RegistryFriendlyByteBuf buf) {
+        ParticleType<?> particletype = BuiltInRegistries.PARTICLE_TYPE.get(buf.readResourceLocation());
         this.options = this.readParticle(buf, particletype);
         this.spawnX = buf.readDouble();
         this.spawnY = buf.readDouble();
@@ -61,8 +61,8 @@ public class PacketSpawnParticle implements IPacket {
         this.moveZ = buf.readDouble();
     }
 
-    private <T extends ParticleOptions> T readParticle(FriendlyByteBuf pBuffer, ParticleType<T> pParticleType) {
-        return pParticleType.getDeserializer().fromNetwork(pParticleType, pBuffer);
+    private <T extends ParticleOptions> T readParticle(RegistryFriendlyByteBuf pBuffer, ParticleType<T> pParticleType) {
+        return pParticleType.streamCodec().decode(pBuffer);
     }
 
     @Override
