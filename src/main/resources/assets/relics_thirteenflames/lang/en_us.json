@@ -3,6 +3,10 @@
 
     "effect.relics_thirteenflames.anemia": "Anemia",
     "effect.relics_thirteenflames.poisson": "Rhonas' Venom",
+    "effect.relics_thirteenflames.jodah_vision": "Jodah's Curse",
+    "effect.relics_thirteenflames.scint_effect": "Scint Spark",
+    "effect.relics_thirteenflames.scintonit_effect": "Scintonit Spark",
+    "effect.relics_thirteenflames.diability_effect": "Disability",
 
     "item.relics_thirteenflames.knef_bow": "Knephmtyti's Moonbow",
     "item.relics_thirteenflames.knef_rose": "Knephmtyti's Black Rose",
@@ -12,6 +16,25 @@
     "item.relics_thirteenflames.seliaset_horn": "Seliaset's Horn",
     "item.relics_thirteenflames.seliaset_sun": "Seliaset's Sun",
     "item.relics_thirteenflames.scroll_of_truth": "Scroll Of Truth",
+    "item.relics_thirteenflames.montu_gloves": "Montu's Gloves",
+    "item.relics_thirteenflames.jodah_staff": "Jodah's Staff",
+    "item.relics_thirteenflames.jodah_mash": "Interworlder's Mask",
+    "item.relics_thirteenflames.traveller_sword": "Wandering Sword",
+    "item.relics_thirteenflames.hett_feather": "Hetintep's Feather",
+    "item.relics_thirteenflames.hett_feather_book": "Hetintep's Book",
+    "item.relics_thirteenflames.jodah_mask": "Jodah's Mask",
+    "item.relics_thirteenflames.auritekh_axe": "Auritekh Axe",
+    "item.relics_thirteenflames.auritekh_ingot": "Auritekh Ingot",
+    "item.relics_thirteenflames.auritekh_sword": "Auritekh Sword",
+    "item.relics_thirteenflames.auritekh_pickaxe": "Auritekh Pickaxe",
+    "item.relics_thirteenflames.auritekh_shovel": "Auritekh Shovel",
+    "item.relics_thirteenflames.auritekh_hoe": "Auritekh Hoe",
+    "item.relics_thirteenflames.auritekh_helmet": "Auritekh Helmet",
+    "item.relics_thirteenflames.auritekh_boots": "Auritekh Boots",
+    "item.relics_thirteenflames.auritekh_leggings": "Auritekh Leggings",
+    "item.relics_thirteenflames.auritekh_chestplate": "Auritekh Chestplate",
+
+    "block.relics_thirteenflames.auritekh_beacon": "Auritekh Beacon",
 
     "tooltip.relics_thirteenflames.knef_bow.lore": "One of the «Flames», legendary artifacts scattered across the world.\nCreated by Knephmtyti, goddess of Death.",
     "tooltip.relics.knef_bow.description": "+1 experience point for each «Moonlight Arrows» hit. \n +1 experience point for each point of HP healed by «Heaven's Wrath».",
@@ -158,6 +181,8 @@
     "tooltip.relics.ronas_shield.ability.charge.stat.stunduration.value": "%1$s seconds",
     "tooltip.relics.ronas_shield.ability.charge.predicate.chargecast": "Blocking with the Shield",
 
+    "tooltip.relics.seliaset.ability.blessed_light": "Blessed Light",
+    "tooltip.relics.seliaset.ability.heat": "Unbearable Heat",
 
     "tooltip.relics_thirteenflames.scroll_of_truth.gui.addEnch": "Add",
     "tooltip.relics_thirteenflames.scroll_of_truth.gui.removeEnch": "Remove",
@@ -173,5 +198,29 @@
     "tooltip.relics.scroll_of_truth.ability.passive_effect": "Khatinthep's Techniques",
     "tooltip.relics.scroll_of_truth.ability.passive_effect.description": "The Scroll's arcane powers grant you permanent potion effects, indicated by the color of the scroll's seal. Use Shift + Mouse Wheel to change the applied effect.",
     "tooltip.relics.scroll_of_truth.ability.passive_effect.stat.effectLevel.title": "Level of Effects",
-    "tooltip.relics.scroll_of_truth.ability.passive_effect.stat.effectLevel.value": "%1$s."
+    "tooltip.relics.scroll_of_truth.ability.passive_effect.stat.effectLevel.value": "%1$s.",
+
+    "tooltip.relics.montu_gloves.ability.gloves_range": "Hardwork",
+    "tooltip.relics.montu_gloves.ability.crafting": "Pocket workstation",
+    "tooltip.relics.montu_gloves.ability.smelting": "Auryfusion",
+
+    "tooltip.relics.hett_feather.ability.lifegiving_knowledge": "Experientia vitae",
+    "tooltip.relics.hett_feather.ability.book_slap": "Thesaurus",
+    "tooltip.relics.hett_feather.ability.savepoint": "Horcrux",
+
+    "tooltip.relics.traveller_sword.ability.travelers_stride": "Traveler's stride",
+    "tooltip.relics.traveller_sword.ability.dash": "Dream Drift",
+    "tooltip.relics.traveller_sword.ability.swordcut": "True form",
+
+    "tooltip.relics.jodah_staff.ability.ranging": "Perfection",
+    "tooltip.relics.jodah_staff.ability.health_theft": "Life Drain",
+    "tooltip.relics.jodah_staff.ability.one_thousand_eyes": "A thousand eyes",
+
+    "tooltip.relics.jodah_mask.ability.planeshift": "Planeshift",
+    "tooltip.relics.jodah_mask.ability.sparkslip": "Sparkslip",
+    "tooltip.relics.jodah_mask.ability.dark_star": "Dark Star",
+    "tooltip.relics.jodah_mask.ability.skint_genesis": "Skint Genesis",
+    "tooltip.relics.jodah_mask.ability.reversal_aberration": "Reversal Aberration",
+
+    "jei.thirteenflames.montu_smith": "Auryfusion"
 }
