@@ -14,6 +14,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.BushBlock;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
 import org.zeith.hammeranims.api.animation.IAnimationSource;
 import org.zeith.hammeranims.api.animation.interp.BlendMode;
 import org.zeith.hammeranims.api.animsys.AnimationSystem;
@@ -22,7 +23,8 @@ import org.zeith.hammeranims.api.animsys.ConfiguredAnimation;
 import org.zeith.hammeranims.api.animsys.layer.AnimationLayer;
 import org.zeith.hammeranims.api.tile.IAnimatedEntity;
 import org.zeith.hammeranims.core.init.DefaultsHA;
-import org.zeith.hammerlib.api.io.NBTSerializationHelper;
+
+import static com.qurenie.relics_thirteenflames.util.FlamesUtils.setupAnimationSystem;
 
 public class AnimatedEntity
         extends PathfinderMob implements IAnimatedEntity {
@@ -32,8 +34,6 @@ public class AnimatedEntity
     private static final ResourceLocation MAX_HEALTH_LOC = ResourceLocation.fromNamespaceAndPath(ThirteenFlames.MODID, "max_health_attribute");
     protected final AnimationSystem animationSystem = AnimationSystem.create(this);
     public boolean canDie;
-    public boolean rotateModel180 = false;
-    public boolean allowRotate = false;
     public float xPassengerOffset = 0;
     public float yPassengerOffset = 0;
     public float zPassengerOffset = 0;
@@ -49,7 +49,7 @@ public class AnimatedEntity
     }
     
     @Override
-    public float getWalkTargetValue(BlockPos pPos, LevelReader pLevel) {
+    public float getWalkTargetValue(@NotNull BlockPos pPos, @NotNull LevelReader pLevel) {
         float value = super.getWalkTargetValue(pPos, pLevel);
         
         if (pLevel.getBlockState(pPos).getBlock() instanceof BushBlock)
@@ -61,23 +61,7 @@ public class AnimatedEntity
     
     @Override
     public void setupSystem(AnimationSystem.Builder builder) {
-        LayersList list = new LayersList();
-        
-        list.addLast(LAYER_ACTION, BlendMode.OVERRIDE, 1.0F);
-        list.addLast(LAYER_WALKING, BlendMode.ADD, 1.0F);
-        
-        int xtraLayerCount = 5;
-        
-        var t = getType();
-        
-        for (int i = 0; i < xtraLayerCount; i++) {
-            list.addLast("ANIMATION_" + i, BlendMode.ADD, 1.0F);
-        }
-        
-        addLayers(list);
-        
-        builder.addLayers(list.getLayers().toArray(AnimationLayer.Builder[]::new));
-        builder.autoSync(true);
+        setupAnimationSystem(builder);
     }
     
     public ConfiguredAnimation getWalkingAnimation() {
@@ -86,9 +70,6 @@ public class AnimatedEntity
     
     public ConfiguredAnimation getIdleAnimation() {
         return DefaultsHA.NULL_ANIMATION.configure();
-    }
-    
-    public void addLayers(LayersList layers) {
     }
     
     public void startAnimation(String layer, ConfiguredAnimation cfg) {

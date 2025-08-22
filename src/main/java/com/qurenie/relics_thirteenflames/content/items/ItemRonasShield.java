@@ -1,17 +1,14 @@
 package com.qurenie.relics_thirteenflames.content.items;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import com.qurenie.relics_thirteenflames.ThirteenFlames;
 import com.qurenie.relics_thirteenflames.net.RhonasRebukePacket;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
-import it.hurts.sskirillss.relics.init.CreativeTabRegistry;
 import it.hurts.sskirillss.relics.init.EffectRegistry;
+import it.hurts.sskirillss.relics.init.HotkeyRegistry;
 import it.hurts.sskirillss.relics.init.RelicContainerRegistry;
-import it.hurts.sskirillss.relics.items.misc.CreativeContentConstructor;
 import it.hurts.sskirillss.relics.items.relics.base.IRelicItem;
 import it.hurts.sskirillss.relics.items.relics.base.data.RelicData;
 import it.hurts.sskirillss.relics.items.relics.base.data.cast.CastData;
-import it.hurts.sskirillss.relics.items.relics.base.data.cast.containers.InventoryRelicContainer;
 import it.hurts.sskirillss.relics.items.relics.base.data.cast.misc.CastStage;
 import it.hurts.sskirillss.relics.items.relics.base.data.cast.misc.CastType;
 import it.hurts.sskirillss.relics.items.relics.base.data.cast.misc.PredicateType;
@@ -24,15 +21,12 @@ import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootData;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.misc.LootEntries;
 import it.hurts.sskirillss.relics.utils.EntityUtils;
 import it.hurts.sskirillss.relics.utils.MathUtils;
-import it.hurts.sskirillss.relics.utils.NBTUtils;
-import it.hurts.sskirillss.relics.utils.ParticleUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.Holder;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -45,10 +39,12 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.*;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ShieldItem;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
-import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -62,13 +58,11 @@ import net.neoforged.neoforge.common.ItemAbility;
 import net.neoforged.neoforge.event.entity.living.LivingKnockBackEvent;
 import net.neoforged.neoforge.event.entity.living.LivingShieldBlockEvent;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.zeith.hammerlib.api.items.IColoredFoilItem;
 import org.zeith.hammerlib.net.Network;
 
 import java.awt.*;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 
@@ -77,20 +71,10 @@ import static com.qurenie.relics_thirteenflames.init.ComponentRegistry.*;
 @EventBusSubscriber
 public class ItemRonasShield extends ShieldItem implements IColoredFoilItem, IRelicItem {
     
-    
     private static final Random RNG = new Random();
     
     public ItemRonasShield(Properties properties) {
-        
         super(properties);
-    }
-    
-    public void gatherCreativeTabContent(CreativeContentConstructor constructor) {
-        constructor.entry((CreativeModeTab) CreativeTabRegistry.RELICS_TAB.get(), CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS, new ItemLike[]{this});
-    }
-    
-    public String getConfigRoute() {
-        return "relics";
     }
     
     @SubscribeEvent
@@ -140,6 +124,10 @@ public class ItemRonasShield extends ShieldItem implements IColoredFoilItem, IRe
             float blockRate = (float) shit.getStatValue(event.getEntity().getUseItem(), "block", "blockrate");
             event.setStrength(event.getStrength() * (1 - blockRate));
         }
+    }
+    
+    public String getConfigRoute() {
+        return "relics";
     }
     
     @Override
@@ -245,58 +233,24 @@ public class ItemRonasShield extends ShieldItem implements IColoredFoilItem, IRe
             addAbilityCooldown(stack, "charge", 400);
             EntityUtils.applyAttribute(player, stack, Attributes.STEP_HEIGHT, 0.6F, AttributeModifier.Operation.ADD_VALUE);
         }
+        if (ability.equals("rebuke"))
+            rebuke(player, stack);
         IRelicItem.super.castActiveAbility(stack, player, ability, type, stage);
     }
     
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable TooltipContext context, List<Component> tooltip, TooltipFlag isAdvanced) {
+    public void appendHoverText(@NotNull ItemStack stack, @NotNull TooltipContext context, List<Component> tooltip, TooltipFlag isAdvanced) {
         tooltip.add(Component.translatable("tooltip.relics_thirteenflames.ronas_shield.lore").withStyle(ChatFormatting.GOLD).withStyle(ChatFormatting.ITALIC));
-//        if (context.level() == null || !context.level().isClientSide()) return;
-//
-//        constructRelicTooltipBecauseIRelicItemDoesntFuckingWork(stack, tooltip);
+        
         super.appendHoverText(stack, context, tooltip, isAdvanced);
         
+        tooltip.add(Component.literal(" "));
+        if (Minecraft.getInstance().screen instanceof AbstractContainerScreen) {
+            tooltip.add(Component.translatable("tooltip.relics.researching.info", HotkeyRegistry.RESEARCH_RELIC.getKey().getDisplayName()).withStyle(ChatFormatting.GRAY));
+        }
+        
+        tooltip.add(Component.literal(" "));
     }
-    
-//    @OnlyIn(Dist.CLIENT)
-//    private void constructRelicTooltipBecauseIRelicItemDoesntFuckingWork(ItemStack stack, List<Component> tooltip) {
-//
-//        Item item = stack.getItem();
-//
-//        if (!(item instanceof IRelicItem relic))
-//            return;
-//
-//        tooltip.add(Component.literal(" "));
-//
-//        if (Screen.hasShiftDown()) {
-//            RelicData relicData = relic.getRelicData();
-//
-//            if (relicData == null)
-//                return;
-//
-//            Map<String, AbilityData> abilities = relicData.getAbilities().getAbilities();
-//
-//            tooltip.add(Component.literal("▶ ").withStyle(ChatFormatting.DARK_GREEN)
-//                    .append(Component.translatable("tooltip.relics.relic.tooltip.abilities").withStyle(ChatFormatting.GREEN)));
-//
-//            for (Map.Entry<String, AbilityData> entry : abilities.entrySet()) {
-//                String id = BuiltInRegistries.ITEM.getKey(item).getPath();
-//                String name = entry.getKey();
-//
-//                if (!relic.isAbilityUnlocked(stack, name))
-//                    continue;
-//
-//                tooltip.add(Component.literal("   ◆ ").withStyle(ChatFormatting.GREEN)
-//                        .append(Component.translatable("tooltip.relics." + id + ".ability." + name).withStyle(ChatFormatting.YELLOW))
-//                        .append(Component.literal(" - ").withStyle(ChatFormatting.WHITE))
-//                        .append(Component.translatable("tooltip.relics." + id + ".ability." + name + ".description").withStyle(ChatFormatting.GRAY)));
-//            }
-//        } else {
-//            tooltip.add(Component.translatable("tooltip.relics.relic.tooltip.shift").withStyle(ChatFormatting.GRAY));
-//        }
-//
-//        tooltip.add(Component.literal(" "));
-//    }
     
     @Override
     public boolean shouldCauseReequipAnimation(ItemStack oldStack, ItemStack newStack, boolean slotChanged) {
@@ -344,7 +298,7 @@ public class ItemRonasShield extends ShieldItem implements IColoredFoilItem, IRe
                         
                         Vec3 move = initialMove.normalize().scale(Mth.clamp(0.4 * RNG.nextFloat() / initialMove.length(), 0.02, 0.27)).subtract(xVec.scale(0.41 - x * 0.5));
                         
-                        ParticleHelper.spawnDirectedParticle(player.level(), ParticleUtils.constructSimpleSpark(new Color(255, RNG.nextInt(80 - 10), 0),
+                        ParticleHelper.spawnDirectedParticle(player.level(), ParticleHelper.constructSimpleSpark(new Color(255, RNG.nextInt(80 - 10), 0),
                                 (float) (0.1f + RNG.nextFloat(0.1f) + x / 4f), 10, 0.85F), startPos.add(xVec.scale(x + 0.8)).add(yVec.scale(y)).add(zVec.scale(z)), move);
                         
                     }
@@ -461,7 +415,7 @@ public class ItemRonasShield extends ShieldItem implements IColoredFoilItem, IRe
                             
                             Vec3 move = xVec.scale(x * 2).add(yVec.scale(y * 0.8)).add(zVec.scale(z * 0.5)).scale((0.5 + 0.15 * charges) * RNG.nextFloat());
                             
-                            ParticleHelper.spawnDirectedParticle(player.level(), ParticleUtils.constructSimpleSpark(new Color(255, RNG.nextInt(80 - 10 * charges), 0),
+                            ParticleHelper.spawnDirectedParticle(player.level(), ParticleHelper.constructSimpleSpark(new Color(255, RNG.nextInt(80 - 10 * charges), 0),
                                     (0.25f + RNG.nextFloat(0.3f)) * (1 + charges * 0.2f), 20 + 6 * charges, 0.85F + 0.01f * charges), startPos.add(xVec.scale(x + 0.6)).add(yVec.scale(y)).add(zVec.scale(z)), move);
                             
                             if (charges == 3 && RNG.nextFloat() < 0.12)

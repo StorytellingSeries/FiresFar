@@ -14,7 +14,20 @@ public interface EntityModels {
 
     @RegistryName("living_flesh")
     IGeometryContainer LIVING_FLESH = create();
-
-    @RegistryName("scroll_of_truth")
-    IGeometryContainer SCROLL_OF_TRUTH = create();
+    
+    @RegistryName("jodah_wings")
+    IGeometryContainer JODAH_WINGS = create();
+    
+    @RegistryName("skint_cluster")
+    IGeometryContainer SKINT_CLUSTER = create();
+    
+    @RegistryName("attack_book")
+    IGeometryContainer ATTACK_BOOK = create();
+    
+    @RegistryName("respawn_book")
+    IGeometryContainer RESPAWN_BOOK = create();
+    
+    @RegistryName("adventurer_sword_big")
+    IGeometryContainer ADVENTURER_SWORD = create();
+    
 }

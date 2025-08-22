@@ -17,7 +17,63 @@ public class EntityRegistry {
             .setUpdateInterval(1)
             .updateInterval(1)
             .build("knef_projectile");
-
+    
+    @RegistryName("feather_vortex")
+    public static final EntityType<FeatherVortexEntity> FEATHER_VORTEX_ENTITY = Builder.<FeatherVortexEntity>of(FeatherVortexEntity::new, MobCategory.MISC)
+            .sized(0.1F, 0.1F)
+            .setUpdateInterval(1)
+            .updateInterval(1)
+            .build("feather_vortex");
+    
+    @RegistryName("traveller_sweep")
+    public static final EntityType<TravellerSweepEntity> TRAVELLER_SWEEP = Builder.<TravellerSweepEntity>of(TravellerSweepEntity::new, MobCategory.MISC)
+            .sized(0.1F, 0.1F)
+            .setUpdateInterval(1)
+            .updateInterval(1)
+            .build("traveller_sweep");
+    
+    @RegistryName("jodah_heal")
+    public static final EntityType<JodahHealEntity> JODAH_HEAL = Builder.<JodahHealEntity>of(JodahHealEntity::new, MobCategory.MISC)
+            .sized(0.1F, 0.1F)
+            .setUpdateInterval(1)
+            .updateInterval(1)
+            .build("jodah_heal");
+    
+    @RegistryName("traveller_cut")
+    public static final EntityType<TravellerCutEntity> TRAVELLER_CUT = Builder.<TravellerCutEntity>of(TravellerCutEntity::new, MobCategory.MISC)
+            .sized(0.1F, 0.1F)
+            .setUpdateInterval(1)
+            .updateInterval(1)
+            .build("traveller_cut");
+    
+    @RegistryName("skint_orb")
+    public static final EntityType<SkintOrbEntity> SKINT_ORB = Builder.<SkintOrbEntity>of(SkintOrbEntity::new, MobCategory.MISC)
+            .sized(0.1F, 0.1F)
+            .setUpdateInterval(1)
+            .updateInterval(1)
+            .build("skint_orb");
+    
+    @RegistryName("skint_cluster")
+    public static final EntityType<SkintClusterEntity> SKINT_CLUSTER = Builder.<SkintClusterEntity>of(SkintClusterEntity::new, MobCategory.MISC)
+            .sized(0.5F, 1F)
+            .setUpdateInterval(1)
+            .updateInterval(1)
+            .build("skint_cluster");
+    
+    @RegistryName("meteor")
+    public static final EntityType<MeteorEntity> METEOR = Builder.<MeteorEntity>of(MeteorEntity::new, MobCategory.MISC)
+            .sized(1F, 1F)
+            .setUpdateInterval(1)
+            .updateInterval(1)
+            .build("meteor");
+    
+    @RegistryName("traveller_afterdash")
+    public static final EntityType<TravellerAfterdashEntity> TRAVELLER_AFTERDASH = Builder.<TravellerAfterdashEntity>of(TravellerAfterdashEntity::new, MobCategory.MISC)
+            .sized(0.1F, 0.1F)
+            .setUpdateInterval(1)
+            .updateInterval(1)
+            .build("traveller_afterdash");
+    
     @RegistryName("knef_projectile_special")
     public static final EntityType<KnefProjectileSpecial> KNEF_PROJECTILE_SPECIAL = Builder.of(KnefProjectileSpecial::new, MobCategory.MISC)
             .sized(0.1F, 0.1F)
@@ -74,7 +130,12 @@ public class EntityRegistry {
             .build("seliaset_sun");
 
     @RegistryName("living_flesh")
-    public static final EntityType<LivingFleshEntity> LIVING_FLESH = Builder.of(LivingFleshEntity::new, MobCategory.CREATURE)
+    public static final EntityType<LivingFleshEntity> LIVING_FLESH = Builder.of(LivingFleshEntity::new, MobCategory.MISC)
             .sized(1F, 1F)
             .build("living_flesh");
+    
+    @RegistryName("respawn_book")
+    public static final EntityType<RespawnBookEntity> RESPAWN_BOOK = Builder.<RespawnBookEntity>of(RespawnBookEntity::new, MobCategory.MISC)
+            .sized(1F, 1F)
+            .build("respawn_book");
 }

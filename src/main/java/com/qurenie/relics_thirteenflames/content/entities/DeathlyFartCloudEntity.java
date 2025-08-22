@@ -4,7 +4,7 @@ import com.qurenie.relics_thirteenflames.content.effects.PoisonEffectInstance;
 import com.qurenie.relics_thirteenflames.init.EffectsRegistry;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import it.hurts.sskirillss.relics.items.relics.base.IRelicItem;
-import it.hurts.sskirillss.relics.utils.ParticleUtils;
+import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -67,7 +67,7 @@ public class DeathlyFartCloudEntity extends Projectile {
         AABB box = new AABB(this.getPosition(1), this.getPosition(1)).inflate(radius, radius / 2.5, radius);
         if(this.level() instanceof ServerLevel) {
 
-            ParticleHelper.spawnParticleAABB(this.level(), ParticleUtils.constructSimpleSpark(new Color(37, 13, 35),
+            ParticleHelper.spawnParticleAABB(this.level(), ParticleHelper.constructSimpleSpark(new Color(37, 13, 35),
                     radius / 6.2f + 0.15f, 30, 0.84F), box, Math.round(radius * radius / 2) + 1, 0.01 * radius);
 
             ParticleHelper.spawnParticleAABB(this.level(),

@@ -36,7 +36,7 @@ public class ItemSeliasetSun
 	}
 	
 	@Override
-	public InteractionResult useOn(UseOnContext ctx)
+	public @NotNull InteractionResult useOn(UseOnContext ctx)
 	{
 		ItemStack item = ctx.getItemInHand();
 		Player player = ctx.getPlayer();
@@ -54,7 +54,7 @@ public class ItemSeliasetSun
 	}
 	
 	@Override
-	public InteractionResultHolder<ItemStack> use(Level pLevel, Player pPlayer, InteractionHand pUsedHand)
+	public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level pLevel, Player pPlayer, InteractionHand pUsedHand)
 	{
 		ItemStack horn = pPlayer.getItemInHand(pUsedHand);
 		pPlayer.startUsingItem(pUsedHand);
@@ -71,23 +71,49 @@ public class ItemSeliasetSun
 	public RelicData constructDefaultRelicData() {
 		return RelicData.builder()
 				.abilities(AbilitiesData.builder()
-						.ability(AbilityData.builder("leveling")
-								.maxLevel(10)
+						.ability(AbilityData.builder("blessed_light")
+								.maxLevel(5)
 								.stat(StatData.builder("speed")
-										.initialValue(220, 220)
-										.upgradeModifier(UpgradeOperation.ADD, -20)
-										.thresholdValue(20, 200)
-										.formatValue(x -> (int) MathUtils.round(x / 20, 0))
+										.initialValue(200, 240)
+										.upgradeModifier(UpgradeOperation.ADD, -40)
+										.thresholdValue(20, 220)
+										.formatValue(x -> (int) MathUtils.round(x, 0))
+										.build())
+								.stat(StatData.builder("breed_chance")
+										.initialValue(10, 30)
+										.upgradeModifier(UpgradeOperation.ADD, 8)
+										.thresholdValue(20, 70)
+										.formatValue(x -> x / 100)
 										.build())
 								.stat(StatData.builder("radius")
-										.initialValue(10, 10)
+										.initialValue(8, 12)
 										.thresholdValue(10, 30)
-										.upgradeModifier(UpgradeOperation.ADD, 2F)
+										.upgradeModifier(UpgradeOperation.ADD, 4F)
+										.formatValue(x -> (int) MathUtils.round(x, 0))
+										.build())
+								.build())
+						.ability(AbilityData.builder("heat")
+								.maxLevel(5)
+								.stat(StatData.builder("heat_time")
+										.initialValue(15, 12)
+										.upgradeModifier(UpgradeOperation.ADD, -2)
+										.thresholdValue(2, 15)
+										.formatValue(x -> (int) MathUtils.round(x, 0))
+										.build())
+								.stat(StatData.builder("damage")
+										.initialValue(2, 5)
+										.upgradeModifier(UpgradeOperation.ADD, 1)
+										.thresholdValue(2, 10)
+										.build())
+								.stat(StatData.builder("radius")
+										.initialValue(3, 3)
+										.thresholdValue(3, 18)
+										.upgradeModifier(UpgradeOperation.ADD, 3F)
 										.formatValue(x -> (int) MathUtils.round(x, 0))
 										.build())
 								.build())
 						.build())
-				.leveling(new LevelingData(100, 10, 100))
+				.leveling(new LevelingData(100, 10, 130))
 				.loot(LootData.builder()
 						.entry(LootEntries.TROPIC)
 						.entry(LootEntries.VILLAGE)

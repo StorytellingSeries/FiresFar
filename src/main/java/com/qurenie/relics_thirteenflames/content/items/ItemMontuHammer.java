@@ -1,7 +1,7 @@
 package com.qurenie.relics_thirteenflames.content.items;
 
-import com.qurenie.relics_thirteenflames.ThirteenFlames;
 import com.qurenie.relics_thirteenflames.content.blocks.BlockShaking;
+import com.qurenie.relics_thirteenflames.content.entities.SkintClusterEntity;
 import com.qurenie.relics_thirteenflames.content.entities.UsableFallingBlockEntity;
 import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
 import com.qurenie.relics_thirteenflames.net.HammerAOEChangePacket;
@@ -22,12 +22,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.data.DataGenerator;
-import net.minecraft.data.tags.TagsProvider;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
-import net.minecraft.tags.EnchantmentTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.Mth;
@@ -51,15 +48,14 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.common.ItemAbilities;
 import net.neoforged.neoforge.common.ItemAbility;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.neoforge.common.Tags;
-import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.zeith.hammerlib.api.items.IColoredFoilItem;
 import org.zeith.hammerlib.net.Network;
@@ -113,21 +109,17 @@ public class ItemMontuHammer
             case 0 -> {
                 yMax = breakDepth;
                 yMin = 0;
-                zMax = breakRadius;
             }
             case 1 -> {
                 yMin = breakDepth;
                 yMax = 0;
-                zMax = breakRadius;
             }
             case 2 -> {
-                xMax = breakRadius;
                 zMin = 0;
                 zMax = breakDepth;
                 yOffset = breakRadius - 1;
             }
             case 3 -> {
-                xMax = breakRadius;
                 zMax = 0;
                 zMin = breakDepth;
                 yOffset = breakRadius - 1;
@@ -135,13 +127,11 @@ public class ItemMontuHammer
             case 4 -> {
                 xMax = breakDepth;
                 xMin = 0;
-                zMax = breakRadius;
                 yOffset = breakRadius - 1;
             }
             case 5 -> {
                 xMin = breakDepth;
                 xMax = 0;
-                zMax = breakRadius;
                 yOffset = breakRadius - 1;
             }
         }
@@ -199,7 +189,7 @@ public class ItemMontuHammer
     }
     
     @Override
-    public InteractionResult useOn(UseOnContext ctx) {
+    public @NotNull InteractionResult useOn(UseOnContext ctx) {
         if (ctx.getLevel().getBlockState(ctx.getClickedPos()).hasBlockEntity() || ctx.getPlayer() == null || !ctx.getPlayer().isShiftKeyDown())
             return super.useOn(ctx);
         
@@ -242,7 +232,10 @@ public class ItemMontuHammer
                 BlockPos target0 = sp;
                 
                 if (!level.isEmptyBlock(target0))
-                    SCHEDULER.schedule(delay, () -> BlockShaking.shake(level, target0, BlockShaking.BEHAVIOR_JUMP.normal()));
+                    SCHEDULER.schedule(delay, () -> {
+                        BlockShaking.shake(level, target0, BlockShaking.BEHAVIOR_JUMP.normal());
+                        level.getEntitiesOfClass(SkintClusterEntity.class, new AABB(target0.above())).forEach(SkintClusterEntity::destroyByHammer);
+                    });
             }
             
             var state = level.getBlockState(target);
@@ -310,7 +303,7 @@ public class ItemMontuHammer
             }
         }
         Network.sendToAll(new PacketPlaySound(ctx.getClickLocation(), SoundsRegistry.MONTU_SLAP.get(), SoundSource.MASTER, 1, 1));
-        ctx.getPlayer().getCooldowns().addCooldown(this, (int) (0 * cooldown));
+        ctx.getPlayer().getCooldowns().addCooldown(this, (int) (20 * cooldown));
         return InteractionResult.SUCCESS;
     }
     
@@ -409,8 +402,8 @@ public class ItemMontuHammer
     }
     
     @Override
-    public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
-        return super.isPrimaryItemFor(stack, enchantment);
+    public boolean supportsEnchantment(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
+        return this.isPrimaryItemFor(stack, enchantment);
     }
     
     private static boolean isWeaponOrMiningEnchantment(HolderSet<Item> holders) {

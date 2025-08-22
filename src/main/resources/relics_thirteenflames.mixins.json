@@ -8,17 +8,30 @@
     "maxShiftBy": 5
   },
   "mixins": [
+    "AbstractContainerMenuAccessor",
+    "BreedMixin",
+    "EnchantLevelMixin",
+    "EntityAccessor",
+    "EntityPushMixin",
+    "ExplosionMixin",
+    "HumanoidArmorLayerMixin",
+    "ItemStackMixin",
     "LivingEntityMixin",
-    "PlayerMixin"
+    "MeleeAttackMixin",
+    "PlayerMixin",
+    "RegisterGoalMixin",
+    "SmithingMenuMixin",
+    "THISISSOBADMIXIN"
   ],
   "client": [
-    "ParticleMixin",
+    "HUDRenderHandlerMixin",
+    "MenuScreenMixin",
     "client.BakedOverrideAccessor",
     "client.GameRendererMixin",
+    "client.LevelRendererMixin",
     "client.LivingEntityRendererMixin",
     "client.LocalPlayerMixin",
-    "client.ParticleAccessor",
-    "client.ParticleEngineAccessor"
+    "client.ParticleAccessor"
   ],
   "server": [
   ]

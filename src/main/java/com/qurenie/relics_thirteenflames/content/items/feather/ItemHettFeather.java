@@ -1,0 +1,263 @@
+package com.qurenie.relics_thirteenflames.content.items.feather;
+
+import com.qurenie.relics_thirteenflames.content.entities.FeatherVortexEntity;
+import com.qurenie.relics_thirteenflames.content.entities.RespawnBookEntity;
+import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
+import com.qurenie.relics_thirteenflames.util.ParticleHelper;
+import it.hurts.sskirillss.relics.init.RelicContainerRegistry;
+import it.hurts.sskirillss.relics.items.relics.base.RelicItem;
+import it.hurts.sskirillss.relics.items.relics.base.data.RelicData;
+import it.hurts.sskirillss.relics.items.relics.base.data.cast.CastData;
+import it.hurts.sskirillss.relics.items.relics.base.data.cast.misc.CastStage;
+import it.hurts.sskirillss.relics.items.relics.base.data.cast.misc.CastType;
+import it.hurts.sskirillss.relics.items.relics.base.data.cast.misc.PredicateType;
+import it.hurts.sskirillss.relics.items.relics.base.data.leveling.AbilitiesData;
+import it.hurts.sskirillss.relics.items.relics.base.data.leveling.AbilityData;
+import it.hurts.sskirillss.relics.items.relics.base.data.leveling.LevelingData;
+import it.hurts.sskirillss.relics.items.relics.base.data.leveling.StatData;
+import it.hurts.sskirillss.relics.items.relics.base.data.leveling.misc.UpgradeOperation;
+import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootData;
+import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootEntry;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.ExperienceOrb;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.ProjectileUtil;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.Vec3;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerXpEvent;
+import org.jetbrains.annotations.NotNull;
+import org.zeith.hammerlib.api.fml.IRegisterListener;
+import org.zeith.hammerlib.util.charging.ItemChargeHelper;
+
+import java.awt.*;
+
+import static com.qurenie.relics_thirteenflames.init.ComponentRegistry.ENTITY_UUID;
+import static net.neoforged.neoforge.common.NeoForge.EVENT_BUS;
+
+public class ItemHettFeather extends RelicItem implements IRegisterListener {
+    
+    public static final LootEntry STRONGHOLD = LootEntry.builder().dimension(".*").biome(".*").table("[\\w]+:chests\\/[\\w_\\/]*(stronghold)[\\w_\\/]*").weight(500).build();
+    static final int BOOK_ACTIVE_MAX_LEVEL = 3;
+    
+    public ItemHettFeather(Properties properties) {
+        super(properties);
+    }
+    
+    @Override
+    public void onPostRegistered(ResourceLocation id) {
+        EVENT_BUS.register(this);
+    }
+    
+    @Override
+    public RelicData constructDefaultRelicData() {
+        return RelicData.builder()
+                .abilities(AbilitiesData.builder()
+                        .ability(AbilityData.builder("lifegiving_knowledge")
+                                .maxLevel(5)
+                                .stat(StatData.builder("hp_value")
+                                        .initialValue(5, 15)
+                                        .thresholdValue(0, 65)
+                                        .upgradeModifier(UpgradeOperation.ADD, 10)
+                                        .build()
+                                )
+                                .build()
+                        )
+                        .ability(AbilityData.builder("book_slap")
+                                .maxLevel(3)
+                                .active(CastData.builder()
+                                        .container(RelicContainerRegistry.INVENTORY.get())
+                                        .type(CastType.INSTANTANEOUS)
+                                        .predicate("book_slap_cast", PredicateType.CAST, (player, stack) -> player.getOffhandItem() == stack || player.getMainHandItem() == stack)
+                                        .predicate("book_slap_cast", PredicateType.CAST, (player, stack) -> {
+                                            Vec3 eyePos = player.getEyePosition();
+                                            Vec3 lookVec = player.getLookAngle();
+                                            Vec3 reachVec = eyePos.add(lookVec.scale(8));
+                                            AABB aabb = player.getBoundingBox().expandTowards(lookVec.scale(8)).inflate(1.0D);
+                                            
+                                            EntityHitResult hitResult = ProjectileUtil.getEntityHitResult(
+                                                    player.level(), player, eyePos, reachVec, aabb,
+                                                    entity -> !entity.isSpectator() && entity.isPickable() && entity != player
+                                            );
+                                            
+                                            if (hitResult == null)
+                                                return false;
+                                            
+                                            if (!(hitResult.getEntity() instanceof LivingEntity living) || living instanceof Player)
+                                                return false;
+                                            
+                                            return living.getHealth() < ItemsRegistry.HETT_FEATHER.getStatValue(stack, "book_slap", "max_health");
+                                        })
+                                        .build())
+                                .stat(StatData.builder("level")
+                                        .initialValue(1, 1)
+                                        .thresholdValue(0, 3)
+                                        .upgradeModifier(UpgradeOperation.ADD, 1)
+                                        .build()
+                                )
+                                .stat(StatData.builder("max_health")
+                                        .initialValue(1, 6)
+                                        .thresholdValue(1, 15)
+                                        .upgradeModifier(UpgradeOperation.ADD, 3)
+                                        .build()
+                                )
+                                .build()
+                        )
+                        .ability(AbilityData.builder("savepoint")
+                                .requiredLevel(8)
+                                .maxLevel(3)
+                                .stat(StatData.builder("radius")
+                                        .initialValue(12, 20)
+                                        .thresholdValue(15, 60)
+                                        .upgradeModifier(UpgradeOperation.ADD, 15)
+                                        .build()
+                                )
+                                .stat(StatData.builder("xp_consume")
+                                        .initialValue(100, 90)
+                                        .thresholdValue(30, 100)
+                                        .upgradeModifier(UpgradeOperation.ADD, -20)
+                                        .build()
+                                )
+                                .stat(StatData.builder("hp_consume")
+                                        .initialValue(100, 90)
+                                        .thresholdValue(50, 100)
+                                        .upgradeModifier(UpgradeOperation.ADD, -15)
+                                        .build()
+                                )
+                                .build()
+                        )
+                        .build()
+                )
+                .leveling(new LevelingData(100, 11, 100))
+                .loot(LootData.builder().entry(STRONGHOLD).build())
+                .build();
+    }
+    
+    @Override
+    public @NotNull InteractionResult useOn(UseOnContext ctx) {
+        if (ctx.getPlayer() == null || !ctx.getPlayer().isShiftKeyDown())
+            return super.useOn(ctx);
+     
+        var level = ctx.getLevel();
+        ItemStack feather = ctx.getItemInHand();
+        
+        var itr = ItemChargeHelper.listPlayerInventories(ctx.getPlayer()).iterator();
+        while (itr.hasNext()) {
+            var ih = itr.next();
+            for (int j = 0; j < ih.getSlots(); j++) {
+                var it = ih.getStackInSlot(j);
+                if (!it.is(Items.BOOK))
+                    continue;
+                
+                if (!ctx.getPlayer().isCreative())
+                    it.shrink(1);
+                
+                if (level.isClientSide)
+                    return InteractionResult.SUCCESS;
+                
+                if (feather.has(ENTITY_UUID)) {
+                    Entity last = ((ServerLevel) level).getEntity(feather.get(ENTITY_UUID));
+                    
+                    if (last instanceof RespawnBookEntity respawnBook && !respawnBook.isDeadOrDying() && respawnBook.getDeathTick() < 0)
+                        respawnBook.close();
+                }
+                
+                ((ItemHettFeather) feather.getItem()).addRelicExperience(feather, 10);
+                
+                var position = ctx.getClickLocation();
+                RespawnBookEntity respawnBook = new RespawnBookEntity(ctx.getPlayer(), ctx.getItemInHand(), position.x, position.y, position.z);
+                ctx.getLevel().addFreshEntity(respawnBook);
+                ctx.getPlayer().getCooldowns().addCooldown(this, 1200);
+                ctx.getItemInHand().set(ENTITY_UUID, respawnBook.getUUID());
+                
+                return InteractionResult.SUCCESS;
+            }
+        }
+        
+        return InteractionResult.FAIL;
+    }
+    
+    @Override
+    public void castActiveAbility(ItemStack stack, Player player, String ability, CastType type, CastStage stage) {
+        if (ability.equals("book_slap")) {
+            if (!player.level().isClientSide) {
+                Vec3 eyePos = player.getEyePosition();
+                Vec3 lookVec = player.getLookAngle();
+                Vec3 reachVec = eyePos.add(lookVec.scale(8));
+                AABB aabb = player.getBoundingBox().expandTowards(lookVec.scale(8)).inflate(1.0D);
+                
+                EntityHitResult hitResult = ProjectileUtil.getEntityHitResult(
+                        player.level(), player, eyePos, reachVec, aabb,
+                        entity -> !entity.isSpectator() && entity.isPickable() && entity != player
+                );
+                
+                if (hitResult == null)
+                    return;
+                
+                if (!(hitResult.getEntity() instanceof LivingEntity living) || living instanceof Player)
+                    return;
+                
+                if (living instanceof RespawnBookEntity respawnBook) {
+                    ParticleHelper.spawnParticleEntity(ParticleTypes.CAMPFIRE_COSY_SMOKE, respawnBook, 20, 0.05);
+//                ParticleHelper.spawnParticleEntity(ParticleHelper.constructSimpleSpark(new Color(239, 215, 182), 0.2f, 60, 0.97f), e, 20, 0.05);
+                    ParticleHelper.spawnParticleEntity(ParticleHelper.constructSmoke(new Color(239, 215, 182), (respawnBook.getBbHeight() + respawnBook.getBbWidth()) / 2, 60, 0).withLightning(false), respawnBook, 20, 0.03);
+                    ItemEntity item = new ItemEntity(respawnBook.level(), respawnBook.getX(), respawnBook.getY(), respawnBook.getZ(), new ItemStack(Items.BOOK));
+                    respawnBook.level().addFreshEntity(item);
+                    respawnBook.discard();
+                    return;
+                }
+                
+                FeatherVortexEntity vortexEntity = new FeatherVortexEntity(living, player.level(), (int) ItemsRegistry.HETT_FEATHER.getStatValue(stack, "book_slap", "level"));
+                player.level().addFreshEntity(vortexEntity);
+                
+                ((ItemHettFeather) stack.getItem()).addRelicExperience(stack, 10);
+                
+                this.addAbilityCooldown(stack, "book_slap", 600);
+            }
+        }
+    
+    }
+    
+    @SubscribeEvent(priority = EventPriority.LOW)
+    public void damageEvent(PlayerXpEvent.PickupXp event) {
+        Player player = event.getEntity();
+        ExperienceOrb orb = event.getOrb();
+        
+        var itr = ItemChargeHelper.listPlayerInventories(player).iterator();
+        while (itr.hasNext()) {
+            var ih = itr.next();
+            for (int j = 0; j < ih.getSlots(); j++) {
+                var it = ih.getStackInSlot(j);
+                if (!it.is(this))
+                    continue;
+                
+                ((ItemHettFeather) it.getItem()).addRelicExperience(it, orb.value);
+                float delta = player.getMaxHealth() - player.getHealth();
+                if (delta > 0) {
+                    int perXp = (int) ((ItemHettFeather) it.getItem()).getStatValue(it, "lifegiving_knowledge", "hp_value");
+                    player.heal((float) orb.value * perXp / 100);
+                }
+                
+                int level = ((ItemHettFeather) it.getItem()).getAbilityLevel(it, "lifegiving_knowledge");
+                if (level == ((ItemHettFeather) it.getItem()).getAbilityMaxLevel(it, "lifegiving_knowledge"))
+                    player.getFoodData().eat(1, 0.1f);
+                
+                break;
+            }
+        }
+        
+    }
+    
+    
+}

@@ -1,9 +1,7 @@
 package com.qurenie.relics_thirteenflames.client.render.item;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Axis;
 import com.qurenie.relics_thirteenflames.client.render.entity.EntityRendererSeliasetSun;
-import it.hurts.sskirillss.relics.utils.NBTUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -11,6 +9,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
 import static com.qurenie.relics_thirteenflames.client.render.entity.EntityRendererSeliasetSun.TEXTURE;
@@ -21,7 +20,7 @@ public class SeliasetSunItemRenderer
 		extends ZeithTechISTER
 {
 	@Override
-	public void renderByItem(ItemStack pStack, ItemDisplayContext pTransformType, PoseStack pose, MultiBufferSource pBuffer, int pPackedLight, int pPackedOverlay)
+	public void renderByItem(@NotNull ItemStack pStack, @NotNull ItemDisplayContext pTransformType, @NotNull PoseStack pose, @NotNull MultiBufferSource pBuffer, int pPackedLight, int pPackedOverlay)
 	{
 
 		var mc = Minecraft.getInstance();
@@ -31,8 +30,7 @@ public class SeliasetSunItemRenderer
 		var overrides = isterModel.getOverrides().getOverrides();
 
 		if (pTransformType == ItemDisplayContext.GUI) {
-
-			renderOverrride(overrides.get(0), pTransformType, pose, pStack, pBuffer, null, LightTexture.FULL_BRIGHT, pPackedOverlay);
+			renderOverrride(overrides.getFirst(), pTransformType, pose, pStack, pBuffer, null, LightTexture.FULL_BRIGHT, pPackedOverlay);
 			return;
 		}
 

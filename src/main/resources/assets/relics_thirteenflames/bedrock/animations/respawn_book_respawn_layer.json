@@ -1,0 +1,87 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"respawn_book_respawn_layer": {
+			"animation_length": 1.375,
+			"bones": {
+				"page1": {
+					"rotation": {
+						"0.0": {
+							"post": [0, 0, 0],
+							"lerp_mode": "catmullrom"
+						},
+						"0.75": {
+							"post": [0, 0, 7.5],
+							"lerp_mode": "catmullrom"
+						},
+						"1.0": {
+							"post": [0, 0, 0],
+							"lerp_mode": "catmullrom"
+						},
+						"1.25": {
+							"post": [0, 0, 0],
+							"lerp_mode": "catmullrom"
+						}
+					}
+				},
+				"page3": {
+					"rotation": {
+						"0.0": [0, 0, 0],
+						"0.0833": [0, 0, -177.5],
+						"0.125": {"pre": [0, 0, -177.5], "post": [0, 0, 0]},
+						"0.2083": [0, 0, -177.5],
+						"0.25": {"pre": [0, 0, -177.5], "post": [0, 0, 0]},
+						"0.3333": [0, 0, -177.5],
+						"0.375": {"pre": [0, 0, -177.5], "post": [0, 0, 0]},
+						"0.4583": [0, 0, -177.5],
+						"0.5": {"pre": [0, 0, -177.5], "post": [0, 0, 0]},
+						"0.5833": [0, 0, -177.5],
+						"0.625": {"pre": [0, 0, -177.5], "post": [0, 0, 0]},
+						"0.7083": [0, 0, -177.5],
+						"0.75": {"pre": [0, 0, -177.5], "post": [0, 0, 0]}
+					}
+				},
+				"page2": {
+					"rotation": {
+						"0.0": {
+							"post": [0, 0, 0],
+							"lerp_mode": "catmullrom"
+						},
+						"0.75": {
+							"post": [0, 0, -7.5],
+							"lerp_mode": "catmullrom"
+						},
+						"1.0": {
+							"post": [0, 0, 0],
+							"lerp_mode": "catmullrom"
+						},
+						"1.25": {
+							"post": [0, 0, 0],
+							"lerp_mode": "catmullrom"
+						}
+					}
+				},
+				"model2": {
+					"position": {
+						"0.0": {
+							"post": [0, 0, 0],
+							"lerp_mode": "catmullrom"
+						},
+						"0.7917": {
+							"post": [0, 3, 0],
+							"lerp_mode": "catmullrom"
+						},
+						"1.0833": {
+							"post": [0, 0.5, 0],
+							"lerp_mode": "catmullrom"
+						},
+						"1.375": {
+							"post": [0, 0, 0],
+							"lerp_mode": "catmullrom"
+						}
+					}
+				}
+			}
+		}
+	}
+}

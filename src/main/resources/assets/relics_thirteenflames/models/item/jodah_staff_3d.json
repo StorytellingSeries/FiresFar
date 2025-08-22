@@ -1,0 +1,42 @@
+{
+	"render_type": "translucent",
+	"parent": "relics_thirteenflames:item/builtin/ister",
+	"textures": {
+		"particle": "relics_thirteenflames:item/jodah_staff_3d"
+	},
+	"overrides": [
+		{
+			"predicate": {
+				"alt": 0
+			},
+			"model": "relics_thirteenflames:item/jodah_staff_base"
+		},
+		{
+			"predicate": {
+				"alt": 1
+			},
+			"model": "relics_thirteenflames:item/jodah_staff_emissive"
+		}
+	],
+	"gui_light": "front",
+	"display": {
+		"thirdperson_righthand": {
+			"translation": [0, -9.75, 1.75],
+			"scale": [1.51, 1.51, 1.51]
+		},
+		"thirdperson_lefthand": {
+			"translation": [0, -9.75, 1.75],
+			"scale": [1.51, 1.51, 1.51]
+		},
+		"firstperson_righthand": {
+			"translation": [5.5, 0, 0]
+		},
+		"firstperson_lefthand": {
+			"translation": [5.5, 0, 0]
+		},
+		"head": {
+			"translation": [0, 9.75, 0],
+			"scale": [1.51, 1.51, 1.51]
+		}
+	}
+}

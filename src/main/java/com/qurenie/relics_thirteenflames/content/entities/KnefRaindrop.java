@@ -3,25 +3,24 @@ package com.qurenie.relics_thirteenflames.content.entities;
 import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import it.hurts.sskirillss.relics.items.relics.base.IRelicItem;
-import it.hurts.sskirillss.relics.utils.ParticleUtils;
+import lombok.Getter;
+import lombok.Setter;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.ThrowableProjectile;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.*;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
@@ -33,35 +32,18 @@ public class KnefRaindrop extends ThrowableProjectile
 
     public Color color;
 
+    @Getter
+    @Setter
     private ItemStack bow = ItemStack.EMPTY;
-
-    public void setBow(ItemStack bow){
-        this.bow = bow;
-    }
-
-    public ItemStack getBow(){
-        return  bow;
-    }
+    
+    @Getter
+    @Setter
     private float heal = 0;
-
-    public void setHeal(float heal){
-        this.heal = heal;
-    }
-
-    public float getHeal(){
-        return  heal;
-    }
-
+    
+    @Getter
+    @Setter
     private float dmg = 0;
-
-    public void setDmg(float dmg){
-        this.dmg = dmg;
-    }
-
-    public float getDmg(){
-        return  dmg;
-    }
-
+    
     private static final EntityDataAccessor<Integer> BASE_DMG = SynchedEntityData.defineId(KnefRaindrop.class, EntityDataSerializers.INT);
 
     public void setBaseDmg(int baseDmg){
@@ -88,7 +70,7 @@ public class KnefRaindrop extends ThrowableProjectile
         setDeltaMovement(movement);
         if(level().isClientSide) {
             double distance = this.position().subtract(prevPos == null ? this.position() : prevPos).length();
-            ParticleHelper.spawnParticleLine(this.level(), ParticleUtils.constructSimpleSpark(color, 0.1f, 80, 0.85f),
+            ParticleHelper.spawnParticleLine(this.level(), ParticleHelper.constructSimpleSpark(color, 0.1f, 80, 0.85f),
                     prevPos == null ? this.position() : prevPos, this.position(), (int) Math.round(distance * this.tickCount * this.tickCount / 156 + 2), 0);
         }
 
@@ -121,12 +103,12 @@ public class KnefRaindrop extends ThrowableProjectile
 
         if (result.getType() == HitResult.Type.BLOCK) {
             double distance = result.getLocation().subtract(this.position()).length();
-            ParticleHelper.spawnParticleLine(this.level(), ParticleUtils.constructSimpleSpark(color, 0.1f, 80, 0.85f),
+            ParticleHelper.spawnParticleLine(this.level(), ParticleHelper.constructSimpleSpark(color, 0.1f, 80, 0.85f),
                     this.position(), result.getLocation(), (int) Math.round(distance * this.tickCount * this.tickCount / 156 + 2), 0);
 
-            ParticleHelper.spawnParticleAABB(this.level(), ParticleUtils.constructSimpleSpark(new Color(72, 0, 255), 0.2f, 20, 0.65f),
+            ParticleHelper.spawnParticleAABB(this.level(), ParticleHelper.constructSimpleSpark(new Color(72, 0, 255), 0.2f, 20, 0.65f),
                     new AABB(result.getLocation(), result.getLocation()), 15, 0.1);
-            ParticleHelper.spawnParticleAABB(this.level(), ParticleUtils.constructSimpleSpark(new Color(0, 60, 255), 0.2f, 20, 0.65f),
+            ParticleHelper.spawnParticleAABB(this.level(), ParticleHelper.constructSimpleSpark(new Color(0, 60, 255), 0.2f, 20, 0.65f),
                     new AABB(result.getLocation(), result.getLocation()), 15, 0.1);
         }
         this.discard();
@@ -141,7 +123,7 @@ public class KnefRaindrop extends ThrowableProjectile
     }
 
     @Override
-    public boolean canCollideWith(Entity pEntity) {
+    public boolean canCollideWith(@NotNull Entity pEntity) {
         return false;
     }
 
@@ -156,13 +138,13 @@ public class KnefRaindrop extends ThrowableProjectile
     }
 
     @Override
-    protected void readAdditionalSaveData(CompoundTag compound) {
+    protected void readAdditionalSaveData(@NotNull CompoundTag compound) {
         super.readAdditionalSaveData(compound);
         setBaseDmg(compound.getInt("basedmg"));
     }
 
     @Override
-    protected void addAdditionalSaveData(CompoundTag compound) {
+    protected void addAdditionalSaveData(@NotNull CompoundTag compound) {
         super.addAdditionalSaveData(compound);
         compound.putInt("basedmg", getBaseDmg());
     }

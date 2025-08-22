@@ -17,6 +17,24 @@
         "class": "com/qurenie/relics_thirteenflames/client/render/item/extension/RonasEnumExtension",
         "field": "FLAMES_ARM_POSE_RIGHT"
       }
+    },
+    {
+      "enum": "net/minecraft/client/model/HumanoidModel$ArmPose",
+      "name": "RELICS_THIRTEENFLAMES_TRAVELLER_ARM_POSE_LEFT",
+      "constructor": "(ZLnet/neoforged/neoforge/client/IArmPoseTransformer;)V",
+      "parameters": {
+        "class": "com/qurenie/relics_thirteenflames/client/render/item/extension/TravellerEnumExtension",
+        "field": "TRAVELLER_ARM_POSE_LEFT"
+      }
+    },
+    {
+      "enum": "net/minecraft/client/model/HumanoidModel$ArmPose",
+      "name": "RELICS_THIRTEENFLAMES_TRAVELLER_ARM_POSE_RIGHT",
+      "constructor": "(ZLnet/neoforged/neoforge/client/IArmPoseTransformer;)V",
+      "parameters": {
+        "class": "com/qurenie/relics_thirteenflames/client/render/item/extension/TravellerEnumExtension",
+        "field": "TRAVELLER_ARM_POSE_RIGHT"
+      }
     }
   ]
 }

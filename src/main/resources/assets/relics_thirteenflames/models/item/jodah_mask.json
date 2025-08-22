@@ -1,0 +1,20 @@
+{
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "relics_thirteenflames:item/jodah_mask"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "relics_thirteenflames:mask_state": 1
+      },
+      "model": "relics_thirteenflames:item/jodah_mask_scint"
+    },
+    {
+      "predicate": {
+        "relics_thirteenflames:mask_state": 2
+      },
+      "model": "relics_thirteenflames:item/jodah_mask_scintonit"
+    }
+  ]
+}

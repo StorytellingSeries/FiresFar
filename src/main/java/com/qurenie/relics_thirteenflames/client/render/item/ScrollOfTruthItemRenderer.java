@@ -1,13 +1,9 @@
 package com.qurenie.relics_thirteenflames.client.render.item;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.qurenie.relics_thirteenflames.content.items.ItemKnefRose;
-import com.qurenie.relics_thirteenflames.content.items.scroll_of_truth.ScrollColorMode;
+import com.qurenie.relics_thirteenflames.content.items.misc.ScrollColorMode;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;

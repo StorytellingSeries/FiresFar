@@ -1,0 +1,17 @@
+{
+  "type": "relics_thirteenflames:montu_smith",
+  "center": {
+    "item": "minecraft:netherite_ingot"
+  },
+  "exp": 30,
+  "left": {
+    "item": "minecraft:nether_star"
+  },
+  "result": {
+    "count": 1,
+    "id": "relics_thirteenflames:auritekh_ingot"
+  },
+  "right": {
+    "item": "minecraft:emerald_block"
+  }
+}

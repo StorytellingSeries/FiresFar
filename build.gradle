@@ -40,7 +40,6 @@ minecraft {
 
             modSource project.sourceSets.main
         }
-
         client {
             systemProperty 'forge.enabledGameTestNamespaces', project.mod_id
         }
@@ -78,6 +77,10 @@ repositories {
         url = "https://modmaven.k-4u.nl"
     }
     maven {
+        name = "ModMaven"
+        url = "https://modmaven.dev"
+    }
+    maven {
         name = "OctoStudios"
         url = uri("https://maven.octo-studios.com/releases")
     }
@@ -91,6 +94,8 @@ dependencies {
     implementation "curse.maven:relics-mod-445274:6389006"
     implementation "curse.maven:hammer-lib-247401:5739162"
     implementation "curse.maven:hammer-animations-899883:5641254"
+    compileOnly("mezz.jei:jei-1.21.1-neoforge-api:19.22.0.315")
+    runtimeOnly("mezz.jei:jei-1.21.1-neoforge:19.22.0.315")
 
     if (System.getProperty("idea.sync.active") != "true") {
         annotationProcessor "org.spongepowered:mixin:0.8.5:processor"

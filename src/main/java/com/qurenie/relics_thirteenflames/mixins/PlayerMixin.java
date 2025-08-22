@@ -1,6 +1,6 @@
 package com.qurenie.relics_thirteenflames.mixins;
 
-import com.qurenie.relics_thirteenflames.content.items.scroll_of_truth.ScrollOfTruth;
+import com.qurenie.relics_thirteenflames.content.items.ScrollOfTruthItem;
 import com.qurenie.relics_thirteenflames.init.DamageSourceRegistry;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.player.Player;
@@ -30,7 +30,7 @@ public abstract class PlayerMixin extends LivingEntityMixin {
         Player deez = ((Player)(Object)this);
         if(deez == null) return;
         for(ItemStack stack : deez.getInventory().items) {
-            if(stack.getItem() instanceof  ScrollOfTruth scroll) {
+            if(stack.getItem() instanceof  ScrollOfTruthItem scroll) {
                 scroll.spreadRelicExperience(deez, stack, pLevelCost);
             }
         }

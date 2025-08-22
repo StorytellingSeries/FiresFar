@@ -2,7 +2,7 @@ package com.qurenie.relics_thirteenflames.content.entities;
 
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import it.hurts.sskirillss.relics.utils.MathUtils;
-import it.hurts.sskirillss.relics.utils.ParticleUtils;
+import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -20,6 +20,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -29,9 +30,7 @@ import java.util.Random;
 //@EventBusSubscriber
 public class KnefDischarge extends ThrowableProjectile
 {
-
-
-
+    
     private static final EntityDataAccessor<Float> RADIUS = SynchedEntityData.defineId(KnefDischarge.class, EntityDataSerializers.FLOAT);
 
     public float getRadius() {
@@ -110,14 +109,14 @@ public class KnefDischarge extends ThrowableProjectile
     };
 
     private void spark(int count, double speed, float diam) {
-        ParticleHelper.spawnParticleEntity(ParticleUtils.constructSimpleSpark(lightningColors[0], diam, 45, 0.9f),
+        ParticleHelper.spawnParticleEntity(ParticleHelper.constructSimpleSpark(lightningColors[0], diam, 45, 0.9f),
                 this, count, speed);
-        ParticleHelper.spawnParticleEntity(ParticleUtils.constructSimpleSpark(lightningColors[1], diam, 45, 0.9f),
+        ParticleHelper.spawnParticleEntity(ParticleHelper.constructSimpleSpark(lightningColors[1], diam, 45, 0.9f),
                 this, count, speed);
 
-        ParticleHelper.spawnParticleEntity(ParticleUtils.constructSimpleSpark(lightningColors[2], diam / 2.0f, 50, 0.93f),
+        ParticleHelper.spawnParticleEntity(ParticleHelper.constructSimpleSpark(lightningColors[2], diam / 2.0f, 50, 0.93f),
                 this, count, speed);
-        ParticleHelper.spawnParticleEntity(ParticleUtils.constructSimpleSpark(lightningColors[3], diam / 2.0f, 50, 0.93f),
+        ParticleHelper.spawnParticleEntity(ParticleHelper.constructSimpleSpark(lightningColors[3], diam / 2.0f, 50, 0.93f),
                 this, count, speed);
         this.level().playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.AZALEA_FALL, SoundSource.MASTER, 0.5f, 1.4f + random.nextFloat() * 1.6f);
     }
@@ -175,21 +174,21 @@ public class KnefDischarge extends ThrowableProjectile
     public void drawJaggedLightning(Level level, Vec3 start, Vec3 end, int sliceIterations, double maxJagMultiplier, float d, Color color, boolean doStartBurst){
 
         if(doStartBurst) {
-            ParticleHelper.spawnParticleAABB(this.level(), ParticleUtils.constructSimpleSpark(lightningColors[0], 0.6f, 15, 0.68f),
+            ParticleHelper.spawnParticleAABB(this.level(), ParticleHelper.constructSimpleSpark(lightningColors[0], 0.6f, 15, 0.68f),
                     new AABB(start, start), 10, 0.2);
-            ParticleHelper.spawnParticleAABB(this.level(), ParticleUtils.constructSimpleSpark(lightningColors[1], 0.3f, 30, 0.82f),
+            ParticleHelper.spawnParticleAABB(this.level(), ParticleHelper.constructSimpleSpark(lightningColors[1], 0.3f, 30, 0.82f),
                     new AABB(start, start), 10, 0.15);
         }
 
-        ParticleHelper.spawnRandomJaggedParticleLine(level, start, end, maxJagMultiplier, ParticleUtils.constructSimpleSpark(color, d, 35, 0.9f), 16, sliceIterations);
+        ParticleHelper.spawnRandomJaggedParticleLine(level, start, end, maxJagMultiplier, ParticleHelper.constructSimpleSpark(color, d, 35, 0.9f), 16, sliceIterations);
 
-        ParticleHelper.spawnParticleAABB(this.level(), ParticleUtils.constructSimpleSpark(lightningColors[0], 0.2f, 50, 0.75f),
+        ParticleHelper.spawnParticleAABB(this.level(), ParticleHelper.constructSimpleSpark(lightningColors[0], 0.2f, 50, 0.75f),
                 new AABB(end, end), 10, 0.06);
-        ParticleHelper.spawnParticleAABB(this.level(), ParticleUtils.constructSimpleSpark(lightningColors[1], 0.2f, 50, 0.75f),
+        ParticleHelper.spawnParticleAABB(this.level(), ParticleHelper.constructSimpleSpark(lightningColors[1], 0.2f, 50, 0.75f),
                 new AABB(end, end), 10, 0.06);
-        ParticleHelper.spawnParticleAABB(this.level(), ParticleUtils.constructSimpleSpark(lightningColors[2], 0.4f, 30, 0.8f),
+        ParticleHelper.spawnParticleAABB(this.level(), ParticleHelper.constructSimpleSpark(lightningColors[2], 0.4f, 30, 0.8f),
                 new AABB(end, end), 10, 0.08);
-        ParticleHelper.spawnParticleAABB(this.level(), ParticleUtils.constructSimpleSpark(lightningColors[3], 0.4f, 30, 0.8f),
+        ParticleHelper.spawnParticleAABB(this.level(), ParticleHelper.constructSimpleSpark(lightningColors[3], 0.4f, 30, 0.8f),
                 new AABB(end, end), 10, 0.08);
     }
 
@@ -214,7 +213,7 @@ public class KnefDischarge extends ThrowableProjectile
     }
 
     @Override
-    protected void readAdditionalSaveData(CompoundTag compound) {
+    protected void readAdditionalSaveData(@NotNull CompoundTag compound) {
         super.readAdditionalSaveData(compound);
         setRadius(compound.getFloat("radius"));
         setDmg(compound.getFloat("dmg"));

@@ -2,19 +2,46 @@ package com.qurenie.relics_thirteenflames.init;
 
 import com.mojang.serialization.Codec;
 import com.qurenie.relics_thirteenflames.content.entities.EntitySeliasetSun;
-import com.qurenie.relics_thirteenflames.content.items.scroll_of_truth.ScrollColorMode;
+import com.qurenie.relics_thirteenflames.content.items.misc.JodahTier;
+import com.qurenie.relics_thirteenflames.content.items.misc.MaskState;
+import com.qurenie.relics_thirteenflames.content.items.misc.ScrollColorMode;
+import io.netty.buffer.ByteBuf;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.core.component.DataComponentType;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
+import org.joml.Vector3f;
 import org.zeith.hammerlib.annotations.RegistryName;
 import org.zeith.hammerlib.annotations.SimplyRegister;
 import org.zeith.hammerlib.api.registrars.Registrar;
+
+import java.util.UUID;
+import java.util.Vector;
 
 @SimplyRegister
 public class ComponentRegistry {
     
     @RegistryName("nether_ticker")
     public static final Registrar<DataComponentType<Integer>> NETHER_TICKER = Registrar.dataComponentType(DataComponentType.<Integer>builder()
+            .persistent(Codec.INT)
+            .networkSynchronized(ByteBufCodecs.INT).cacheEncoding());
+    
+    @RegistryName("entity_uuid")
+    public static final Registrar<DataComponentType<UUID>> ENTITY_UUID = Registrar.dataComponentType(DataComponentType.<UUID>builder()
+            .persistent(UUIDUtil.CODEC)
+            .networkSynchronized(UUIDUtil.STREAM_CODEC).cacheEncoding());
+    
+    @RegistryName("target_type")
+    public static final Registrar<DataComponentType<String>> TARGET_TYPE = Registrar.dataComponentType(DataComponentType.<String>builder()
+            .persistent(Codec.STRING)
+            .networkSynchronized(ByteBufCodecs.STRING_UTF8).cacheEncoding());
+    
+    @RegistryName("level")
+    public static final Registrar<DataComponentType<Integer>> LEVEL = Registrar.dataComponentType(DataComponentType.<Integer>builder()
             .persistent(Codec.INT)
             .networkSynchronized(ByteBufCodecs.INT).cacheEncoding());
     
@@ -30,6 +57,31 @@ public class ComponentRegistry {
     
     @RegistryName("active_tick")
     public static final Registrar<DataComponentType<Integer>> ACTIVE_TICK = Registrar.dataComponentType(DataComponentType.<Integer>builder()
+            .persistent(Codec.INT)
+            .networkSynchronized(ByteBufCodecs.INT).cacheEncoding());
+    
+    @RegistryName("traveller_active_tick")
+    public static final Registrar<DataComponentType<Integer>> TRAVELLER_ACTIVE_TICK = Registrar.dataComponentType(DataComponentType.<Integer>builder()
+            .persistent(Codec.INT)
+            .networkSynchronized(ByteBufCodecs.INT).cacheEncoding());
+    
+    @RegistryName("direction")
+    public static final Registrar<DataComponentType<Vec3>> DIRECTION = Registrar.dataComponentType(DataComponentType.<Vec3>builder()
+            .persistent(Vec3.CODEC)
+            .cacheEncoding());
+    
+    @RegistryName("last_pos")
+    public static final Registrar<DataComponentType<Vec3>> LAST_POS = Registrar.dataComponentType(DataComponentType.<Vec3>builder()
+            .persistent(Vec3.CODEC)
+            .cacheEncoding());
+    
+    @RegistryName("jodah_active_tick")
+    public static final Registrar<DataComponentType<Integer>> JODAH_ACTIVE_TICK = Registrar.dataComponentType(DataComponentType.<Integer>builder()
+            .persistent(Codec.INT)
+            .networkSynchronized(ByteBufCodecs.INT).cacheEncoding());
+    
+    @RegistryName("skint_genesis_count")
+    public static final Registrar<DataComponentType<Integer>> SKINT_GENESIS_COUNT = Registrar.dataComponentType(DataComponentType.<Integer>builder()
             .persistent(Codec.INT)
             .networkSynchronized(ByteBufCodecs.INT).cacheEncoding());
     
@@ -63,6 +115,11 @@ public class ComponentRegistry {
             .persistent(Codec.INT)
             .networkSynchronized(ByteBufCodecs.INT).cacheEncoding());
     
+    @RegistryName("speed")
+    public static final Registrar<DataComponentType<Float>> SPEED = Registrar.dataComponentType(DataComponentType.<Float>builder()
+            .persistent(Codec.FLOAT)
+            .networkSynchronized(ByteBufCodecs.FLOAT).cacheEncoding());
+    
     @RegistryName("deterioration_ticker")
     public static final Registrar<DataComponentType<Integer>> DETERIORATION_TICKER = Registrar.dataComponentType(DataComponentType.<Integer>builder()
             .persistent(Codec.INT)
@@ -92,5 +149,30 @@ public class ComponentRegistry {
     public static final Registrar<DataComponentType<ScrollColorMode>> SCROLL_COLOR_MODE = Registrar.dataComponentType(DataComponentType.<ScrollColorMode>builder()
             .persistent(ScrollColorMode.CODEC).networkSynchronized(ScrollColorMode.STREAM_CODEC).cacheEncoding());
     
+    @RegistryName("jodah_tier")
+    public static final Registrar<DataComponentType<JodahTier>> JODAH_TIER = Registrar.dataComponentType(DataComponentType.<JodahTier>builder()
+            .persistent(JodahTier.CODEC).networkSynchronized(JodahTier.STREAM_CODEC).cacheEncoding());
+    
+    @RegistryName("cluster_mask_state")
+    public static final Registrar<DataComponentType<MaskState>> CLUSTERS_MASK_STATE = Registrar.dataComponentType(DataComponentType.<MaskState>builder()
+            .persistent(MaskState.CODEC).networkSynchronized(MaskState.STREAM_CODEC).cacheEncoding());
+    
+    @RegistryName("mask_state")
+    public static final Registrar<DataComponentType<MaskState>> MASK_STATE = Registrar.dataComponentType(DataComponentType.<MaskState>builder()
+            .persistent(MaskState.CODEC).networkSynchronized(MaskState.STREAM_CODEC).cacheEncoding());
+    
+    @RegistryName("mask_state_f")
+    public static final Registrar<DataComponentType<Float>> MASK_STATE_F = Registrar.dataComponentType(DataComponentType.<Float>builder()
+            .persistent(Codec.FLOAT).networkSynchronized(ByteBufCodecs.FLOAT).cacheEncoding());
+    
+    @RegistryName("skint_charges")
+    public static final Registrar<DataComponentType<Integer>> SKINT_CHARGES = Registrar.dataComponentType(DataComponentType.<Integer>builder()
+            .persistent(Codec.INT)
+            .networkSynchronized(ByteBufCodecs.INT).cacheEncoding());
+    
+    @RegistryName("antiskint_charges")
+    public static final Registrar<DataComponentType<Integer>> ANTISKINT_CHARGES = Registrar.dataComponentType(DataComponentType.<Integer>builder()
+            .persistent(Codec.INT)
+            .networkSynchronized(ByteBufCodecs.INT).cacheEncoding());
     
 }

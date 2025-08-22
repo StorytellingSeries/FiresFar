@@ -1,5 +1,6 @@
 package com.qurenie.relics_thirteenflames.content.items;
 
+import com.qurenie.relics_thirteenflames.content.entities.EntitySeliasetSun;
 import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
 import com.qurenie.relics_thirteenflames.net.PacketHornSounds;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
@@ -17,11 +18,9 @@ import it.hurts.sskirillss.relics.items.relics.base.data.leveling.misc.UpgradeOp
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootData;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootEntry;
 import it.hurts.sskirillss.relics.utils.MathUtils;
-import it.hurts.sskirillss.relics.utils.ParticleUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.Particle;
-import net.minecraft.client.particle.ParticleRenderType;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance;
 import net.minecraft.client.resources.sounds.SoundInstance;
@@ -37,7 +36,9 @@ import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -50,11 +51,11 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.zeith.hammerlib.api.items.IColoredFoilItem;
 import org.zeith.hammerlib.net.Network;
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
@@ -75,13 +76,13 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
     }
     
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, @Nullable TooltipContext context, List<net.minecraft.network.chat.Component> tooltip, TooltipFlag isAdvanced) {
+    public void appendHoverText(@NotNull ItemStack stack, @NotNull TooltipContext context, List<net.minecraft.network.chat.Component> tooltip, @NotNull TooltipFlag isAdvanced) {
         tooltip.add(Component.translatable("tooltip.relics_thirteenflames.seliaset_horn.lore").withStyle(ChatFormatting.GOLD).withStyle(ChatFormatting.ITALIC));
         super.appendHoverText(stack, context, tooltip, isAdvanced);
     }
     
     @Override
-    public InteractionResultHolder<ItemStack> use(Level pLevel, Player pPlayer, InteractionHand pUsedHand) {
+    public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level pLevel, Player pPlayer, @NotNull InteractionHand pUsedHand) {
         ItemStack horn = pPlayer.getItemInHand(pUsedHand);
         pPlayer.startUsingItem(pUsedHand);
         return InteractionResultHolder.success(horn);
@@ -89,7 +90,7 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
     
     
     @Override
-    public void releaseUsing(ItemStack pStack, Level pLevel, LivingEntity pLivingEntity, int pTimeCharged) {
+    public void releaseUsing(@NotNull ItemStack pStack, @NotNull Level pLevel, @NotNull LivingEntity pLivingEntity, int pTimeCharged) {
         super.releaseUsing(pStack, pLevel, pLivingEntity, pTimeCharged);
         
         if (!pLevel.isClientSide() && pStack.is(this) && pLivingEntity instanceof ServerPlayer sPlayer) {
@@ -157,7 +158,7 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
                                     ParticleTypes.FLAME, pos, move.x, move.y, move.z, 0.2f, 40, Color.WHITE, 0.5f);
                         } else if (rng.nextFloat() < 0.8f) {
                             ParticleHelper.spawnDirectedParticle(level,
-                                    ParticleUtils.constructSimpleSpark(new Color(37, 36, 30), 0.08f + (float) i / segments * 0.04f, (int) Math.round(iniPos.subtract(pos).length() / move.length()), -1)
+                                    ParticleHelper.constructSimpleSpark(new Color(37, 36, 30), 0.08f + (float) i / segments * 0.04f, (int) Math.round(iniPos.subtract(pos).length() / move.length()), 1)
                                     , pos.x(), pos.y(), pos.z(), move.x, move.y, move.z);
                         } else {
                             ParticleHelper.spawnEnginedParticle(level,
@@ -179,7 +180,7 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
                             .add(z.scale(Math.sin(Math.toRadians(a))).scale(rng.nextFloat()));
                     
                     Vec3 move = luk.scale(0.5).add(pos.subtract(iniPos).normalize().scale(0.05 * rng.nextFloat()));
-                    ParticleHelper.spawnDirectedParticle(level, ParticleUtils.constructSimpleSpark(new Color(37, 36, 30), 0.06f, 40 + rng.nextInt(40), -1
+                    ParticleHelper.spawnDirectedParticle(level, ParticleHelper.constructSimpleSpark(new Color(37, 36, 30), 0.06f, 40 + rng.nextInt(40), 1
                             )
                             , pos.x(), pos.y(), pos.z(), move.x, move.y, move.z);
                     if (i % 5 == 0 && rng.nextBoolean()) {
@@ -216,7 +217,7 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
                                     ParticleTypes.FLAME, pos, move.x, move.y, move.z, 0.2f, 40, Color.WHITE, 0.5f);
                         } else if (rng.nextFloat() < 0.8f) {
                             ParticleHelper.spawnDirectedParticle(level,
-                                    ParticleUtils.constructSimpleSpark(new Color(37, 36, 30), 0.08f + (float) i / segments * 0.08f, (int) Math.round((segments - pos.subtract(iniPos).length()) / move.length()), -1)
+                                    ParticleHelper.constructSimpleSpark(new Color(37, 36, 30), 0.08f + (float) i / segments * 0.08f, (int) Math.round((segments - pos.subtract(iniPos).length()) / move.length()), -1)
                                     , pos.x(), pos.y(), pos.z(), move.x, move.y, move.z);
                         } else {
                             ParticleHelper.spawnEnginedParticle(level,
@@ -240,19 +241,18 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
         
         Vec3 endPos = initPos.add(player.getLookAngle().scale(distance / 2.0));
         if (!player.level().isClientSide) {
-            List<LivingEntity> entitiesToAffect = getAffectedEntities(player, initPos, endPos, distance, distance / 6.0);
+            List<Entity> entitiesToAffect = getAffectedEntities(player, initPos, endPos, distance, distance / 6.0);
             
-            
-            for (LivingEntity e : entitiesToAffect) {
-                if (!e.isPushable())
+            for (Entity e : entitiesToAffect) {
+                if (e instanceof LivingEntity && (!e.isPushable() || e instanceof EntitySeliasetSun))
                     continue;
                 
                 Vec3 entityPos = e.position().add(0, e.getEyeHeight(), 0);
                 Vec3 b = entityPos.subtract(initPos).add(player.getLookAngle());
                 double efficiency = this.getStatValue(horn, "air_ray", "efficiency") / 20;
                 
-                if (e.getMaxHealth() > 50)
-                    efficiency = Mth.clamp(efficiency - (e.getMaxHealth() - 50.0) / 10.0, 0, efficiency);
+                if (e instanceof LivingEntity living && living.getMaxHealth() > 50)
+                    efficiency = Mth.clamp(efficiency - (living.getMaxHealth() - 50.0) / 10.0, 0, efficiency);
                 
                 Vec3 speed = b.normalize().multiply(efficiency, efficiency, efficiency);
                 if (player.isShiftKeyDown()) {
@@ -270,9 +270,12 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
         }
     }
     
-    List<LivingEntity> getAffectedEntities(Player player, Vec3 initPos, Vec3 endPos, double boxRadius, double dist) {
+    List<Entity> getAffectedEntities(Player player, Vec3 initPos, Vec3 endPos, double boxRadius, double dist) {
         Vec3 axis = endPos.subtract(initPos);
-        return player.level().getEntitiesOfClass(LivingEntity.class, new AABB(endPos, endPos).inflate(boxRadius), e -> {
+        return player.level().getEntitiesOfClass(Entity.class, new AABB(endPos, endPos).inflate(boxRadius), e -> {
+            if (!(e instanceof LivingEntity) && !(e instanceof ItemEntity) && !(e instanceof ExperienceOrb) && !(e instanceof EntitySeliasetSun))
+                return false;
+            
             Vec3 ePos = e.getBoundingBox().getCenter();
             Vec3 eVec = ePos.subtract(initPos);
             double axisScalar = axis.dot(axis);
@@ -300,9 +303,9 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
                         .ability(AbilityData.builder("air_ray")
                                 .maxLevel(5)
                                 .stat(StatData.builder("distance")
-                                        .thresholdValue(8, 24)
+                                        .thresholdValue(8, 42)
                                         .initialValue(10, 14)
-                                        .upgradeModifier(UpgradeOperation.ADD, 2)
+                                        .upgradeModifier(UpgradeOperation.MULTIPLY_BASE, 1.25)
                                         .formatValue(x -> MathUtils.round(x, 1))
                                         .build())
                                 .stat(StatData.builder("efficiency")
@@ -355,7 +358,7 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
     }
     
     @Override
-    public void inventoryTick(ItemStack stack, Level level, Entity entity, int slot, boolean isSelected) {
+    public void inventoryTick(@NotNull ItemStack stack, Level level, @NotNull Entity entity, int slot, boolean isSelected) {
         
         if (!level.isClientSide()) {
             int activeTicker = stack.getOrDefault(ACTIVE_TICK, 0);
@@ -376,21 +379,36 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
     public void tickWave(Entity entity, ItemStack stack, int tick) {
         if (tick <= 30) {
             double radius = tick / 30f * 10;
-            List<LivingEntity> toThrowOut = entity.level().getEntitiesOfClass(LivingEntity.class, new AABB(
+            
+            List<Entity> targets = new ArrayList<>(entity.level().getEntitiesOfClass(LivingEntity.class, new AABB(
                     -radius, -radius, -radius, radius, radius, radius
-            ).move(entity.position()), e -> e.distanceTo(entity) <= radius);
-            for (LivingEntity le : toThrowOut) {
-                if (!le.isPushable())
+            ).move(entity.position()), e -> e.distanceTo(entity) <= radius));
+            
+            targets.addAll( entity.level().getEntitiesOfClass(ItemEntity.class, new AABB(
+                    -radius, -radius, -radius, radius, radius, radius
+            ).move(entity.position()), e -> e.distanceTo(entity) <= radius));
+            
+            targets.addAll( entity.level().getEntitiesOfClass(ExperienceOrb.class, new AABB(
+                    -radius, -radius, -radius, radius, radius, radius
+            ).move(entity.position()), e -> e.distanceTo(entity) <= radius));
+            
+            for (Entity le : targets) {
+                if (le instanceof LivingEntity && !le.isPushable())
                     continue;
                 
                 if (Objects.equals(le.getUUID(), entity.getUUID())) continue;
                 Vec3 b = le.position().subtract(entity.position());
                 Vec3 sp = b.normalize().multiply(2, 2, 2).add(0, 0.5, 0);
+                if (le instanceof ItemEntity || le instanceof ExperienceOrb)
+                    sp = sp.scale(0.2f);
                 le.setDeltaMovement(sp);
-                if (!le.hasEffect(MobEffects.MOVEMENT_SLOWDOWN) && entity instanceof LivingEntity livin)
-                    this.spreadRelicExperience(livin, stack, 1);
-                le.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, (int) Math.round(this.getStatValue(stack, "block", "stunDuration") * 20), 3));
                 
+                if (!(le instanceof LivingEntity living))
+                    return;
+                
+                if (!living.hasEffect(MobEffects.MOVEMENT_SLOWDOWN) && entity instanceof LivingEntity livin)
+                    this.spreadRelicExperience(livin, stack, 1);
+                living.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, (int) Math.round(this.getStatValue(stack, "block", "stunDuration") * 20), 3));
             }
         }
     }
@@ -438,7 +456,7 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
 //                            pos.x(), pos.y(), pos.z(), sped.x(), 0, sped.z());
                     Vec3 pos = ePos.add(new Vec3(r, 0, 0).yRot((float) Math.toRadians(360.0 / count * j)));
                     Vec3 sped = pos.subtract(ePos.add(new Vec3(0, 0.3, 0))).normalize().scale(0.11);
-//                    ParticleHelper.spawnDirectedParticle(level, ParticleUtils.constructSimpleSpark(new Color(42, 41, 26), 0.3f, (int) Math.round(10 + r * 2), -1),
+//                    ParticleHelper.spawnDirectedParticle(level, ParticleHelper.constructSimpleSpark(new Color(42, 41, 26), 0.3f, (int) Math.round(10 + r * 2), -1),
 //                            pos.x, pos.y + 0.3, pos.z, sped.x, 0, sped.z);
                     
                     if (finalI == 13) ParticleHelper.spawnDirectedParticle(level, ParticleTypes.CLOUD,
@@ -449,7 +467,7 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
                 for (int j = 0; j < count2; j++) {
                     Vec3 pos = ePos.add(new Vec3(r2 + rng.nextDouble(0.1), 0, 0).yRot((float) Math.toRadians(360.0 / count2 * j)));
                     Vec3 sped = pos.subtract(ePos.add(new Vec3(0, 0.3, 0))).normalize().scale(0.11 * (1 - finalI / 14) + rng.nextDouble(0.03));
-                    ParticleHelper.spawnDirectedParticle(level, ParticleUtils.constructSimpleSpark(new Color(63, 60, 39), 0.3f + ((finalI / 14) * 0.2f), (int) Math.round(10 + r2 * 2), 0.9f),
+                    ParticleHelper.spawnDirectedParticle(level, ParticleHelper.constructSimpleSpark(new Color(63, 60, 39), 0.3f + ((finalI / 14) * 0.2f), (int) Math.round(10 + r2 * 2), 0.9f),
                             pos.x + rng.nextDouble(0.4) - 0.2, pos.y + 0.2 + rng.nextDouble(0.2), pos.z + rng.nextDouble(0.4) - 0.2, sped.x, 0, sped.z);
                     
                 }

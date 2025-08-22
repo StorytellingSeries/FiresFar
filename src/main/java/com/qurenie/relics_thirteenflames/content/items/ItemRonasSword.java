@@ -7,6 +7,7 @@ import com.qurenie.relics_thirteenflames.init.EffectsRegistry;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
 import com.qurenie.relics_thirteenflames.net.RhonasSweepPacket;
+import it.hurts.sskirillss.relics.items.relics.base.IRelicItem;
 import it.hurts.sskirillss.relics.items.relics.base.RelicItem;
 import it.hurts.sskirillss.relics.items.relics.base.data.RelicData;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.AbilitiesData;
@@ -52,6 +53,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import org.jetbrains.annotations.NotNull;
 import org.zeith.hammerlib.api.items.IColoredFoilItem;
 import org.zeith.hammerlib.net.Network;
+import top.theillusivec4.curios.api.CuriosApi;
 
 import java.awt.*;
 import java.util.List;
@@ -61,7 +63,6 @@ import java.util.Random;
 public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
 
     public ItemRonasSword(Properties properties) {
-
         super(properties);
     }
 
@@ -155,7 +156,7 @@ public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
                         )
                         .build()
                 )
-                .leveling(new LevelingData(100, 10, 100))
+                .leveling(new LevelingData(50, 10, 50))
                 .loot(LootData.builder().entry(LootEntries.TROPIC).build())
                 .build();
     }
@@ -263,16 +264,30 @@ public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
 
             Vec3 startVec = p.getEyePosition(1F)
                     .add(0, -0.2, 0);
-
-
+            
             if (p.level() instanceof ServerLevel level) {
-
+                
+                float glovesRangeBonus = CuriosApi.getCuriosInventory(p).map(handler -> {
+                    float result = 0;
+                    
+                    ItemStack stack = handler.getCurios().get("hands").getStacks().getStackInSlot(0);
+                    if (stack.is(ItemsRegistry.MONTU_GLOVES))
+                        result += (float) ItemsRegistry.MONTU_GLOVES.getStatValue(stack, "gloves_range", "range");
+                    
+                    stack = handler.getCurios().get("hands").getStacks().getStackInSlot(1);
+                    if (stack.is(ItemsRegistry.MONTU_GLOVES))
+                        result += (float) ItemsRegistry.MONTU_GLOVES.getStatValue(stack, "gloves_range", "range");
+                    
+                    return result;
+                }).orElse(0f);
+                range += glovesRangeBonus;
+                
                 PoisonWaveProjectile wave = new PoisonWaveProjectile(EntityRegistry.POISONWAVE, level);
                 wave.setPos(startVec);
                 wave.startVec = startVec;
                 wave.flatluk = Vec3.directionFromRotation(0, p.getYHeadRot());
                 wave.spreadAngle = 20 + (range * 1.2);
-                wave.setDeltaMovement(p.getLookAngle().scale(relic.getStatValue(sword, "spit", "range") * 0.1 + 0.06));
+                wave.setDeltaMovement(p.getLookAngle().scale(range * 0.1 + 0.06));
                 wave.setMaxRange((float) range);
                 wave.setOwner(p);
                 wave.setSword(sword);

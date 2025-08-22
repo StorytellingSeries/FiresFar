@@ -10,6 +10,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
@@ -20,6 +21,7 @@ import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.zeith.hammeranims.api.animsys.ConfiguredAnimation;
@@ -87,6 +89,11 @@ public class LivingFleshEntity
 	{
 		pDamageAmount = Math.min(4F, pDamageAmount);
 		super.actuallyHurt(pDamageSource, pDamageAmount);
+	}
+	
+	@Override
+	protected @NotNull ResourceKey<LootTable> getDefaultLootTable() {
+		return super.getDefaultLootTable();
 	}
 	
 	@Override

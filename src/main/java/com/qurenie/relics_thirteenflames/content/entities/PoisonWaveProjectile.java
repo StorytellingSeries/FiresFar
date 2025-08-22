@@ -4,7 +4,9 @@ import com.qurenie.relics_thirteenflames.content.effects.PoisonEffectInstance;
 import com.qurenie.relics_thirteenflames.init.EffectsRegistry;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import it.hurts.sskirillss.relics.items.relics.base.IRelicItem;
-import it.hurts.sskirillss.relics.utils.ParticleUtils;
+import com.qurenie.relics_thirteenflames.util.ParticleHelper;
+import lombok.Getter;
+import lombok.Setter;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -44,17 +46,10 @@ public class PoisonWaveProjectile extends ThrowableProjectile
 
     HashSet<LivingEntity> entityBlackList = new HashSet<>();
 
+    @Getter
+    @Setter
     private ItemStack sword = ItemStack.EMPTY;
-
-    public void setSword(ItemStack sword){
-        this.sword = sword;
-    }
-
-    public ItemStack getSword(){
-        return  sword;
-    }
-
-
+    
     private static final EntityDataAccessor<Float> MAX_RANGE = SynchedEntityData.defineId(PoisonWaveProjectile.class, EntityDataSerializers.FLOAT);
 
     public void setMaxRange(float range){
@@ -94,7 +89,7 @@ public class PoisonWaveProjectile extends ThrowableProjectile
 
                 int duration = (int) Math.round(relic.getStatValue(sword, "spit", "poisondur") * 20);
                 int maxAmp = (int) Math.round(relic.getStatValue(sword, "spit", "maxstacks") - 1);
-                List<LivingEntity> eList = level().getEntitiesOfClass(LivingEntity.class, new AABB(vec, vec).inflate(0.2), e -> !Objects.equals(e, this.getOwner()) && !entityBlackList.contains(e) );
+                List<LivingEntity> eList = level().getEntitiesOfClass(LivingEntity.class, new AABB(vec, vec).inflate(getDeltaMovement().length() / 4), e -> !Objects.equals(e, this.getOwner()) && !entityBlackList.contains(e) );
                 entityBlackList.addAll(eList);
                 for(LivingEntity lE : eList){
                     int invulTime = p.invulnerableTime;
@@ -116,12 +111,12 @@ public class PoisonWaveProjectile extends ThrowableProjectile
 
 
                 double randomSpread = 0.01 * this.tickCount;
-                ParticleHelper.spawnParticles(level(), ParticleUtils.constructSimpleSpark(new Color(85 + rng.nextInt(80), 255 - rng.nextInt(100), 0),
-                                (float) (0.4F + 0.03f * this.tickCount), 20, 0.83F),
+                ParticleHelper.spawnParticles(level(), ParticleHelper.constructSimpleSpark(new Color(85 + rng.nextInt(80), 255 - rng.nextInt(100), 0),
+                                0.4F + 0.03f * this.tickCount, 20, 0.83F),
                         vec.x, vec.y, vec.z, 1, randomSpread, randomSpread, randomSpread, 0.002 + this.tickCount * 0.008);
                 if (rng.nextFloat() < 0.3f)
-                    ParticleHelper.spawnParticles(level(), ParticleUtils.constructSimpleSpark(new Color(85 - rng.nextInt(80), 255 - rng.nextInt(100), 0),
-                                    (float) (0.25F + 0.0125f * this.tickCount), 20, 0.8f),
+                    ParticleHelper.spawnParticles(level(), ParticleHelper.constructSimpleSpark(new Color(85 - rng.nextInt(80), 255 - rng.nextInt(100), 0),
+                                    0.25F + 0.0125f * this.tickCount, 20, 0.8f),
                             vec.x, vec.y, vec.z, 1, randomSpread, randomSpread, randomSpread, 0.002 + this.tickCount * 0.008);
             }
         }

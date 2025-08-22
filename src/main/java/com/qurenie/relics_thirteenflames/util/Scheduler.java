@@ -4,7 +4,6 @@ import net.neoforged.bus.api.Event;
 
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.function.BooleanSupplier;
 import java.util.function.Predicate;
 
 import static net.neoforged.neoforge.common.NeoForge.EVENT_BUS;

@@ -2,7 +2,7 @@ package com.qurenie.relics_thirteenflames.content.entities;
 
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
-import it.hurts.sskirillss.relics.utils.ParticleUtils;
+import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.Entity;
@@ -44,7 +44,7 @@ public class KnefProjectileSpecial extends ThrowableProjectile
 
         setDeltaMovement(motion);
         if(!level().isClientSide) {
-            ParticleHelper.spawnParticleLine(this.level(), ParticleUtils.constructSimpleSpark(color, 0.1f, 40, 0.92f),
+            ParticleHelper.spawnParticleLine(this.level(), ParticleHelper.constructSimpleSpark(color, 0.1f, 40, 0.92f),
                     prevPos == null ? this.position() : prevPos, this.position(), 25, 0);
         }
 

@@ -20,95 +20,92 @@ import net.minecraft.world.level.block.StainedGlassPaneBlock;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class ZeithTechISTER
-        extends BlockEntityWithoutLevelRenderer
-{
-    protected final BlockEntityRenderDispatcher blockEntRenderDispatcher;
+import static net.minecraft.world.item.ItemDisplayContext.FIRST_PERSON_LEFT_HAND;
+import static net.minecraft.world.item.ItemDisplayContext.THIRD_PERSON_LEFT_HAND;
+import static net.neoforged.neoforge.client.ClientHooks.handleCameraTransforms;
 
-    protected ZeithTechISTER()
-    {
+public abstract class ZeithTechISTER
+        extends BlockEntityWithoutLevelRenderer {
+    
+    protected final BlockEntityRenderDispatcher blockEntRenderDispatcher;
+    
+    protected ZeithTechISTER() {
         super(Minecraft.getInstance().getBlockEntityRenderDispatcher(), Minecraft.getInstance().getEntityModels());
         this.blockEntRenderDispatcher = Minecraft.getInstance().getBlockEntityRenderDispatcher();
     }
-
-    protected EntityModelSet getEntityModels()
-    {
+    
+    protected EntityModelSet getEntityModels() {
         return Minecraft.getInstance().getEntityModels();
     }
-
-    public void renderOverrride(ItemOverrides.BakedOverride override, @NotNull ItemDisplayContext transformType, @NotNull PoseStack pose, @NotNull ItemStack stack, @NotNull MultiBufferSource bufferSource, @Nullable RenderType overrideType, int uv2, int overlay)
-    {
+    
+    public void renderOverrride(ItemOverrides.BakedOverride override, @NotNull ItemDisplayContext transformType, @NotNull PoseStack pose, @NotNull ItemStack stack, @NotNull MultiBufferSource bufferSource, @Nullable RenderType overrideType, int uv2, int overlay) {
         var mc = Minecraft.getInstance();
         var ir = mc.getItemRenderer();
         var overridenModel = ((BakedOverrideAccessor) override).getModel();
-
-        if(overridenModel != null)
-        {
+        
+        pose.pushPose();
+        
+        if (overridenModel != null) {
+//            overridenModel = handleCameraTransforms(pose, overridenModel, transformType, transformType == THIRD_PERSON_LEFT_HAND || transformType == FIRST_PERSON_LEFT_HAND);
+//            pose.translate(-0.5F, -0.5F, -0.5F);
             boolean cull;
-            if(transformType != ItemDisplayContext.GUI && !transformType.firstPerson() &&
-                    stack.getItem() instanceof BlockItem bi)
-            {
+            if (transformType != ItemDisplayContext.GUI && !transformType.firstPerson() &&
+                    stack.getItem() instanceof BlockItem bi) {
                 Block block = bi.getBlock();
                 cull = !(block instanceof HalfTransparentBlock) && !(block instanceof StainedGlassPaneBlock);
             } else cull = true;
-
-            for(var model : overridenModel.getRenderPasses(stack, cull))
-            {
-                for(var type : model.getRenderTypes(stack, cull))
-                {
-                    if(overrideType != null) type = overrideType;
-
+            
+            for (var model : overridenModel.getRenderPasses(stack, cull)) {
+                for (var type : model.getRenderTypes(stack, cull)) {
+                    if (overrideType != null) type = overrideType;
                     VertexConsumer vertexconsumer;
-                    if(cull)
+                    if (cull)
                         vertexconsumer = ItemRenderer.getFoilBufferDirect(bufferSource, type, true, stack.hasFoil());
                     else
                         vertexconsumer = ItemRenderer.getFoilBuffer(bufferSource, type, true, stack.hasFoil());
-
+                    
                     ir.renderModelLists(overridenModel, stack, uv2, overlay, pose, vertexconsumer);
                 }
             }
         }
+        
+        pose.popPose();
     }
-
-    public void renderAllOverrides(@NotNull ItemStack stack, @NotNull ItemDisplayContext transformType, @NotNull PoseStack pose, @NotNull MultiBufferSource bufferSource, int uv2, int overlay)
-    {
+    
+    public void renderAllOverrides(@NotNull ItemStack stack, @NotNull ItemDisplayContext transformType, @NotNull PoseStack pose, @NotNull MultiBufferSource bufferSource, int uv2, int overlay) {
         var mc = Minecraft.getInstance();
         var ir = mc.getItemRenderer();
-
+        
         var isterModel = ir.getModel(stack, mc.level, mc.player, 0);
         var overrides = isterModel.getOverrides().getOverrides();
-
-        for(var override : overrides)
-        {
+        
+        for (var override : overrides) {
             var overridenModel = ((BakedOverrideAccessor) override).getModel();
-
-            if(overridenModel != null)
-            {
+            
+            if (overridenModel != null) {
                 boolean cull;
-                if(transformType != ItemDisplayContext.GUI && !transformType.firstPerson() &&
-                        stack.getItem() instanceof BlockItem bi)
-                {
+                if (transformType != ItemDisplayContext.GUI && !transformType.firstPerson() &&
+                        stack.getItem() instanceof BlockItem bi) {
                     Block block = bi.getBlock();
                     cull = !(block instanceof HalfTransparentBlock) && !(block instanceof StainedGlassPaneBlock);
                 } else cull = true;
-
-                for(var model : overridenModel.getRenderPasses(stack, cull))
-                {
-                    for(var type : model.getRenderTypes(stack, cull))
-                    {
+                
+                for (var model : overridenModel.getRenderPasses(stack, cull)) {
+                    for (var type : model.getRenderTypes(stack, cull)) {
                         VertexConsumer vertexconsumer;
-                        if(cull)
+                        if (cull)
                             vertexconsumer = ItemRenderer.getFoilBufferDirect(bufferSource, type, true, stack.hasFoil());
                         else
                             vertexconsumer = ItemRenderer.getFoilBuffer(bufferSource, type, true, stack.hasFoil());
-
+                        
                         ir.renderModelLists(overridenModel, stack, uv2, overlay, pose, vertexconsumer);
                     }
                 }
             }
         }
     }
-
+    
     @Override
     public abstract void renderByItem(@NotNull ItemStack stack, @NotNull ItemDisplayContext transformType, @NotNull PoseStack pose, @NotNull MultiBufferSource bufferSource, int i, int j);
+    
 }

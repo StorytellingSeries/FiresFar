@@ -1,0 +1,18 @@
+{
+  "parent": "neoforge:item/default",
+  "base": {
+    "parent": "relics_thirteenflames:item/hett_feather_3d"
+  },
+  "loader": "neoforge:separate_transforms",
+  "perspectives": {
+    "ground": {
+      "parent": "relics_thirteenflames:item/hett_feather_2d"
+    },
+    "gui": {
+      "parent": "relics_thirteenflames:item/hett_feather_2d"
+    },
+    "fixed": {
+      "parent": "relics_thirteenflames:item/hett_feather_2d"
+    }
+  }
+}

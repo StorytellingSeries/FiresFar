@@ -18,8 +18,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.neoforge.client.model.data.ModelData;
 import org.zeith.hammerlib.client.render.tile.IBESR;
 
-public class TESRShaking
-        implements IBESR<TileShaking>
+public class TESRShaking implements IBESR<TileShaking>
 {
     private final BlockRenderDispatcher dispatcher;
 

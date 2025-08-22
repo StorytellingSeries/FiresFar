@@ -1,13 +1,22 @@
 package com.qurenie.relics_thirteenflames.content.entities;
 
+import com.google.common.base.Suppliers;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.qurenie.relics_thirteenflames.client.AnimationsRegistry;
+import com.qurenie.api.BabySpawnCountEvent;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
+import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import it.hurts.sskirillss.relics.items.relics.base.IRelicItem;
+import it.unimi.dsi.fastutil.ints.Int2IntArrayMap;
+import it.unimi.dsi.fastutil.objects.Object2IntArrayMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.IntArrayTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -25,17 +34,25 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.BoneMealItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.SwordItem;
+import net.minecraft.world.item.crafting.AbstractCookingRecipe;
+import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.BonemealableBlock;
-import net.minecraft.world.level.block.PotatoBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.common.util.FakePlayerFactory;
+import net.neoforged.neoforge.fluids.FluidType;
 import org.jetbrains.annotations.NotNull;
 import org.zeith.hammeranims.api.animsys.AnimationSystem;
 import org.zeith.hammeranims.api.animsys.CommonLayerNames;
@@ -43,17 +60,15 @@ import org.zeith.hammeranims.api.animsys.layer.AnimationLayer;
 import org.zeith.hammeranims.api.tile.IAnimatedEntity;
 import org.zeith.hammeranims.core.init.DefaultsHA;
 
-import java.util.ArrayList;
+import java.awt.*;
 import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Stream;
 
 import static com.qurenie.relics_thirteenflames.init.ComponentRegistry.SELIASET_SUN_DATA;
-import static net.minecraft.world.item.Items.GOLDEN_SWORD;
+import static net.neoforged.neoforge.common.NeoForge.EVENT_BUS;
 
-public class EntitySeliasetSun
-        extends LivingEntity
-        implements IAnimatedEntity {
+public class EntitySeliasetSun extends LivingEntity implements IAnimatedEntity {
     
     public static final EntityDataAccessor<Boolean> ACTIVE = SynchedEntityData.defineId(EntitySeliasetSun.class, EntityDataSerializers.BOOLEAN);
     public static final Set<Block> BLOCKED_BLOCKS = Set.of(
@@ -72,8 +87,9 @@ public class EntitySeliasetSun
     );
     private static final EntityDataAccessor<String> OWNER_UUID = SynchedEntityData.defineId(EntitySeliasetSun.class, EntityDataSerializers.STRING);
     private static final EntityDataAccessor<ItemStack> SUN_ITEM = SynchedEntityData.defineId(EntitySeliasetSun.class, EntityDataSerializers.ITEM_STACK);
+    private static final Color BURN_COLOR = new Color(230, 90, 20);
     public final AnimationSystem animations = AnimationSystem.create(this);
-    
+    private final RecipeManager.CachedCheck<SingleRecipeInput, ? extends AbstractCookingRecipe> quickCheck;
     public Tag serializedItem;
     public int growCooldown;
     public int burnUndeadCooldown;
@@ -81,16 +97,14 @@ public class EntitySeliasetSun
     public int activeTicks;
     private int ticker = 0;
     private List<ItemStack> fake = new ArrayList<>();
+    private Int2IntArrayMap itemsHeat = new Int2IntArrayMap();
+    private Object2IntMap<BlockPos> blockHeat = new Object2IntArrayMap<>();
     
     public EntitySeliasetSun(EntityType<? extends LivingEntity> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
         this.serializedItem = ItemsRegistry.SELIASET_SUN.getDefaultInstance().save(registryAccess());
         setCustomName(ItemsRegistry.SELIASET_SUN.getDefaultInstance().getHoverName());
-    }
-    
-    @Override
-    public boolean isPushable() {
-        return false;
+        this.quickCheck = RecipeManager.createCheck(RecipeType.SMELTING);
     }
     
     public static EntitySeliasetSun create(Level level, Vec3 pos, ItemStack itemStack) {
@@ -119,16 +133,27 @@ public class EntitySeliasetSun
                     if (gr.isValidBonemealTarget(world, pos, state) && gr.isBonemealSuccess(world, world.random, pos, state))
                         positions.add(pos);
                 }
-       
+        
         int co = Math.min(ent.level().random.nextInt(max), positions.size());
         for (int i = 0; i < co; ++i) {
             BlockPos pos = positions.remove(ent.level().random.nextInt(positions.size()));
             if (BoneMealItem.applyBonemeal(Items.BONE_MEAL.getDefaultInstance(), world, pos, FakePlayerFactory.getMinecraft(sl))) {
+                
                 world.levelEvent(2005, pos, 0);
                 if (sun.getItem() instanceof IRelicItem relic && ent instanceof EntitySeliasetSun ess && sl.getEntity(UUID.fromString(ess.getOwnerUUID())) instanceof LivingEntity livin)
                     relic.spreadRelicExperience(livin, sun, 1);
             }
         }
+    }
+    
+    @Override
+    public boolean isPushable() {
+        return false;
+    }
+    
+    @Override
+    public boolean isPushedByFluid(FluidType type) {
+        return false;
     }
     
     public String getOwnerUUID() {
@@ -151,7 +176,7 @@ public class EntitySeliasetSun
     }
     
     public int getMax() {
-        return 15 + 3 * getStatLevel();
+        return 15 + 3 * getBlessedStatLevel();
     }
     
     public int getActivationSpeed() {
@@ -187,36 +212,127 @@ public class EntitySeliasetSun
             if (animations.startAnimationAt(CommonLayerNames.ACTION, AnimationsRegistry.SUN_SPIN.configure().transitionTime(1F).speed(1 / 4F)))
                 animations.sync();
             
-            double radStat = getRadiusStat();
+            double radStat = getBlessedRadiusStat();
             int speedStat = getSpeedStat();
+            int heatStat = getHeatStatLevel();
             
             if (--growCooldown < 0) {
-                growAround(this, (int) radStat, 2 + getStatLevel(), getSunItem());
+                growAround(this, (int) radStat, 2 + getBlessedStatLevel(), getSunItem());
                 
                 growCooldown = speedStat;
             }
             
-            if (--burnUndeadCooldown < 0 && tickCount % 5 == 0) {
-                boolean gen = false;
-                for (Monster mon : this.level().getEntitiesOfClass(Monster.class, getBoundingBox().inflate(radStat * 1.5F), mon -> mon.getType().is(EntityTypeTags.UNDEAD))) {
-                    mon.setRemainingFireTicks(200);
-                    gen = true;
-                }
+            if (tickCount % 20 == 0 && !level().isClientSide()) {
+                AABB heatSpace = new AABB(blockPosition()).inflate(1.8).expandTowards(0, -15, 0);
+                final Object2IntMap<BlockPos> blockHeat$ = new Object2IntArrayMap<>();
+                final Int2IntArrayMap itemsHeat$ = new Int2IntArrayMap();
                 
-                if (gen)
-                    burnUndeadCooldown = speedStat;
+                var itr = BlockPos.betweenClosedStream(heatSpace).iterator();
+                
+                double limitHeat = getHeatTimeStat();
+                int blockLimit = 50;
+                while (itr.hasNext()) {
+                    if (blockLimit <= 0)
+                        break;
+                    
+                    BlockPos pos = itr.next();
+                    BlockState state = level().getBlockState(pos);
+                    
+                    ItemStack stack = new ItemStack(state.getBlock().asItem());
+                    if (stack.isEmpty())
+                        continue;
+                    
+                    var holderOpt = Suppliers.memoize(() -> quickCheck.getRecipeFor(new SingleRecipeInput(stack), level()));
+                    
+                    if (blockHeat.containsKey(pos) || holderOpt.get().isPresent()) {
+                        blockLimit--;
+                        int heatLevel = blockHeat.getOrDefault(pos, 0) + 1;
+                        if (heatLevel >= limitHeat) {
+                            var result = holderOpt.get().get().value().assemble(new SingleRecipeInput(stack), registryAccess());
+                            if (result.getCount() == 1 && result.getItem() instanceof BlockItem block) {
+                                ParticleHelper.spawnParticleOutbox(level(), ParticleTypes.FLAME, pos, 5, 0.005);
+                                ParticleHelper.spawnParticleOutbox(level(), ParticleHelper.constructSimpleSpark(BURN_COLOR, 0.3f, 40, 0.95f), pos, 5, 0.005);
+                                
+                                level().setBlock(pos, block.getBlock().defaultBlockState(), 3);
+                            } else {
+                                burnBlock(pos);
+                                ItemEntity item = new ItemEntity(level(), pos.getCenter().x, pos.getCenter().y, pos.getCenter().z, result);
+                                level().addFreshEntity(item);
+                            }
+                            if (getSunItem().getItem() instanceof IRelicItem relic &&
+                                    level() instanceof ServerLevel sl &&
+                                    sl.getEntity(UUID.fromString(this.getOwnerUUID())) instanceof LivingEntity livin)
+                                relic.spreadRelicExperience(livin, getSunItem(), 2);
+                        } else {
+                            ParticleHelper.spawnParticleOutbox(level(), ParticleTypes.FLAME, pos, 2, 0.005);
+                            ParticleHelper.spawnParticleOutbox(level(), ParticleHelper.constructSimpleSpark(BURN_COLOR, 0.3f, 40, 0.95f), pos, 2, 0.005);
+                            blockHeat$.put(pos.immutable(), heatLevel);
+                        }
+                    }
+                }
+                this.blockHeat = blockHeat$;
+                
+                for (ItemEntity item : this.level().getEntitiesOfClass(ItemEntity.class, heatSpace)) {
+                    ItemStack stack = item.getItem();
+                    int id = item.getId();
+                    
+                    if (stack.isEmpty())
+                        return;
+                    
+                    var holderOpt = Suppliers.memoize(() -> quickCheck.getRecipeFor(new SingleRecipeInput(stack), level()));
+                    if (itemsHeat.containsKey(id) || holderOpt.get().isPresent()) {
+                        int heatLevel = itemsHeat.getOrDefault(id, 0) + 1;
+                        if (heatLevel >= limitHeat) {
+                            if (holderOpt.get().isEmpty())
+                                continue;
+                            
+                            int toTransform = Math.min(stack.getCount(), heatStat);
+                            stack.shrink(heatStat);
+                            fryEntity(item, (double) toTransform / 2);
+                            if (stack.getCount() <= 0)
+                                item.discard();
+                            else
+                                item.setItem(stack.copy());
+                            
+                            var result = holderOpt.get().get().value().assemble(new SingleRecipeInput(stack), registryAccess());
+                            for (int i = 0; i < toTransform; i++) {
+                                var sun = getSunItem();
+                                if (sun.getItem() instanceof IRelicItem relic &&
+                                        level() instanceof ServerLevel sl &&
+                                        sl.getEntity(UUID.fromString(this.getOwnerUUID())) instanceof LivingEntity livin)
+                                    relic.spreadRelicExperience(livin, getSunItem(), 2);
+                                ItemEntity resultEntity = new ItemEntity(level(), item.getX(), item.getY(), item.getZ(), result.copy());
+                                level().addFreshEntity(resultEntity);
+                            }
+                        } else {
+                            itemsHeat$.put(id, heatLevel);
+                            fryEntity(item, 0.5);
+                        }
+                        
+                    }
+                }
+                this.itemsHeat = itemsHeat$;
+                
+                for (LivingEntity mob : this.level().getEntitiesOfClass(LivingEntity.class, heatSpace)) {
+                    mob.hurt(damageSources().lava(), 1);
+                    
+                    fryEntity(mob, 0.3);
+                }
             }
             
-            if (--burnMonstersCooldown < 0 && tickCount % 5 == 0) {
-                boolean gen = false;
-                
-                for (Monster mon : this.level().getEntitiesOfClass(Monster.class, getBoundingBox().inflate(radStat * 1), mon -> mon.getType().is(EntityTypeTags.UNDEAD))) {
+            double heatRad = getHeatRadiusStat();
+            if (tickCount % 10 == 0) {
+                for (Monster mon : this.level().getEntitiesOfClass(Monster.class, getBoundingBox().inflate(heatRad * 1.5), mon -> mon.getType().is(EntityTypeTags.UNDEAD))) {
+                    double damage = getDamageStat();
+                    
+                    if (tickCount % 20 == 0) {
+                        mon.hurt(damageSources().lava(), (float) damage);
+                        fryEntity(mon, Math.sqrt(damage));
+                    } else
+                        fryEntity(mon, 0.1f);
+                    
                     mon.setRemainingFireTicks(200);
-                    gen = true;
                 }
-                
-                if (gen)
-                    burnMonstersCooldown = speedStat;
             }
         } else {
             if (animations.startAnimationAt(CommonLayerNames.ACTION, DefaultsHA.NULL_ANIMATION.configure().transitionTime(getMax() / 20f)))
@@ -224,26 +340,67 @@ public class EntitySeliasetSun
         }
     }
     
-    private double getRadiusStat() {
+    private void burnBlock(BlockPos pos) {
+        ParticleHelper.spawnParticleAABB(level(), ParticleTypes.FLAME, new AABB(pos), 20, 0.03);
+        ParticleHelper.spawnParticleAABB(level(), ParticleHelper.constructSimpleSpark(BURN_COLOR, 0.3f, 40, 0.95f), new AABB(pos), 20, 0.03);
+        level().setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
+    }
+    
+    private void fryEntity(Entity entity, double modifier) {
+        ParticleHelper.spawnParticleEntity(ParticleTypes.FLAME, entity, (int) (10 * modifier), 0.03);
+        ParticleHelper.spawnParticleEntity(ParticleHelper.constructSimpleSpark(BURN_COLOR, 0.3f, 40, 0.95f), entity, (int) (10 * modifier), 0.03);
+    }
+    
+    private double getHeatRadiusStat() {
         ItemStack item = this.getSunItem();
         IRelicItem relic = (IRelicItem) item.getItem();
-        return relic.getStatValue(item, "leveling", "radius");
+        return relic.getStatValue(item, "heat", "radius");
+    }
+    
+    private int getHeatTimeStat() {
+        ItemStack item = this.getSunItem();
+        IRelicItem relic = (IRelicItem) item.getItem();
+        return (int) relic.getStatValue(item, "heat", "heat_time");
+    }
+    
+    private double getDamageStat() {
+        ItemStack item = this.getSunItem();
+        IRelicItem relic = (IRelicItem) item.getItem();
+        return relic.getStatValue(item, "heat", "damage");
+    }
+    
+    private double getBreedChanceStat() {
+        ItemStack item = this.getSunItem();
+        IRelicItem relic = (IRelicItem) item.getItem();
+        return relic.getStatValue(item, "blessed_light", "breed_chance");
+    }
+    
+    private double getBlessedRadiusStat() {
+        ItemStack item = this.getSunItem();
+        IRelicItem relic = (IRelicItem) item.getItem();
+        return relic.getStatValue(item, "blessed_light", "radius");
     }
     
     private int getSpeedStat() {
         ItemStack item = this.getSunItem();
         IRelicItem relic = (IRelicItem) item.getItem();
-        return (int) relic.getStatValue(item, "leveling", "speed");
+        return (int) relic.getStatValue(item, "blessed_light", "speed");
     }
     
-    private int getStatLevel() {
+    private int getBlessedStatLevel() {
         ItemStack item = this.getSunItem();
         IRelicItem relic = (IRelicItem) item.getItem();
-        return relic.getAbilityLevel(item, "leveling");
+        return relic.getAbilityLevel(item, "blessed_light");
+    }
+    
+    private int getHeatStatLevel() {
+        ItemStack item = this.getSunItem();
+        IRelicItem relic = (IRelicItem) item.getItem();
+        return relic.getAbilityLevel(item, "heat");
     }
     
     @Override
-    public InteractionResult interact(Player player, InteractionHand hand) {
+    public @NotNull InteractionResult interact(@NotNull Player player, @NotNull InteractionHand hand) {
         if (!this.level().isClientSide && player.getStringUUID().equals(getOwnerUUID())) {
             var wasActive = this.isActive();
             if (!wasActive) this.ticker = 0;
@@ -288,6 +445,19 @@ public class EntitySeliasetSun
         tag.putInt("seliaset_growCooldown", growCooldown);
         tag.putInt("seliaset_burnUndeadCooldown", burnUndeadCooldown);
         tag.putInt("seliaset_burnMonstersCooldown", burnMonstersCooldown);
+        
+        CompoundTag heat = new CompoundTag();
+        heat.putIntArray("entities", itemsHeat.int2IntEntrySet().stream().flatMap(e -> Stream.of(e.getIntKey(), e.getIntValue())).toList());
+        
+        ListTag list = new ListTag();
+        for (var entry : blockHeat.object2IntEntrySet()) {
+            BlockPos pos = entry.getKey();
+            list.add(new IntArrayTag(new int[]{pos.getX(), pos.getY(), pos.getZ(), entry.getIntValue()}));
+        }
+        heat.put("blocks", list);
+        
+        tag.put("heat", heat);
+        
         return super.save(tag);
     }
     
@@ -298,6 +468,22 @@ public class EntitySeliasetSun
         this.growCooldown = tag.getInt("seliaset_growCooldown");
         this.burnUndeadCooldown = tag.getInt("seliaset_burnUndeadCooldown");
         this.burnMonstersCooldown = tag.getInt("seliaset_burnMonstersCooldown");
+        
+        CompoundTag heat = tag.getCompound("heat");
+        Int2IntArrayMap map = new Int2IntArrayMap();
+        var iterator = Arrays.stream(heat.getIntArray("entities")).iterator();
+        while (iterator.hasNext())
+            map.put((int) iterator.next(), (int) iterator.next());
+        this.itemsHeat = map;
+        
+        ListTag list = heat.getList("blocks", Tag.TAG_INT_ARRAY);
+        Object2IntMap<BlockPos> blockMap = new Object2IntArrayMap<>();
+        for (int i = 0; i < list.size(); i++) {
+            int[] array = list.getIntArray(i);
+            blockMap.put(new BlockPos(array[0], array[1], array[2]), array[3]);
+        }
+        this.blockHeat = blockMap;
+        
         super.load(tag);
     }
     
@@ -342,7 +528,7 @@ public class EntitySeliasetSun
         super.addAdditionalSaveData(tag);
         tag.putBoolean("is_active", isActive());
         tag.putString("owner_uuid", this.getOwnerUUID());
-        tag.put("sun_item",  getSunItem().save(registryAccess(), new CompoundTag()));
+        tag.put("sun_item", getSunItem().save(registryAccess(), new CompoundTag()));
     }
     
     @Override
@@ -406,6 +592,32 @@ public class EntitySeliasetSun
     @Override
     public AnimationSystem getAnimationSystem() {
         return animations;
+    }
+    
+    @Override
+    public void onAddedToLevel() {
+        super.onAddedToLevel();
+        EVENT_BUS.register(this);
+    }
+    
+    @Override
+    public void onRemovedFromLevel() {
+        super.onRemovedFromLevel();
+        EVENT_BUS.unregister(this);
+    }
+    
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public void countBabyEvent(BabySpawnCountEvent event) {
+        if (event.getParentA().level().isClientSide)
+            return;
+        
+        if (random.nextDouble() > getBreedChanceStat())
+            return;
+        
+        double radStat = getBlessedRadiusStat();
+        if (event.getParentA().distanceToSqr(event.getParentA()) <= radStat * radStat
+                || event.getParentA().distanceToSqr(event.getParentB()) <= radStat * radStat)
+            event.setCount(event.getCount() + 1);
     }
     
     public record SeliasetSunData(int ticker, int growCooldown, int burnUndeadCooldown, int burnMonstersCooldown) {

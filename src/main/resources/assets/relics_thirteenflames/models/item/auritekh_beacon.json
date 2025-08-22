@@ -1,0 +1,51 @@
+{
+	"format_version": "1.21.6",
+	"credit": "Made with Blockbench",
+	"parent": "block/block",
+	"texture_size": [32, 32],
+	"textures": {
+		"3": "relics_thirteenflames:block/auritekh_beacon"
+	},
+	"elements": [
+		{
+			"name": "Glass shell",
+			"from": [0, 0, 0],
+			"to": [16, 16, 16],
+			"faces": {
+				"north": {"uv": [0, 0, 8, 8], "texture": "#3"},
+				"east": {"uv": [0, 0, 8, 8], "texture": "#3"},
+				"south": {"uv": [0, 0, 8, 8], "texture": "#3"},
+				"west": {"uv": [0, 0, 8, 8], "texture": "#3"},
+				"up": {"uv": [8, 8, 0, 0], "texture": "#3"},
+				"down": {"uv": [8, 0, 0, 8], "texture": "#3"}
+			}
+		},
+		{
+			"name": "Obsidian base",
+			"from": [1, 0.1, 1],
+			"to": [15, 4, 15],
+			"faces": {
+				"north": {"uv": [7, 10, 14, 12], "texture": "#3"},
+				"east": {"uv": [7, 10, 14, 12], "texture": "#3"},
+				"south": {"uv": [7, 10, 14, 12], "texture": "#3"},
+				"west": {"uv": [7, 10, 14, 12], "texture": "#3"},
+				"up": {"uv": [7, 15, 0, 8], "texture": "#3"},
+				"down": {"uv": [7, 8, 0, 15], "texture": "#3"}
+			}
+		},
+		{
+			"name": "Inner beacon texture",
+			"from": [3, 4, 3],
+			"to": [13, 14, 13],
+			"rotation": {"angle": 0, "axis": "y", "origin": [0, 1, 0]},
+			"faces": {
+				"north": {"uv": [8, 0, 13, 5], "texture": "#3"},
+				"east": {"uv": [8, 0, 13, 5], "texture": "#3"},
+				"south": {"uv": [8, 0, 13, 5], "texture": "#3"},
+				"west": {"uv": [8, 0, 13, 5], "texture": "#3"},
+				"up": {"uv": [13, 10, 8, 5], "texture": "#3"},
+				"down": {"uv": [13, 5, 8, 10], "texture": "#3"}
+			}
+		}
+	]
+}

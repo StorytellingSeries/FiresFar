@@ -1,12 +1,12 @@
 package com.qurenie.relics_thirteenflames.content.items;
 
-import com.google.common.collect.ImmutableMultimap;
 import com.qurenie.relics_thirteenflames.content.entities.KnefProjCarrier;
 import com.qurenie.relics_thirteenflames.content.entities.KnefProjectile;
 import com.qurenie.relics_thirteenflames.content.entities.KnefProjectileSpecial;
 import com.qurenie.relics_thirteenflames.content.entities.KnefStormcaller;
 import com.qurenie.relics_thirteenflames.init.DamageSourceRegistry;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
+import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
 import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import it.hurts.sskirillss.relics.init.RelicContainerRegistry;
@@ -22,7 +22,6 @@ import it.hurts.sskirillss.relics.items.relics.base.data.leveling.misc.UpgradeOp
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootData;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.misc.LootEntries;
 import it.hurts.sskirillss.relics.utils.MathUtils;
-import it.hurts.sskirillss.relics.utils.ParticleUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
@@ -32,8 +31,6 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -43,9 +40,13 @@ import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.living.LivingEntityUseItemEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.zeith.hammerlib.api.items.IColoredFoilItem;
+import top.theillusivec4.curios.api.CuriosApi;
 
 import java.awt.*;
 import java.util.List;
@@ -59,7 +60,6 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
     public ItemKnefBow(Properties properties) {
     
         super(properties);
-        ImmutableMultimap.Builder<Attribute, AttributeModifier> builder = ImmutableMultimap.builder();
     }
 
     RandomSource random = RandomSource.create();
@@ -177,10 +177,14 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
     public void releaseUsing(@NotNull ItemStack pStack, @NotNull Level pLevel, LivingEntity pLivingEntity, int pTimeCharged) {
         if(!(pLivingEntity instanceof Player)|| (isAbilityTicking(pStack, "swim") && pLivingEntity.isInWaterOrRain())) return;
 
+        int delta = this.getUseDuration(pStack, pLivingEntity) - pTimeCharged;
+        if (hasGloves(pLivingEntity))
+            delta *= 2;
+        
         float baseDmg = (float) getStatValue(pStack, "shot", "dmg");
         boolean isShitting = pLivingEntity.isShiftKeyDown();
         if (!isShitting || !isAbilityUnlocked(pStack, "storm") || isAbilityOnCooldown(pStack, "storm")) {
-            if (this.getUseDuration(pStack, pLivingEntity) - pTimeCharged > 19) {
+            if (delta > 19) {
                 if (!pLevel.isClientSide()) {
                     float fl = random.nextFloat();
                     pLevel.playSound(null, pLivingEntity.getX(), pLivingEntity.getY(), pLivingEntity.getZ(), SoundsRegistry.KNEF_BOW_SHOT.get(), SoundSource.MASTER, 0.5f, 1.8f - fl * 0.15f);
@@ -207,7 +211,7 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
                 carrier.shootFromRotation(pLivingEntity, pLivingEntity.getXRot(), pLivingEntity.getYRot(), 0.75f, 1f, 0);
                 pLevel.addFreshEntity(carrier);
                 for (KnefProjectile proj : carrier.rays) pLevel.addFreshEntity(proj);
-            } else if (this.getUseDuration(pStack, pLivingEntity) - pTimeCharged > 5) {
+            } else if (delta > 5) {
                 if (!pLevel.isClientSide()) {
                     float fl = random.nextFloat();
                     pLevel.playSound(null, pLivingEntity.getX(), pLivingEntity.getY(), pLivingEntity.getZ(), SoundsRegistry.KNEF_BOW_SHOT.get(), SoundSource.MASTER, 0.5f, 1.75f + fl * 0.1f);
@@ -230,7 +234,7 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
                 proj.shootFromRotation(pLivingEntity, pLivingEntity.getXRot(), pLivingEntity.getYRot(), 0.75f, 1f, 0);
                 pLevel.addFreshEntity(proj);
             }
-        } else if (this.getUseDuration(pStack, pLivingEntity) - pTimeCharged > 19 && !isAbilityOnCooldown(pStack, "storm")/* && !pLevel.isClientSide()*/) {
+        } else if (delta > 19 && !isAbilityOnCooldown(pStack, "storm")/* && !pLevel.isClientSide()*/) {
             pLevel.playSound(null, pLivingEntity.getX(), pLivingEntity.getY(), pLivingEntity.getZ(), SoundsRegistry.KNEF_BOW_SHOT.get(), SoundSource.MASTER, 0.7f, 0.6f);
             pLevel.playSound(null, pLivingEntity.getX(), pLivingEntity.getY(), pLivingEntity.getZ(), SoundsRegistry.KNEF_BOW_SHOT.get(), SoundSource.MASTER, 0.6f, 0.3f);
 
@@ -256,7 +260,7 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
             for (KnefProjectileSpecial proj : stormcaller.rays) pLevel.addFreshEntity(proj);
             pLevel.addFreshEntity(stormcaller);
             addAbilityCooldown(pStack, "storm", 600);
-        } else if (this.getUseDuration(pStack, pLivingEntity) - pTimeCharged > 5) {
+        } else if (delta > 5) {
             if (!pLevel.isClientSide()) {
                 float fl = random.nextFloat();
                 pLevel.playSound(null, pLivingEntity.getX(), pLivingEntity.getY(), pLivingEntity.getZ(), SoundsRegistry.KNEF_BOW_SHOT.get(), SoundSource.MASTER, 0.5f, 1.75f + fl * 0.1f);
@@ -283,17 +287,25 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
         }
         pStack.set(SHIFTING, false);
     }
+    
+    private static boolean hasGloves(Entity entity) {
+        return entity instanceof LivingEntity living && CuriosApi.getCuriosInventory(living).map(handler -> {
+            var stacks = handler.getCurios().get("hands").getStacks();
+            return stacks.getStackInSlot(0).is(ItemsRegistry.MONTU_GLOVES) || stacks.getStackInSlot(0).is(ItemsRegistry.MONTU_GLOVES);
+        }).orElse(false);
+    }
 
     @Override
     public void inventoryTick(ItemStack stack, Level level, Entity entity, int slot, boolean isSelected) {
+        boolean hasGloves = hasGloves(entity);
         if(!level.isClientSide() && entity instanceof LivingEntity l
-        && stack.getOrDefault(PULL, 0f) != (l.getUseItem() == stack ? (float) (stack.getUseDuration(l) - l.getUseItemRemainingTicks()) / 20.0F : 0))
-            stack.set( PULL, l.getUseItem() == stack ? (float) (stack.getUseDuration(l) - l.getUseItemRemainingTicks()) / 20.0F : 0);
+        && stack.getOrDefault(PULL, 0f) != (l.getUseItem() == stack ? (float) (stack.getUseDuration(l) - l.getUseItemRemainingTicks()) / (hasGloves ? 10.0f : 20.0F) : 0))
+            stack.set( PULL, l.getUseItem() == stack ? (float) (stack.getUseDuration(l) - l.getUseItemRemainingTicks()) / (hasGloves ? 10.0f : 20.0F) : 0);
         super.inventoryTick(stack, level, entity, slot, isSelected);
     }
 
     @Override
-    public int getUseDuration(ItemStack pStack, LivingEntity entity) {
+    public int getUseDuration(@NotNull ItemStack pStack, @NotNull LivingEntity entity) {
         return 72000;
     }
 
@@ -353,15 +365,16 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
                     if (i % 4 == 0) pos = pos.subtract(luk.scale(0.8));
                 }
                 pos = pos.add(luk.scale(-0.4));
-                ParticleHelper.spawnDirectedParticle(living.level(), ParticleUtils.constructSimpleSpark(new Color(0, (int) (174 + Math.sin(count / 6.0) * 30), (int) (105 - Math.sin(count / 6.0) * 20)), 0.35f, 60, 0.92f),
+                ParticleHelper.spawnDirectedParticle(living.level(), ParticleHelper.constructSimpleSpark(new Color(0, (int) (174 + Math.sin(count / 6.0) * 30), (int) (105 - Math.sin(count / 6.0) * 20)), 0.35f, 60, 0.92f),
                         pos.x(), pos.y(), pos.z(), 0, 0, 0);
             }
         } else if(living instanceof Player p){
-            if (this.getUseDuration(stack, p) - count < 19) {
+            boolean hasGloves = hasGloves(living);
+            if (this.getUseDuration(stack, p) - count < (hasGloves ? 19 : 9)) {
                 if (!p.isCreative()) {
                     if (living.getHealth() > 1) {
                         boolean isShitting = stack.getOrDefault(SHIFTING, false);
-                        living.hurt(DamageSourceRegistry.SUCC, living.getMaxHealth() * (float) getStatValue(stack, "shot", "drain") * (isShitting ? 0.1f : 0.05f));
+                        living.hurt(DamageSourceRegistry.SUCC, living.getMaxHealth() * (float) getStatValue(stack, "shot", "drain") * (isShitting ? 0.1f : 0.05f) * (hasGloves ? 1.5f : 1));
                     }
                     else living.kill();
                 }
@@ -403,6 +416,21 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
     @Override
     public int getFoilColor(@NotNull ItemStack stack) {
         return /*0xFA9FEB7D*/ new Color(0, 133, 108).getRGB(); //хекс коды люблю невероятно
+    }
+    
+    @EventBusSubscriber
+    public static class EventHandler {
+        
+        @SubscribeEvent
+        public static void onItemUseEvent(LivingEntityUseItemEvent.Tick event) {
+            if (event.getItem().is(ItemsRegistry.KNEF_BOW)
+                    && ItemsRegistry.KNEF_BOW.isAbilityTicking(event.getItem(), "swim")
+                    && event.getEntity().isInWaterOrRain() &&
+                    event.getEntity() instanceof Player) {
+                event.setDuration(event.getItem().getUseDuration(event.getEntity()));
+            }
+        }
+        
     }
 
 }

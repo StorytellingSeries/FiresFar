@@ -18,11 +18,11 @@ import org.zeith.hammerlib.net.PacketContext;
 public class RhonasSweepPacket implements IPacket {
 
     private ItemStack sword;
+    
     public RhonasSweepPacket(ItemStack sword){
         this.sword = sword;
     }
-
-
+    
     @Override
     public void write(RegistryFriendlyByteBuf buf) {
         IPacket.super.write(buf);

@@ -1,0 +1,45 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"attack_book_idle": {
+			"loop": true,
+			"animation_length": 4,
+			"bones": {
+				"model": {
+					"rotation": {
+						"0.0": {
+							"post": ["math.cos(query.anim_time*360/4)", 0, "math.sin(query.anim_time*360/4)/2"],
+							"lerp_mode": "catmullrom"
+						}
+					},
+					"position": {
+						"0.0": {
+							"post": [0, "1+math.cos(query.anim_time*360/4)/4", 0],
+							"lerp_mode": "catmullrom"
+						}
+					},
+					"scale": 1
+				},
+				"page1": {
+					"rotation": {
+						"0.0": {
+							"post": [0, 0, "-math.sin(query.anim_time*360/4)*2"],
+							"lerp_mode": "catmullrom"
+						}
+					}
+				},
+				"page3": {
+					"rotation": [0, 0, 0]
+				},
+				"page2": {
+					"rotation": {
+						"0.0": {
+							"post": [0, 0, "math.sin(query.anim_time*360/4)*2"],
+							"lerp_mode": "catmullrom"
+						}
+					}
+				}
+			}
+		}
+	}
+}
