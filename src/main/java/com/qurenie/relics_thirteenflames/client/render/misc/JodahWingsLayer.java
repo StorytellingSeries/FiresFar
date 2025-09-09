@@ -30,7 +30,7 @@ public class JodahWingsLayer <T extends LivingEntity, M extends EntityModel<T>> 
     
     private final SimpleBedrockModel<?> wingsLayer;
     private EntityAnimatedWrapper livingWrapper;
-    public static final int ANIMATION_LENGTH = 120;
+    public static final int ANIMATION_LENGTH = 180;
     private static final ResourceLocation TEXTURE = ThirteenFlames.rl("textures/entity/jodah_wings.png");
     
     public JodahWingsLayer(RenderLayerParent<T, M> renderer) {
@@ -66,22 +66,34 @@ public class JodahWingsLayer <T extends LivingEntity, M extends EntityModel<T>> 
         
         if (activeTicks == ANIMATION_LENGTH) {
 //            livingWrapper.getAnimationSystem().stopAnimation(LAYER_ACTION, 0);
-            livingWrapper.getAnimationSystem().startAnimationAt(LAYER_ACTION, AnimationsRegistry.JODAH_WINGS_OPEN.configure().important());
+            livingWrapper.getAnimationSystem().startAnimationAt(LAYER_ACTION, AnimationsRegistry.JODAH_WINGS_OPEN.configure().important().speed(0.8f));
 //            livingWrapper.getAnimationSystem().sync();
         } else if (activeTicks == 50) {
 //            livingWrapper.getAnimationSystem().stopAnimation(LAYER_ACTION, 0);
-            livingWrapper.getAnimationSystem().startAnimationAt(LAYER_ACTION, AnimationsRegistry.JODAH_WINGS_OPEN.configure().reversed().important());
-        } else if (activeTicks == ANIMATION_LENGTH - 22) {
+            livingWrapper.getAnimationSystem().startAnimationAt(LAYER_ACTION, AnimationsRegistry.JODAH_WINGS_OPEN
+                    .configure().reversed().important().speed(0.8f).startTime(1.2f).transitionTime(0.4f));
+        } else if (activeTicks == ANIMATION_LENGTH - 27) {
             Vec3[] corners = getWingCorners(livingEntity);
             double rad = Math.toRadians(livingEntity.yBodyRot);
             Vec3 right = new Vec3(Math.cos(rad), 0, Math.sin(rad)).normalize().scale(0.2f);
             Vec3 left = right.scale(-1).normalize().scale(0.2f);
             var random = livingEntity.level().random;
             
-            ParticleHelper.spawnParticleTriangle(livingEntity.level(), new FeatherParticle.Options(0.3f, 70),
-                    corners[2], corners[2].add(left.normalize().scale(-1)).add(0, 0.3, 0), corners[0].add(0, 0.6, 0), 3, () -> right.add(random.nextGaussian() * 0.07, random.nextGaussian() * 0.1, random.nextGaussian() * 0.07).normalize().scale(0.15));
-            ParticleHelper.spawnParticleTriangle(livingEntity.level(), new FeatherParticle.Options(0.3f, 70),
-                    corners[3],  corners[3].add(right.normalize().scale(-1)).add(0, 0.3, 0), corners[1].add(0, 0.6, 0), 3, () -> left.add(random.nextGaussian() * 0.07, random.nextGaussian() * 0.1, random.nextGaussian() * 0.07).normalize().scale(0.15));
+            ParticleHelper.spawnParticleTriangle(livingEntity.level(), new FeatherParticle.Options(0.3f, 50),
+                    corners[2], corners[2].add(left.normalize().scale(-1)).add(0, 0.7, 0), corners[0].add(0, 0.6, 0), 3, () -> right.add(random.nextGaussian() * 0.07, random.nextGaussian() * 0.1, random.nextGaussian() * 0.07).normalize().scale(0.15));
+            ParticleHelper.spawnParticleTriangle(livingEntity.level(), new FeatherParticle.Options(0.3f, 50),
+                    corners[3],  corners[3].add(right.normalize().scale(-1)).add(0, 0.7, 0), corners[1].add(0, 0.6, 0), 3, () -> left.add(random.nextGaussian() * 0.07, random.nextGaussian() * 0.1, random.nextGaussian() * 0.07).normalize().scale(0.15));
+        } else if (activeTicks == ANIMATION_LENGTH - 50) {
+            Vec3[] corners = getWingCorners(livingEntity);
+            double rad = Math.toRadians(livingEntity.yBodyRot);
+            Vec3 right = new Vec3(Math.cos(rad), 0, Math.sin(rad)).normalize().scale(0.2f);
+            Vec3 left = right.scale(-1).normalize().scale(0.2f);
+            var random = livingEntity.level().random;
+            
+            ParticleHelper.spawnParticleTriangle(livingEntity.level(), new FeatherParticle.Options(0.3f, 125),
+                    corners[2], corners[2].add(left.normalize().scale(-1)).add(0, 1.4, 0), corners[0].add(0, 0.6, 0), 4, () -> right.add(random.nextGaussian() * 0.3, random.nextGaussian() * 0.14 + 0.5, random.nextGaussian() * 0.3).normalize().scale(0.15));
+            ParticleHelper.spawnParticleTriangle(livingEntity.level(), new FeatherParticle.Options(0.3f, 125),
+                    corners[3],  corners[3].add(right.normalize().scale(-1)).add(0, 1.4, 0), corners[1].add(0, 0.6, 0), 4, () -> left.add(random.nextGaussian() * 0.3, random.nextGaussian() * 0.14 + 0.5, random.nextGaussian() * 0.3).normalize().scale(0.15));
         }
         
         wingsLayer.renderToBuffer(poseStack, bufferSource.getBuffer(RenderType.entityTranslucent(TEXTURE)),
@@ -103,7 +115,7 @@ public class JodahWingsLayer <T extends LivingEntity, M extends EntityModel<T>> 
         
         // Размеры крыльев
         double halfWidth = 1.5;
-        double halfHeight = 0.5;
+        double halfHeight = 0.4;
         double backOffset = -0.35;
         
         // Центр спины (на уровне плеч)

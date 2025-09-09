@@ -55,7 +55,7 @@ public class EntityRegistry {
     
     @RegistryName("skint_cluster")
     public static final EntityType<SkintClusterEntity> SKINT_CLUSTER = Builder.<SkintClusterEntity>of(SkintClusterEntity::new, MobCategory.MISC)
-            .sized(0.5F, 1F)
+            .sized(1.7F, 3F)
             .setUpdateInterval(1)
             .updateInterval(1)
             .build("skint_cluster");

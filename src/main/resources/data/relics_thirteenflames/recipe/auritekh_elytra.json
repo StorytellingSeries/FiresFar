@@ -1,7 +1,7 @@
 {
   "type": "relics_thirteenflames:montu_smith",
   "center": {
-    "item": "minecraft:beacon"
+    "item": "minecraft:elytra"
   },
   "exp": 60,
   "left": {
@@ -9,7 +9,7 @@
   },
   "result": {
     "count": 1,
-    "id": "relics_thirteenflames:auritekh_beacon"
+    "id": "relics_thirteenflames:auritekh_elytra"
   },
   "right": {
     "item": "relics_thirteenflames:auritekh_ingot"

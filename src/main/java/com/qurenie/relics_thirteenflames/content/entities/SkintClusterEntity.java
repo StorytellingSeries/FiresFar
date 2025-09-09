@@ -3,6 +3,7 @@ package com.qurenie.relics_thirteenflames.content.entities;
 import com.qurenie.api.EntityIgnoreExplosionEvent;
 import com.qurenie.relics_thirteenflames.client.AnimationsRegistry;
 import com.qurenie.relics_thirteenflames.content.entities.base.NonLivingEntity;
+import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
 import com.qurenie.relics_thirteenflames.mixins.EntityAccessor;
 import com.qurenie.relics_thirteenflames.util.FlamesUtils;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
@@ -16,8 +17,10 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.ExplosionDamageCalculator;
 import net.minecraft.world.level.Level;
@@ -56,6 +59,8 @@ public class SkintClusterEntity extends NonLivingEntity implements IAnimatedEnti
     UUID ownerID;
     @Nullable Player owner;
     
+    final float yBodyRot = (float) (Math.random() * Math.PI * 2);
+    
     public SkintClusterEntity(EntityType<? extends LivingEntity> entityType, Level level) {
         super(entityType, level);
     }
@@ -67,7 +72,7 @@ public class SkintClusterEntity extends NonLivingEntity implements IAnimatedEnti
         this.skintBonus = skintLimitBonus;
         this.owner = owner;
         this.skintCount = skintCount;
-        this.setYBodyRot((float) (Math.random() * Math.PI * 2));
+        this.setYBodyRot(yBodyRot);
         this.setNoGravity(true);
         setSkintType(type);
         system.startAnimationAt(LAYER_ACTION, AnimationsRegistry.SCINT_CLUSTER_APPEAR.configure().speed(0.7f).transitionTime(0));
@@ -101,7 +106,7 @@ public class SkintClusterEntity extends NonLivingEntity implements IAnimatedEnti
         
         this.setYBodyRot((float) (Math.random() * Math.PI * 2));
         if (!state.isAir() && !level().isClientSide)
-            ParticleHelper.spawnParticleAABB(level(), new BlockParticleOption(ParticleTypes.BLOCK, state), aabb, 60, 0.1);
+            ParticleHelper.spawnParticleAABB(level(), new BlockParticleOption(ParticleTypes.BLOCK, state), aabb, 80, 0.3);
         EVENT_BUS.register(this);
     }
     
@@ -109,6 +114,8 @@ public class SkintClusterEntity extends NonLivingEntity implements IAnimatedEnti
     public void tick() {
         system.tick();
         super.tick();
+        
+        setYBodyRot(yBodyRot);
         
         if (tickCount >= MAX_AGE && !level().isClientSide) {
             this.discard();
@@ -147,14 +154,22 @@ public class SkintClusterEntity extends NonLivingEntity implements IAnimatedEnti
                         }
                     }
                     case ANTISKINT -> {
-                        List<LivingEntity> entities = level().getEntitiesOfClass(LivingEntity.class, getBoundingBox().inflate(2.5),
+                        List<LivingEntity> entities = level().getEntitiesOfClass(LivingEntity.class, getBoundingBox().inflate(3.4),
                                 e -> e.getUUID() != ownerID && !(e instanceof SkintClusterEntity) && e.isAlive() && e.isPickable());
                         for (var l : entities) {
                             for (int i = 0; i < skintCount; i++) {
+                                level().explode(living, level().damageSources().playerAttack(owner), null, living.position(), 0.4f, false, Level.ExplosionInteraction.MOB);
                                 SkintOrbEntity entity = new SkintOrbEntity(level(), SkintOrbEntity.Type.ANTISKINT, l, living, skintBonus);
                                 level().addFreshEntity(entity);
                             }
                         }
+                    }
+                }
+                
+                if (owner != null) {
+                    ItemStack stack = owner.getItemBySlot(EquipmentSlot.HEAD);
+                    if (stack.is(ItemsRegistry.JODAH_MASK)) {
+                        ItemsRegistry.JODAH_MASK.addRelicExperience(stack, 1);
                     }
                 }
             }

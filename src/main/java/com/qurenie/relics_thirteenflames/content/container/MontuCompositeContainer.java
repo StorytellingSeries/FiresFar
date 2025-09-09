@@ -23,7 +23,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.entity.player.AnvilRepairEvent;
 import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.items.SlotItemHandler;
@@ -70,7 +70,6 @@ public class MontuCompositeContainer extends AbstractContainerMenu {
         containers.put(MontuMenuType.STONECUTTER, new ItemStackHandler(2));
         
         activateType(MontuMenuType.ANVIl);
-        
     }
     
     @SubscribeEvent
@@ -126,7 +125,7 @@ public class MontuCompositeContainer extends AbstractContainerMenu {
             for (int i = 0; i < handler.getSlots(); i++) {
                 ItemStack stack = handler.getStackInSlot(i);
                 if (!stack.isEmpty())
-                    if (player.isAlive() && !((ServerPlayer)player).hasDisconnected()) {
+                    if (player.isAlive() && (!(player instanceof ServerPlayer serverPlayer) || !serverPlayer.hasDisconnected())) {
                         player.getInventory().placeItemBackInInventory(stack);
                     } else {
                         player.drop(stack, false);
@@ -177,9 +176,15 @@ public class MontuCompositeContainer extends AbstractContainerMenu {
     }
     
     @SubscribeEvent
+    public static void onCraft(AnvilRepairEvent event) {
+        if (event.getEntity().containerMenu instanceof MontuCompositeContainer montuCompositeContainer)
+            ItemsRegistry.MONTU_GLOVES.addRelicExperience(montuCompositeContainer.gloves, 4);
+    }
+    
+    @SubscribeEvent
     public static void onCraft(SmithingBlockCraftEvent event) {
         if (event.getEntity().containerMenu instanceof MontuCompositeContainer montuCompositeContainer)
-            ItemsRegistry.MONTU_GLOVES.addRelicExperience(montuCompositeContainer.gloves, 7);
+            ItemsRegistry.MONTU_GLOVES.addRelicExperience(montuCompositeContainer.gloves, 4);
     }
     
     public enum MontuMenuType {
@@ -318,9 +323,8 @@ public class MontuCompositeContainer extends AbstractContainerMenu {
                 return Component.empty();
             }
             
-            @Nullable
             @Override
-            public AbstractContainerMenu createMenu(int pContainerId, @NotNull Inventory pPlayerInventory, @NotNull Player pPlayer) {
+            public @NotNull AbstractContainerMenu createMenu(int pContainerId, @NotNull Inventory pPlayerInventory, @NotNull Player pPlayer) {
                 return new MontuCompositeContainer(pContainerId, pPlayerInventory, level, gloves);
             }
             

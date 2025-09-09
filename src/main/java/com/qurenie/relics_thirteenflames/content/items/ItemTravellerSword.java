@@ -1,6 +1,7 @@
 package com.qurenie.relics_thirteenflames.content.items;
 
 import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.Sets;
 import com.qurenie.api.MeleeAttackCheckEvent;
 import com.qurenie.relics_thirteenflames.ThirteenFlames;
 import com.qurenie.relics_thirteenflames.content.entities.TravellerCutEntity;
@@ -20,23 +21,24 @@ import it.hurts.sskirillss.relics.items.relics.base.data.cast.CastData;
 import it.hurts.sskirillss.relics.items.relics.base.data.cast.misc.CastStage;
 import it.hurts.sskirillss.relics.items.relics.base.data.cast.misc.CastType;
 import it.hurts.sskirillss.relics.items.relics.base.data.cast.misc.PredicateType;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.AbilitiesData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.AbilityData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.LevelingData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.StatData;
+import it.hurts.sskirillss.relics.items.relics.base.data.leveling.*;
+import it.hurts.sskirillss.relics.items.relics.base.data.leveling.misc.GemColor;
+import it.hurts.sskirillss.relics.items.relics.base.data.leveling.misc.GemShape;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.misc.UpgradeOperation;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootData;
+import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootEntry;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.misc.LootEntries;
+import it.hurts.sskirillss.relics.utils.MathUtils;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
-import net.minecraft.core.HolderSet;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.tags.ItemTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
@@ -48,10 +50,7 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.SwordItem;
-import net.minecraft.world.item.Tier;
+import net.minecraft.world.item.*;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
@@ -83,6 +82,8 @@ public class ItemTravellerSword extends SwordItem implements IRelicItem, IRegist
     public static final ResourceLocation TRAVELLER_MOVEMENT_SPEED = ThirteenFlames.rl("traveller_movement_speed");
     private static final float MAX_CHARGE = 5f;
     private static final int DASH_TICKS = 3;
+    
+    public static final LootEntry RUINED_PORTAL = LootEntry.builder().dimension(".*").biome(".*").table("minecraft:chests/ruined_portal").weight(250).build();
     
     private static final Color COLOR = new Color(30, 170, 170);
     private static final Color BURN_COLOR = new Color(230, 90, 20);
@@ -179,12 +180,16 @@ public class ItemTravellerSword extends SwordItem implements IRelicItem, IRegist
     }
     
     @Override
-    public boolean isPrimaryItemFor(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
-        return enchantment != Enchantments.UNBREAKING && enchantment.value().definition()
-                .primaryItems().flatMap(HolderSet::unwrapKey).map(tag -> tag == ItemTags.SWORD_ENCHANTABLE)
-                .orElse(false) || enchantment.value().definition()
-                .supportedItems().unwrapKey().map(tag -> tag == ItemTags.WEAPON_ENCHANTABLE)
-                .orElse(false);
+    public boolean isPrimaryItemFor(@NotNull ItemStack stack, Holder<Enchantment> enchantment) {
+        Enchantment.EnchantmentDefinition definition = enchantment.value().definition();
+        boolean isPrimary = definition.primaryItems().isPresent() && FlamesUtils.isWeaponEnchantment(definition.primaryItems().get());
+        boolean supports = FlamesUtils.isWeaponEnchantment(definition.supportedItems());
+        return isPrimary || supports && !enchantment.is(Enchantments.UNBREAKING) && !enchantment.is(Enchantments.SWEEPING_EDGE);
+    }
+    
+    @Override
+    public boolean supportsEnchantment(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
+        return this.isPrimaryItemFor(stack, enchantment);
     }
     
     @Override
@@ -194,21 +199,24 @@ public class ItemTravellerSword extends SwordItem implements IRelicItem, IRegist
                         .ability(AbilityData.builder("travelers_stride")
                                 .maxLevel(4)
                                 .stat(StatData.builder("charge")
-                                        .initialValue(1, 3)
-                                        .upgradeModifier(UpgradeOperation.ADD, 2)
-                                        .thresholdValue(1, 10)
+                                        .initialValue(1, 2)
+                                        .upgradeModifier(UpgradeOperation.ADD, 0.75)
+                                        .thresholdValue(1, 5)
+                                        .formatValue(d -> MathUtils.round(5d / d, 1))
                                         .build()
                                 )
                                 .stat(StatData.builder("stride_damage")
                                         .initialValue(10, 15)
                                         .upgradeModifier(UpgradeOperation.ADD, 4)
                                         .thresholdValue(10, 30)
+                                        .formatValue(d -> MathUtils.round(d, 0))
                                         .build()
                                 )
                                 .stat(StatData.builder("sweep_damage_multi")
                                         .initialValue(0.5, 1)
                                         .upgradeModifier(UpgradeOperation.ADD, 0.5)
                                         .thresholdValue(0.5, 3)
+                                        .formatValue(d -> MathUtils.round(d * 100, 0))
                                         .build()
                                 )
                                 .build()
@@ -224,18 +232,21 @@ public class ItemTravellerSword extends SwordItem implements IRelicItem, IRegist
                                         .initialValue(4, 7)
                                         .upgradeModifier(UpgradeOperation.ADD, 1)
                                         .thresholdValue(4, 12)
+                                        .formatValue(d -> MathUtils.round(d, 1))
                                         .build()
                                 )
                                 .stat(StatData.builder("damage_boost")
                                         .initialValue(0.5, 1)
                                         .upgradeModifier(UpgradeOperation.ADD, 0.6)
                                         .thresholdValue(0.5, 6)
+                                        .formatValue(d -> MathUtils.round(d * 100, 0))
                                         .build()
                                 )
                                 .stat(StatData.builder("cooldown")
                                         .initialValue(15, 10)
                                         .thresholdValue(3, 15)
                                         .upgradeModifier(UpgradeOperation.ADD, -1.5)
+                                        .formatValue(d -> MathUtils.round(d, 1))
                                         .build()
                                 )
                                 .build()
@@ -248,15 +259,47 @@ public class ItemTravellerSword extends SwordItem implements IRelicItem, IRegist
                                         .container(RelicContainerRegistry.INVENTORY.get())
                                         .type(CastType.INSTANTANEOUS)
                                         .predicate("swordcut_predicate", PredicateType.VISIBILITY,
-                                                (p, s) -> this.getAbilityLevel(s, "swordcut") > 1 && p.getMainHandItem() == s || p.getOffhandItem() == s)
+                                                (p, s) -> p.getMainHandItem() == s || p.getOffhandItem() == s)
                                         .build())
+                                .stat(StatData.builder("damage")
+                                        .initialValue(1.5, 2)
+                                        .thresholdValue(1.5, 4)
+                                        .upgradeModifier(UpgradeOperation.ADD, 0.35)
+                                        .formatValue(d -> MathUtils.round(d * 100, 0))
+                                        .build()
+                                )
+                                .stat(StatData.builder("cooldown")
+                                        .initialValue(55, 45)
+                                        .thresholdValue(35, 55)
+                                        .upgradeModifier(UpgradeOperation.ADD, -5)
+                                        .formatValue(d -> MathUtils.round(d, 1))
+                                        .build()
+                                )
                                 .build()
                         )
                         .build()
                 )
-                .leveling(new LevelingData(100, 11, 100))
-                .loot(LootData.builder().entry(LootEntries.MINESHAFT).entry(LootEntries.END_LIKE).build())
+                .leveling(LevelingData.builder().initialCost(100).maxLevel(13).step(100)
+                        .sources(LevelingSourcesData.builder()
+                                .source(LevelingSourceData.genericBuilder("travelers_stride_run").initialValue(1).gem(GemShape.SQUARE, GemColor.CYAN).build())
+                                .source(LevelingSourceData.genericBuilder("travelers_stride_attack").initialValue(2).gem(GemShape.SQUARE, GemColor.CYAN).build())
+                                .source(LevelingSourceData.abilityBuilder("dash").initialValue(6).gem(GemShape.SQUARE, GemColor.CYAN).build())
+                                .source(LevelingSourceData.genericBuilder("dash_attack").initialValue(1).gem(GemShape.SQUARE, GemColor.CYAN).build())
+                                .build())
+                        .build())
+                .loot(LootData.builder().entry(RUINED_PORTAL).build())
                 .build();
+    }
+    
+    @Override
+    public void appendHoverText(@NotNull ItemStack stack, @NotNull TooltipContext context, List<net.minecraft.network.chat.Component> tooltip, TooltipFlag isAdvanced) {
+        tooltip.add(Component.translatable("tooltip.relics_thirteenflames.traveller_sword.lore").withStyle(ChatFormatting.GOLD).withStyle(ChatFormatting.ITALIC));
+        super.appendHoverText(stack, context, tooltip, isAdvanced);
+    }
+    
+    @Override
+    public boolean shouldCauseReequipAnimation(@NotNull ItemStack oldStack, @NotNull ItemStack newStack, boolean slotChanged) {
+        return slotChanged;
     }
     
     @Override
@@ -308,7 +351,7 @@ public class ItemTravellerSword extends SwordItem implements IRelicItem, IRegist
                         living.setRemainingFireTicks(Math.max(living.getRemainingFireTicks(), 60 * fireAspect));
                     
                     if (stack.getItem() == ItemsRegistry.TRAVELLER_SWORD)
-                        ItemsRegistry.TRAVELLER_SWORD.addRelicExperience(stack, 5);
+                        ItemsRegistry.TRAVELLER_SWORD.addRelicExperience(stack, 3);
                 }
             }
 
@@ -324,10 +367,10 @@ public class ItemTravellerSword extends SwordItem implements IRelicItem, IRegist
 //                player.level().addFreshEntity(afterdash);
 //            }
             
-            ItemsRegistry.TRAVELLER_SWORD.addRelicExperience(stack, 10);
+            ItemsRegistry.TRAVELLER_SWORD.addRelicExperience(stack, 8);
         } else if (ability.equals("swordcut")) {
             stack.set(ACTIVE_TICK, 400);
-            addAbilityCooldown(stack, "swordcut", 1000);
+            addAbilityCooldown(stack, "swordcut", (int) (20 * getStatValue(stack, "swordcut", "cooldown")));
         }
     }
     
@@ -407,33 +450,44 @@ public class ItemTravellerSword extends SwordItem implements IRelicItem, IRegist
             stack.set(LAST_POS, end);
             
             int fireAspect = stack.getEnchantmentLevel(player.level().holder(Enchantments.FIRE_ASPECT).get());
+            double size = 0.53f * (completion + d) + range * 0.04f;
             if (fireAspect == 0) {
-                ParticleHelper.spawnParticleLine(player.level(), ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(COLOR, player.level().random), 0.53f * (completion + d), 20, 0.8f),
-                        start, end, 22, new Vec3(0, 0, 0), 0.1 * (completion + d));
+                double spread = 0.1 * (completion + d) + range * 0.01;
+                ParticleHelper.spawnParticleLine(player.level(), ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(COLOR, player.level().random), (float) size, 20, 0.8f),
+                        start, end, (int) (22 + range * 0.35), new Vec3(0, 0, 0), spread);
                 if (dashTick == 1)
-                    ParticleHelper.spawnParticleLine(player.level(), ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(COLOR, player.level().random), 0.33f * (completion + d), 40, 0.86f).withGravity(1.5f),
-                            start, end, 15, 0.06, 0.1 * (completion + d));
+                    ParticleHelper.spawnParticleLine(player.level(), ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(COLOR, player.level().random), (float) (0.33f * (completion + d) + range * 0.007f), 40, 0.86f).withGravity(1.5f),
+                            start, end, (int) (15 + range * 0.25), 0.06, spread);
             } else {
-                ParticleHelper.spawnParticleLine(player.level(), ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(BURN_COLOR, player.level().random), 0.53f * (completion + d), 20, 0.8f),
-                        start, end, (11) + 1, new Vec3(0, 0, 0), 0.1 * (completion + d));
-                ParticleHelper.spawnParticleLine(player.level(), ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(COLOR, player.level().random), 0.53f * (completion + d), 20, 0.8f),
-                        start, end, (11) + 1, new Vec3(0, 0, 0), 0.1 * (completion + d));
+                double spread = 0.1 * (completion + d) + range * 0.03;
+                ParticleHelper.spawnParticleLine(player.level(), ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(BURN_COLOR, player.level().random), (float) size, 20, 0.8f),
+                        start, end, (int) (12 + range * 0.2), new Vec3(0, 0, 0), spread);
+                ParticleHelper.spawnParticleLine(player.level(), ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(COLOR, player.level().random), (float) size, 20, 0.8f),
+                        start, end, (int) (12 + range * 0.2), new Vec3(0, 0, 0), spread);
             }
             
+            Vec3 sweep = end.subtract(delta.scale(0.5).yRot(-(float) rot * 1.5f));
             if (dashTick == 1) {
                 stack.remove(LAST_POS);
                 stack.remove(DIRECTION);
                 
-                ParticleHelper.spawnParticleLine(player.level(), ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(COLOR, player.level().random), 0.53f, 20, 0.8f),
-                        end, end.subtract(delta.scale(0.5).yRot(-(float) rot * 1.5f)), (33) + 1, new Vec3(0, 0, 0), 0.15);
-                ParticleHelper.spawnParticleLine(player.level(), ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(COLOR, player.level().random), 0.33f, 40, 0.84f).withGravity(1.5f),
-                        end, end.subtract(delta.scale(0.5).yRot(-(float) rot * 1.5f)), (22) + 1, 0.06, 0.15);
-                ParticleHelper.spawnParticles(level, ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(COLOR, player.level().random), 0.63f, 40, 0.89f).withGravity(1.5f),
-                        end, 30, 0.15, 0.15, 0.15, 0.06);
+                ParticleHelper.spawnParticleLine(player.level(), ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(COLOR, player.level().random), (float) (0.53f + range * 0.01f), 20, 0.8f),
+                        end, sweep, (33) + 1, new Vec3(0, 0, 0), 0.15 + range * 0.01f);
+                ParticleHelper.spawnParticleLine(player.level(), ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(COLOR, player.level().random), (float) (0.33f + range * 0.02f), 55, 0.84f).withGravity(1.5f),
+                        end, sweep, (int) ((15) + 1 + range * 2), 0.06 + range * 0.005f, 0.15 + range * 0.01f);
+                ParticleHelper.spawnParticles(level, ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(COLOR, player.level().random), (float) (0.63f + range * 0.03f), 55, 0.89f).withGravity(1.5f),
+                        end, (int) (20 + range * 3), 0.15, 0.15, 0.15, 0.06 + range * 0.005f);
             }
             
-            var targets = level.getEntitiesOfClass(LivingEntity.class, new AABB(start, end).inflate(0.6f * completion), l ->
-                    l.isAlive() && l != entity && !l.isSpectator() && l.isPickable());
+            Set<LivingEntity> targets = Sets.newHashSet(level.getEntitiesOfClass(LivingEntity.class, new AABB(sweep, end).inflate((0.5f * completion + range * 0.06) * 1.3).expandTowards(delta.normalize().scale(0.6 + range * 0.05)), l ->
+                    l.isAlive() && l != entity && !l.isSpectator() && l.isPickable()));
+            
+            if (dashTick == 1) {
+                targets.addAll(level.getEntitiesOfClass(LivingEntity.class, new AABB(sweep, end).inflate((1.3 + range * 0.1) * 1.5).expandTowards(delta.normalize().scale(0.6 + range * 0.05)), l ->
+                        l.isAlive() && l != entity && !l.isSpectator() && l.isPickable()));
+                targets.addAll(level.getEntitiesOfClass(LivingEntity.class, new AABB(sweep, end).inflate((0.7f + range * 0.07) * 1.3).expandTowards(delta.normalize().scale(0.6 + range * 0.05)), l ->
+                        l.isAlive() && l != entity && !l.isSpectator() && l.isPickable()));
+            }
             for (var target : targets) {
                 DamageSource source = player.damageSources().playerAttack(player);
                 target.hurt(source, (float) this.getStatValue(stack, "dash", "damage_boost") * getPlayerDamage(player, player.level(), living, stack, source));

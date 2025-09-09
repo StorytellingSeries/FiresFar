@@ -11,11 +11,11 @@ import org.jetbrains.annotations.NotNull;
 import java.util.function.IntFunction;
 
 public enum JodahTier implements StringRepresentable {
-    S(-1, 16, 5, Thief.of(2, 8, 24), OneThousandEyes.of(2, 1.9f)),
-    A(9, 8, 3, Thief.of(1, 6, 16), OneThousandEyes.of(2, 1.6f)),
-    B(8, 4, 1, Thief.of(1, 4, 11), OneThousandEyes.of(1, 1.35f)),
-    C(7, 2, 0.5f, Thief.of(0.5f, 3, 7), OneThousandEyes.of(1, 1.15f)),
-    D(6, 0, 0, Thief.of(0.5f, 2, 4), OneThousandEyes.of(1, 1.0f));
+    S(-1, 16, 6, Thief.of(2, 8, 24), OneThousandEyes.of(2, 2.0f)),
+    A(7, 8, 3, Thief.of(1, 6, 16), OneThousandEyes.of(2, 1.6f)),
+    B(6, 4, 1, Thief.of(1, 4, 11), OneThousandEyes.of(1, 1.35f)),
+    C(5, 2, 0.5f, Thief.of(0.5f, 3, 7), OneThousandEyes.of(1, 1.15f)),
+    D(5, 0, 0, Thief.of(0.5f, 2, 4), OneThousandEyes.of(1, 1.0f));
     
     public static final Codec<JodahTier> CODEC = StringRepresentable.fromEnum(JodahTier::values);
     public static final IntFunction<JodahTier> BY_ID = ByIdMap.continuous(Enum::ordinal, values(), ByIdMap.OutOfBoundsStrategy.ZERO);

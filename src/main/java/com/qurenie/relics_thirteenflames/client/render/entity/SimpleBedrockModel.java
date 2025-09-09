@@ -37,9 +37,13 @@ public class SimpleBedrockModel<T extends Entity & IAnimatedEntity>
 		return this;
 	}
 	
+	public void createModel() {
+		model = modelCtr.createModel();
+	}
+	
 	private void refreshGeometry(RefreshStaleModelsEvent e)
 	{
-		model = modelCtr.createModel();
+		createModel();
 	}
 	
 	@Override

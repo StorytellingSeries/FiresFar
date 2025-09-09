@@ -10,6 +10,7 @@ import it.hurts.sskirillss.relics.items.relics.base.data.RelicData;
 import it.hurts.sskirillss.relics.items.relics.base.data.cast.CastData;
 import it.hurts.sskirillss.relics.items.relics.base.data.cast.misc.CastStage;
 import it.hurts.sskirillss.relics.items.relics.base.data.cast.misc.CastType;
+import it.hurts.sskirillss.relics.items.relics.base.data.cast.misc.PredicateType;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.AbilitiesData;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.AbilityData;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.LevelingData;
@@ -305,12 +306,12 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
                                 .stat(StatData.builder("distance")
                                         .thresholdValue(8, 42)
                                         .initialValue(10, 14)
-                                        .upgradeModifier(UpgradeOperation.MULTIPLY_BASE, 1.25)
+                                        .upgradeModifier(UpgradeOperation.MULTIPLY_TOTAL, 0.25)
                                         .formatValue(x -> MathUtils.round(x, 1))
                                         .build())
                                 .stat(StatData.builder("efficiency")
                                         .thresholdValue(2, 5)
-                                        .initialValue(3, 3.5)
+                                        .initialValue(2.5, 3.5)
                                         .upgradeModifier(UpgradeOperation.ADD, 0.3)
                                         .formatValue(x -> (int) MathUtils.round(x, 0))
                                         .build())
@@ -319,6 +320,7 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
                                 .maxLevel(5)
                                 .active(CastData.builder()
                                         .container(RelicContainerRegistry.INVENTORY.get())
+                                        .predicate("horn_pred", PredicateType.VISIBILITY, (p, s) -> p.getMainHandItem() == s || p.getOffhandItem() == s)
                                         .type(CastType.INSTANTANEOUS)
                                         .build())
                                 .stat(StatData.builder("wavesCount")

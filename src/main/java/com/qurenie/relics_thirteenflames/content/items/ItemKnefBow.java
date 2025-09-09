@@ -14,6 +14,7 @@ import it.hurts.sskirillss.relics.items.relics.base.RelicItem;
 import it.hurts.sskirillss.relics.items.relics.base.data.RelicData;
 import it.hurts.sskirillss.relics.items.relics.base.data.cast.CastData;
 import it.hurts.sskirillss.relics.items.relics.base.data.cast.misc.CastType;
+import it.hurts.sskirillss.relics.items.relics.base.data.cast.misc.PredicateType;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.AbilitiesData;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.AbilityData;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.LevelingData;
@@ -98,6 +99,7 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
                                 .active(CastData.builder()
                                         .container(RelicContainerRegistry.INVENTORY.get())
                                         .type(CastType.TOGGLEABLE)
+                                        .predicate("swim_pred", PredicateType.VISIBILITY, (p, s) -> p.getMainHandItem() == s || p.getOffhandItem() == s)
                                         .build())
                                 .stat(StatData.builder("speed")
                                         .initialValue(4, 6)
@@ -296,7 +298,7 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
     }
 
     @Override
-    public void inventoryTick(ItemStack stack, Level level, Entity entity, int slot, boolean isSelected) {
+    public void inventoryTick(@NotNull ItemStack stack, Level level, @NotNull Entity entity, int slot, boolean isSelected) {
         boolean hasGloves = hasGloves(entity);
         if(!level.isClientSide() && entity instanceof LivingEntity l
         && stack.getOrDefault(PULL, 0f) != (l.getUseItem() == stack ? (float) (stack.getUseDuration(l) - l.getUseItemRemainingTicks()) / (hasGloves ? 10.0f : 20.0F) : 0))
@@ -316,7 +318,7 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
 
 
     @Override
-    public void onUseTick(Level level, LivingEntity living, ItemStack stack, int count) {
+    public void onUseTick(@NotNull Level level, @NotNull LivingEntity living, @NotNull ItemStack stack, int count) {
         if ( isAbilityTicking(stack, "swim") && living.isInWaterOrRain() && living instanceof Player p) {
 
             if (!p.isCreative()) {
@@ -331,7 +333,7 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
             living.setSwimming(false);
             Vec3 luk = p.getLookAngle();
             Vec3 motion = living.getDeltaMovement();
-            double spid = getStatValue(stack, "swim", "speed") / 5;
+            double speedd = getStatValue(stack, "swim", "speed") / 5;
 
             AABB aoe = living.getBoundingBox().inflate(2);
             for (LivingEntity target : living.level().getEntitiesOfClass(LivingEntity.class, aoe, e -> !e.getUUID().equals(living.getUUID()))) {
@@ -341,13 +343,13 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
             }
 
             p.setDeltaMovement(0,0,0);
-            p.push(luk.x() * spid, luk.y() * spid, luk.z() * spid);
+            p.push(luk.x() * speedd, luk.y() * speedd, luk.z() * speedd);
             p.startAutoSpinAttack(2, (float) getStatValue(stack, "swim", "dmg") ,stack);
             p.fallDistance = 0;
             for (int i = 0; i < 12; i++) {
 
-                double a = 360.0 / 12 * i - count * 10.0;
-                double radius = 0.7 + Math.sin(Math.toRadians(count * 20.0) - 90) * 0.44;
+                double a = 360.0 / 12 * i - p.tickCount * 10.0;
+                double radius = 0.7 + Math.sin(Math.toRadians(p.tickCount * 20.0) - 90) * 0.44;
 
                 if (i % 2 == 0) {
                     radius += 1.4;
@@ -365,7 +367,7 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
                     if (i % 4 == 0) pos = pos.subtract(luk.scale(0.8));
                 }
                 pos = pos.add(luk.scale(-0.4));
-                ParticleHelper.spawnDirectedParticle(living.level(), ParticleHelper.constructSimpleSpark(new Color(0, (int) (174 + Math.sin(count / 6.0) * 30), (int) (105 - Math.sin(count / 6.0) * 20)), 0.35f, 60, 0.92f),
+                ParticleHelper.spawnDirectedParticle(living.level(), ParticleHelper.constructSimpleSpark(new Color(0, (int) (174 + Math.sin(p.tickCount / 6.0) * 30), (int) (105 - Math.sin(count / 6.0) * 20)), 0.35f, 60, 0.92f),
                         pos.x(), pos.y(), pos.z(), 0, 0, 0);
             }
         } else if(living instanceof Player p){
@@ -386,7 +388,7 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(Level pLevel, Player pPlayer, InteractionHand pHand) {
+    public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level pLevel, Player pPlayer, @NotNull InteractionHand pHand) {
         ItemStack itemstack = pPlayer.getItemInHand(pHand);
         itemstack.set(SHIFTING, pPlayer.isShiftKeyDown());
         pPlayer.startUsingItem(pHand);
@@ -394,12 +396,12 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
     }
     
     @Override
-    public boolean isPrimaryItemFor(ItemStack stack, Holder<Enchantment> enchantment) {
+    public boolean isPrimaryItemFor(@NotNull ItemStack stack, Holder<Enchantment> enchantment) {
         return enchantment.is(Enchantments.POWER);
     }
     
     @Override
-    public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
+    public boolean supportsEnchantment(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
         return isPrimaryItemFor(stack, enchantment);
     }
     
@@ -415,7 +417,7 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
 
     @Override
     public int getFoilColor(@NotNull ItemStack stack) {
-        return /*0xFA9FEB7D*/ new Color(0, 133, 108).getRGB(); //хекс коды люблю невероятно
+        return /*0xFA9FEB7D*/ new Color(0, 133, 108).getRGB();
     }
     
     @EventBusSubscriber

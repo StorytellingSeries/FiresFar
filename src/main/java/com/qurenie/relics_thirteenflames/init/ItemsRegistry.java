@@ -43,7 +43,7 @@ public interface ItemsRegistry {
     
     @RegistryName("jodah_staff")
     ItemJodahStaff JODAH_STAFF = new ItemJodahStaff(Tiers.IRON, props().rarity(Rarity.RARE).stacksTo(1)
-            .attributes(SwordItem.createAttributes(Tiers.DIAMOND, 3, -1F)));
+            .attributes(SwordItem.createAttributes(Tiers.DIAMOND, 3, -1.8F)));
     
     @RegistryName("jodah_mask")
     ItemJodahMask JODAH_MASK = new ItemJodahMask(ArmorMaterials.LEATHER, ArmorItem.Type.HELMET, props().rarity(Rarity.RARE).stacksTo(1));
@@ -80,31 +80,41 @@ public interface ItemsRegistry {
     
     @RegistryName("auritekh_ingot")
     Item AURITEKH_INGOT = new Item(props().rarity(Rarity.UNCOMMON).fireResistant());
+    
     @RegistryName("auritekh_sword")
     Item AURITEKH_SWORD = new SwordItem(AuritekhTier.INSTANCE, props().fireResistant().stacksTo(1).rarity(Rarity.UNCOMMON)
-            .attributes(PickaxeItem.createAttributes(AuritekhTier.INSTANCE, 3, -1.8f)));
+            .attributes(SwordItem.createAttributes(AuritekhTier.INSTANCE, 3, -1.8f)));
+   
     @RegistryName("auritekh_hoe")
     Item AURITEKH_HOE = new HoeItem(AuritekhTier.INSTANCE, props().fireResistant().stacksTo(1).rarity(Rarity.UNCOMMON)
-            .attributes(PickaxeItem.createAttributes(AuritekhTier.INSTANCE, -3.5F, 0.6F)));
+            .attributes(HoeItem.createAttributes(AuritekhTier.INSTANCE, -3.5F, 0.6F)));
+    
     @RegistryName("auritekh_shovel")
     Item AURITEKH_SHOVEL = new ShovelItem(AuritekhTier.INSTANCE, props().fireResistant().stacksTo(1).rarity(Rarity.UNCOMMON)
             .attributes(ShovelItem.createAttributes(AuritekhTier.INSTANCE, 1.5F, -2.4F)));
+   
     @RegistryName("auritekh_pickaxe")
     Item AURITEKH_PICKAXE = new PickaxeItem(AuritekhTier.INSTANCE, props().fireResistant().stacksTo(1).rarity(Rarity.UNCOMMON)
             .attributes(PickaxeItem.createAttributes(AuritekhTier.INSTANCE, 1.0F, -2.2F)));
+   
     @RegistryName("auritekh_axe")
     Item AURITEKH_AXE = new AxeItem(AuritekhTier.INSTANCE, props().fireResistant().stacksTo(1).rarity(Rarity.UNCOMMON)
             .attributes(AxeItem.createAttributes(AuritekhTier.INSTANCE, 5.0F, -2.4F)));
+   
     @RegistryName("auritekh_helmet")
-    Item AURITEKH_HELMET = new ArmorItem(ArmorMaterialRegistry.MONTU_SMITH_TYPE, ArmorItem.Type.HELMET, props().fireResistant().stacksTo(1).rarity(Rarity.UNCOMMON).durability(ArmorItem.Type.HELMET.getDurability(60)));
+    Item AURITEKH_HELMET = new AuritekhArmor(ArmorMaterialRegistry.MONTU_SMITH_TYPE, ArmorItem.Type.HELMET, props().fireResistant().stacksTo(1).rarity(Rarity.UNCOMMON));
+   
     @RegistryName("auritekh_boots")
-    Item AURITEKH_BOOTS = new ArmorItem(ArmorMaterialRegistry.MONTU_SMITH_TYPE, ArmorItem.Type.BOOTS, props().fireResistant().stacksTo(1).rarity(Rarity.UNCOMMON).durability(ArmorItem.Type.BOOTS.getDurability(60)));
+    Item AURITEKH_BOOTS = new AuritekhArmor(ArmorMaterialRegistry.MONTU_SMITH_TYPE, ArmorItem.Type.BOOTS, props().fireResistant().stacksTo(1).rarity(Rarity.UNCOMMON));
+    
     @RegistryName("auritekh_chestplate")
-    Item AURITEKH_CHESTPLATE = new ArmorItem(ArmorMaterialRegistry.MONTU_SMITH_TYPE, ArmorItem.Type.CHESTPLATE, props().fireResistant().stacksTo(1).rarity(Rarity.UNCOMMON).durability(ArmorItem.Type.CHESTPLATE.getDurability(60)));
+    Item AURITEKH_CHESTPLATE = new AuritekhArmor(ArmorMaterialRegistry.MONTU_SMITH_TYPE, ArmorItem.Type.CHESTPLATE, props().fireResistant().stacksTo(1).rarity(Rarity.UNCOMMON));
+   
     @RegistryName("auritekh_leggings")
-    Item AURITEKH_LEGGINGS = new ArmorItem(ArmorMaterialRegistry.MONTU_SMITH_TYPE, ArmorItem.Type.LEGGINGS, props().fireResistant().stacksTo(1).rarity(Rarity.UNCOMMON).durability(ArmorItem.Type.LEGGINGS.getDurability(60)));
-    @RegistryName("montu_smith")
-    Item MONTU_SMITH = new Item(props());
+    Item AURITEKH_LEGGINGS = new AuritekhArmor(ArmorMaterialRegistry.MONTU_SMITH_TYPE, ArmorItem.Type.LEGGINGS, props().fireResistant().stacksTo(1).rarity(Rarity.UNCOMMON));
+    
+    @RegistryName("auritekh_elytra")
+    Item AURITEKH_ELYTRA = new AuritekhElytraItem(ArmorMaterialRegistry.MONTU_SMITH_TYPE, ArmorItem.Type.CHESTPLATE, props().fireResistant().stacksTo(1).rarity(Rarity.EPIC).durability(20000));
     
     static Item.Properties props() {
         return new Item.Properties();

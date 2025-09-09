@@ -20,12 +20,23 @@ public class AntikintEffect extends MobEffect {
     }
     
     @SubscribeEvent
+    public static void remove(MobEffectEvent.Remove remove) {
+        if (remove.getEffectInstance() == null || remove.getEffectInstance().getEffect() != EffectsRegistry.SKINTONIT_EFFECT)
+            return;
+        
+        if (remove.getCure() != null)
+            remove.setCanceled(true);
+        else
+            FlamesUtils.setSkint(remove.getEntity(), 0, false);
+    }
+    
+    @SubscribeEvent
     public static void expired(MobEffectEvent.Expired expired) {
         if (expired.getEffectInstance() == null || expired.getEffectInstance().getEffect() != EffectsRegistry.SKINTONIT_EFFECT)
             return;
         
         int antiscint = expired.getEntity().getData(AttachmentsRegistry.ANTISKINT_DATA);
-        FlamesUtils.addAntiskint(expired.getEntity(), antiscint - 1, antiscint);
+        FlamesUtils.addAntiskint(expired.getEntity(),  -1, antiscint);
     }
     
 }

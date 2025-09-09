@@ -1,0 +1,31 @@
+{
+  "providers": [
+    {
+      "type": "bitmap",
+      "file": "relics_thirteenflames:hud/jodah_mask/mask_icon.png",
+      "ascent": 9,
+      "height": 9,
+      "chars": [
+        "\u1900"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "relics_thirteenflames:hud/jodah_mask/mask_icon_scint.png",
+      "ascent": 9,
+      "height": 9,
+      "chars": [
+        "\u1901"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "relics_thirteenflames:hud/jodah_mask/mask_icon_scintonit.png",
+      "ascent": 9,
+      "height": 9,
+      "chars": [
+        "\u1902"
+      ]
+    }
+  ]
+}

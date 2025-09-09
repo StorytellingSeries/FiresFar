@@ -65,7 +65,7 @@ public class EnchantPacket implements IPacket {
         if (player.containerMenu instanceof ScrollOfTruthContainer scrollOfTruthContainer) {
             int lvlCost = ScrollOfTruthItem.getFullEnchantmentCost(scrollOfTruthContainer.scroll, data);
             if (player.experienceLevel >= lvlCost) {
-                ItemStack item = scrollOfTruthContainer.fakeHandler.getStackInSlot(0);
+                ItemStack item = scrollOfTruthContainer.scrollContainer.getItem(0);
                 if (!item.isEmpty() && !item.isEnchanted()) {
                     for (EnchantmentInstance inst : data)
                         item.enchant(inst.enchantment, inst.level);

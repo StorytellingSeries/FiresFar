@@ -41,7 +41,11 @@ public class ThirteenRenderTypes {
         
         public BufferBuilder begin(Tesselator tesselator, @NotNull TextureManager manager) {
             RenderSystem.setShaderTexture(0, TextureAtlas.LOCATION_PARTICLES);
+            RenderSystem.setShader(GameRenderer::getParticleShader);
             RenderSystem.enableBlend();
+            RenderSystem.setShaderColor(1, 1, 1, 1);
+            RenderSystem.clearColor(1, 1, 1, 1);
+            RenderSystem.setShaderColor(1, 1, 1, 1);
             RenderSystem.depthMask(false);
             RenderSystem.enableDepthTest();
             RenderSystem.blendFunc(770, 1);
@@ -49,23 +53,26 @@ public class ThirteenRenderTypes {
         }
         
         public String toString() {
-            return "relics_thirteenflames:colored_translucent";
+            return "relics_thirteenflames_colored_translucent_lightning";
         }
     };
     
     public static final ParticleRenderType CUSTOM_RENDER_TRANSLUCENT = new ParticleRenderType() {
         
         public BufferBuilder begin(Tesselator tesselator, @NotNull TextureManager manager) {
-            RenderSystem.setShaderTexture(0, TextureAtlas.LOCATION_PARTICLES);
-            RenderSystem.enableBlend();
             RenderSystem.depthMask(false);
+            RenderSystem.setShaderTexture(0, TextureAtlas.LOCATION_PARTICLES);
+            RenderSystem.clearColor(1, 1, 1, 1);
+            RenderSystem.setShaderColor(1, 1, 1, 1);
+            RenderSystem.enableBlend();
+            RenderSystem.setShader(GameRenderer::getParticleShader);
             RenderSystem.enableDepthTest();
             RenderSystem.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
             return tesselator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.PARTICLE);
         }
         
         public String toString() {
-            return "relics_thirteenflames:colored_translucent";
+            return "relics_thirteenflames_colored_translucent";
         }
     };
     

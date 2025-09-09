@@ -25,7 +25,7 @@ public class MontuGlovesRecipeCategory implements IRecipeCategory<MontuSmithReci
     private final IDrawable icon;
     
     public MontuGlovesRecipeCategory(IGuiHelper guiHelper) {
-        this.icon = guiHelper.createDrawableIngredient(VanillaTypes.ITEM_STACK, new ItemStack(ItemsRegistry.MONTU_SMITH));
+        this.icon = guiHelper.createDrawableIngredient(VanillaTypes.ITEM_STACK, new ItemStack(ItemsRegistry.MONTU_GLOVES));
     }
     
     @Override

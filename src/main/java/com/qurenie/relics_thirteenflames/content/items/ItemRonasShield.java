@@ -50,6 +50,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.InputEvent;
@@ -80,7 +81,7 @@ public class ItemRonasShield extends ShieldItem implements IColoredFoilItem, IRe
     @SubscribeEvent
     public static void onShieldBlock(LivingShieldBlockEvent event) {
         ItemStack stack = event.getEntity().getItemInHand(event.getEntity().getUsedItemHand());
-        if (stack.getItem() instanceof ItemRonasShield shit) {
+        if (stack.getItem() instanceof ItemRonasShield shit && event.getEntity().isUsingItem()) {
             
             float blockRate = (float) shit.getStatValue(stack, "block", "blockrate");
             float blockedDmg = event.getOriginalBlockedDamage() * blockRate;
@@ -439,11 +440,15 @@ public class ItemRonasShield extends ShieldItem implements IColoredFoilItem, IRe
     @EventBusSubscriber
     public static class ClientEventHandler {
         
-        @SubscribeEvent
+        @SubscribeEvent(priority = EventPriority.LOWEST)
         public static void onClick(InputEvent.MouseButton.Post event) {
             
             LocalPlayer player = Minecraft.getInstance().player;
-            if (player != null && player.getUseItem().getItem() instanceof ItemRonasShield && event.getButton() == 0 && event.getAction() == InputConstants.PRESS) {
+            if (player != null
+                    && player.getUseItem().getItem() instanceof ItemRonasShield
+                    && event.getButton() == 0
+                    && event.getAction() == InputConstants.PRESS
+                    && player.getUseItem().getOrDefault(CHARGING_TICKER, 0) == 0) {
                 
                 Network.sendToServer(new RhonasRebukePacket());
             }

@@ -11,6 +11,9 @@ public interface EntityModels {
 
     @RegistryName("seliaset_sun")
     IGeometryContainer SELIASET_SUN = create();
+    
+    @RegistryName("jodah_staff_model")
+    IGeometryContainer JODAH_STAFF_MODEL = create();
 
     @RegistryName("living_flesh")
     IGeometryContainer LIVING_FLESH = create();
@@ -29,5 +32,8 @@ public interface EntityModels {
     
     @RegistryName("adventurer_sword_big")
     IGeometryContainer ADVENTURER_SWORD = create();
+    
+    @RegistryName("adventurer_sword_big_flipped")
+    IGeometryContainer ADVENTURER_SWORD_FLIPPED = create();
     
 }

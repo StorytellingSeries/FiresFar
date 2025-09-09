@@ -16,22 +16,26 @@ public class TravellerItemRenderer extends EmissiveItemRenderer {
     public void renderByItem(@NotNull ItemStack pStack, @NotNull ItemDisplayContext pTransformType, @NotNull PoseStack poseStack, @NotNull MultiBufferSource pBuffer, int pPackedLight, int pPackedOverlay) {
         if(pStack.is(ItemsRegistry.TRAVELLER_SWORD) && pStack.getOrDefault(ComponentRegistry.SPEED, 0f) >= 2) {
             if (pTransformType == ItemDisplayContext.THIRD_PERSON_LEFT_HAND) {
-                poseStack.mulPose(Axis.YP.rotationDegrees(30));
+                poseStack.translate(-0.35, 0.3, 0.5);
+                poseStack.mulPose(Axis.ZP.rotationDegrees(15));
                 poseStack.mulPose(Axis.XP.rotationDegrees(15));
-                poseStack.translate(-0.4, 0.3, 0);
+                poseStack.mulPose(Axis.YP.rotationDegrees(35));
             }
             if (pTransformType == ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
-                poseStack.mulPose(Axis.YP.rotationDegrees(-30));
+                poseStack.translate(0.35, 0.3, -0.3);
+                poseStack.mulPose(Axis.ZP.rotationDegrees(15));
                 poseStack.mulPose(Axis.XP.rotationDegrees(-15));
-                poseStack.translate(0.4, 0.3, -0.2);
+                poseStack.mulPose(Axis.YP.rotationDegrees(-35));
             }
             if (pTransformType == ItemDisplayContext.FIRST_PERSON_LEFT_HAND) {
+                poseStack.translate(0, 0.4, 0.6);
                 poseStack.mulPose(Axis.YP.rotationDegrees(15));
-                poseStack.translate(-0.2, 0.2, -0.6);
+                poseStack.mulPose(Axis.XP.rotationDegrees(30));
             }
             if (pTransformType == ItemDisplayContext.FIRST_PERSON_RIGHT_HAND) {
+                poseStack.translate(0.2, -0.1, -0.6);
                 poseStack.mulPose(Axis.YP.rotationDegrees(-15));
-                poseStack.translate(-0.2, 0.2, 0.6);
+                poseStack.mulPose(Axis.XP.rotationDegrees(-30));
             }
         }
         

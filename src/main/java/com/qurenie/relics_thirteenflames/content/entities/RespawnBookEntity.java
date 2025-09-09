@@ -129,10 +129,24 @@ public class RespawnBookEntity extends Mob implements IAnimatedEntity {
         
         int deathTick = getDeathTick();
         if (level().isClientSide) {
+            if (this.getPassengers().isEmpty())
+                for (int j = 0; j < 2; j++) {
+                    if (random.nextBoolean()) {
+                        double r = 0.6;
+                        
+                        double x = (0.5 - Math.random()) * r * 2;
+                        double z = Math.sqrt(r * r - x * x) * (0.5 - Math.random()) * 2;
+                        Vec3 spawn = position().add(x, 1.3 + random.nextGaussian() * 0.2, z);
+                        
+                        ParticleHelper.spawnDirectedParticle(level(), ParticleTypes.ENCHANT,
+                                spawn, new Vec3(0, Math.random() * 0.1 + 0.06, 0));
+                    }
+                }
+            
             for (int j = 0; j < 4; j++) {
                 double r = (0.8 + random.nextGaussian() * 0.1) * (deathTick < 0 ? 1 : (1 - (double) (tickCount - deathTick) / DEATH_ANIM_LENGTH));
                 
-                double x = (0.5 - random.nextDouble()) * r;
+                double x = (0.5 - Math.random()) * r * 2;
                 double z = Math.sqrt(r * r - x * x) * (random.nextBoolean() ? 1 : -1);
                 Vec3 spawn = position().add(x, 0.1, z);
                 
@@ -171,6 +185,7 @@ public class RespawnBookEntity extends Mob implements IAnimatedEntity {
                             ParticleHelper.spawnDirectedParticle(level(), ParticleHelper.constructSimpleSpark(BURN_COLOR, 0.13f, 20, 0.91f),
                                     spawn, move.normalize().scale(0.03 * y));
                         
+                        
                         if (random.nextBoolean() && tickCount % 3 == 0)
                             ParticleHelper.spawnDirectedParticle(level(), ParticleHelper.constructHeal(FEATHER_COLOR, 0.3f, 20, 0.91f),
                                     spawn, move.normalize().scale(0.03 * y));
@@ -186,7 +201,7 @@ public class RespawnBookEntity extends Mob implements IAnimatedEntity {
     @Override
     public void onDamageTaken(@NotNull DamageContainer damageContainer) {
         ParticleHelper.spawnParticleEntity(new FeatherParticle.Options(0.2f, 70, ParticlesRegistry.HETT_FEATHER),
-                this, (int) (damageContainer.getNewDamage() * 5), 0.2f);
+                this, (int) (damageContainer.getNewDamage() * 7), 0.1f);
         super.onDamageTaken(damageContainer);
     }
     

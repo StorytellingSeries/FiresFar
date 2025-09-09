@@ -8,6 +8,7 @@ import com.qurenie.relics_thirteenflames.client.render.entity.EntityRendererSeli
 import com.qurenie.relics_thirteenflames.client.render.entity.FallingRenderer;
 import com.qurenie.relics_thirteenflames.client.render.entity.LivingFleshRenderer;
 import com.qurenie.relics_thirteenflames.client.render.item.MontuGlovesRenderer;
+import com.qurenie.relics_thirteenflames.client.render.misc.AuritekhElytraLayer;
 import com.qurenie.relics_thirteenflames.client.render.misc.JodahMaskLayer;
 import com.qurenie.relics_thirteenflames.client.render.misc.JodahWingsLayer;
 import com.qurenie.relics_thirteenflames.client.screen.gloves.MontuCompositeScreen;
@@ -36,6 +37,8 @@ import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.resources.PlayerSkin;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -46,12 +49,15 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import org.jetbrains.annotations.NotNull;
 import org.zeith.hammeranims.api.geometry.IGeometryContainer;
 import org.zeith.hammeranims.api.tile.IAnimatedEntity;
 import top.theillusivec4.curios.api.client.CuriosRendererRegistry;
+
+import java.util.Map;
 
 import static com.qurenie.relics_thirteenflames.init.ItemsRegistry.JODAH_MASK;
 
@@ -90,7 +96,7 @@ public class ClientModEvents {
         e.registerEntityRenderer(EntityRegistry.USABLE_FALLING, FallingRenderer::new);
         e.registerEntityRenderer(EntityRegistry.SELIASET_SUN, EntityRendererSeliasetSun::new);
         e.registerEntityRenderer(EntityRegistry.TRAVELLER_SWEEP, rendererProvider(
-                EntityModels.ADVENTURER_SWORD,
+                EntityModels.ADVENTURER_SWORD_FLIPPED,
                 (p1, p2, p3, p4) -> new CommonRenderer<TravellerSweepEntity>(p1, p2, p3, p4) {
                     @Override
                     protected @NotNull RenderType getRenderType(@NotNull TravellerSweepEntity livingEntity, boolean bodyVisible, boolean translucent, boolean glowing) {
@@ -175,6 +181,13 @@ public class ClientModEvents {
     }
     
     @SubscribeEvent
+    public static void onModelBake(ModelEvent.ModifyBakingResult event) {
+        Map<ModelResourceLocation, BakedModel> models = event.getModels();
+        
+        
+    }
+    
+    @SubscribeEvent
     public static void registerOverlays(RegisterGuiLayersEvent event) {
         event.registerBelow(ResourceLocation.fromNamespaceAndPath("minecraft", "title"),
                 ResourceLocation.fromNamespaceAndPath(ThirteenFlames.MODID, "poison_overlay"), new PoisonOverlay());
@@ -195,6 +208,7 @@ public class ClientModEvents {
             if (renderer instanceof PlayerRenderer playerRenderer) {
                 playerRenderer.addLayer(new JodahWingsLayer<>(playerRenderer));
                 playerRenderer.addLayer(new JodahMaskLayer<>(playerRenderer));
+                playerRenderer.addLayer(new AuritekhElytraLayer(playerRenderer));
             }
         }
     }
@@ -207,7 +221,7 @@ public class ClientModEvents {
             Minecraft MC = Minecraft.getInstance();
             LocalPlayer player = MC.player;
             
-            if (player == null || player.isSpectator())
+            if (player == null || player.isSpectator() || MC.options.hideGui)
                 return;
             
             ItemStack stack = player.getItemBySlot(EquipmentSlot.HEAD);

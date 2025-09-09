@@ -5,16 +5,17 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.qurenie.relics_thirteenflames.client.particles.misc.RotationType;
 import com.qurenie.relics_thirteenflames.init.ParticlesRegistry;
 import io.netty.buffer.ByteBuf;
 import it.hurts.sskirillss.relics.client.particles.BasicColoredParticle;
+import it.hurts.sskirillss.relics.items.relics.belt.HunterBeltItem;
 import lombok.Getter;
 import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.particle.Particle;
-import net.minecraft.client.particle.ParticleProvider;
-import net.minecraft.client.particle.ParticleRenderType;
-import net.minecraft.client.particle.SpriteSet;
+import net.minecraft.client.particle.*;
+import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -25,7 +26,6 @@ import net.minecraft.util.RandomSource;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
-import org.lwjgl.opengl.GL11;
 
 import javax.annotation.Nonnull;
 
@@ -40,6 +40,7 @@ public class ColoredRelicParticle extends BasicColoredParticle {
     public static class Options implements ParticleOptions {
         
         private final Constructor data;
+        private RotationType rotationType = RotationType.PLANE;
         float gravity;
         boolean lightningEffect = true;
         private Supplier<? extends ParticleType<Options>> type = ParticlesRegistry.COLORED_RELIC_PARTICLE;
@@ -68,6 +69,11 @@ public class ColoredRelicParticle extends BasicColoredParticle {
             return this;
         }
         
+        public Options withRotType(RotationType type) {
+            this.rotationType = type;
+            return this;
+        }
+        
         @Nonnull
         @Override
         public ParticleType<Options> getType() {
@@ -76,11 +82,12 @@ public class ColoredRelicParticle extends BasicColoredParticle {
         
         public static MapCodec<Options> codec(ParticleType<Options> type) {
             return RecordCodecBuilder.mapCodec(instance -> instance
-                    .group(ConstructorCodecs.CONSTRUCTOR.fieldOf("data").forGetter(ColoredRelicParticle.Options::getData),
-                            Codec.FLOAT.fieldOf("gravity").forGetter(ColoredRelicParticle.Options::getGravity),
-                            Codec.BOOL.fieldOf("lightning").forGetter(ColoredRelicParticle.Options::isLightningEffect)
+                    .group(ConstructorCodecs.CONSTRUCTOR.fieldOf("data").forGetter(Options::getData),
+                            Codec.FLOAT.fieldOf("gravity").forGetter(Options::getGravity),
+                            Codec.BOOL.fieldOf("lightning").forGetter(Options::isLightningEffect),
+                            RotationType.ORDINAL_CODEC.fieldOf("rot_type").forGetter(Options::getRotationType)
                             )
-                    .apply(instance, (data, gravity, l) -> new Options(type, data).withGravity(gravity).withLightning(l))
+                    .apply(instance, (data, gravity, l, rotationType) -> new Options(type, data).withGravity(gravity).withLightning(l).withRotType(rotationType))
             );
         }
         
@@ -106,7 +113,7 @@ public class ColoredRelicParticle extends BasicColoredParticle {
         @Nullable
         @Override
         public Particle createParticle(Options options, @NotNull ClientLevel world, double xPos, double yPos, double zPos, double xVelocity, double yVelocity, double zVelocity) {
-            ColoredRelicParticle particle = new ColoredRelicParticle(world, xPos, yPos, zPos, xVelocity, yVelocity, zVelocity, options.getData(), options.getGravity(), options.lightningEffect, true);
+            ColoredRelicParticle particle = new ColoredRelicParticle(world, xPos, yPos, zPos, xVelocity, yVelocity, zVelocity, options.getData(), options.getGravity(), options.lightningEffect, true, options.rotationType);
             
             particle.pickSprite(sprites);
             
@@ -124,7 +131,7 @@ public class ColoredRelicParticle extends BasicColoredParticle {
         @Nullable
         @Override
         public Particle createParticle(Options options, @NotNull ClientLevel world, double xPos, double yPos, double zPos, double xVelocity, double yVelocity, double zVelocity) {
-            ColoredRelicParticle particle = new ColoredRelicParticle(world, xPos, yPos, zPos, xVelocity, yVelocity, zVelocity, options.getData(), options.getGravity(), options.lightningEffect, false);
+            ColoredRelicParticle particle = new ColoredRelicParticle(world, xPos, yPos, zPos, xVelocity, yVelocity, zVelocity, options.getData(), options.getGravity(), options.lightningEffect, false, options.rotationType);
             
             particle.pickSprite(sprites);
             
@@ -136,8 +143,8 @@ public class ColoredRelicParticle extends BasicColoredParticle {
         
         private static final RandomSource RANDOM = RandomSource.create();
         
-        public SpellParticle(ClientLevel world, double x, double y, double z, double velocityX, double velocityY, double velocityZ, Constructor constructor, boolean lightning) {
-            super(world, x, y, z, 0.2 - RANDOM.nextDouble() * 0.4, velocityY, 0.2 - RANDOM.nextDouble() * 0.4, constructor, -1, lightning, true);
+        public SpellParticle(ClientLevel world, double x, double y, double z, double velocityX, double velocityY, double velocityZ, Constructor constructor, boolean lightning, RotationType rotationType) {
+            super(world, x, y, z, 0.2 - RANDOM.nextDouble() * 0.4, velocityY, 0.2 - RANDOM.nextDouble() * 0.4, constructor, -1, lightning, true, rotationType);
             
             this.friction = 0.9F;
             this.speedUpWhenYMotionIsBlocked = true;
@@ -177,7 +184,7 @@ public class ColoredRelicParticle extends BasicColoredParticle {
         @Nullable
         @Override
         public Particle createParticle(Options options, @NotNull ClientLevel world, double xPos, double yPos, double zPos, double xVelocity, double yVelocity, double zVelocity) {
-            SpellParticle particle = new SpellParticle(world, xPos, yPos, zPos, xVelocity, yVelocity, zVelocity, options.getData(), options.lightningEffect);
+            SpellParticle particle = new SpellParticle(world, xPos, yPos, zPos, xVelocity, yVelocity, zVelocity, options.getData(), options.lightningEffect, options.rotationType);
             
             particle.pickSprite(sprites);
             
@@ -211,13 +218,18 @@ public class ColoredRelicParticle extends BasicColoredParticle {
     float oldQuadSize;
     float currentQuadSize;
     
-    public ColoredRelicParticle(ClientLevel world, double x, double y, double z, double velocityX, double velocityY, double velocityZ, Constructor constructor, float gravity, boolean lightning, boolean invisibleOnDisappear) {
+    public ColoredRelicParticle(ClientLevel world, double x, double y, double z, double velocityX, double velocityY, double velocityZ, Constructor constructor, float gravity, boolean lightning, boolean invisibleOnDisappear, RotationType rotationType) {
         super(world, x, y, z, velocityX, velocityY, velocityZ, constructor);
         this.gravity = gravity / 100f;
         this.invisibleOnDisappear = invisibleOnDisappear;
         this.lightning = lightning;
         this.dScale = constructor.getScaleModifier();
         this.oldQuadSize = this.currentQuadSize = this.quadSize = constructor.getDiameter();
+        constructor.setRoll(switch (rotationType) {
+            case PLANE -> constructor.getRoll();
+            case SIDE_RANDOM -> random.nextBoolean() ? constructor.getRoll() : -constructor.getRoll();
+            case TOTAL_RANDOM -> (float) (Math.random() * 0.5 - 1) * 2 * constructor.getRoll();
+        });
     }
     
     @Override
@@ -238,17 +250,26 @@ public class ColoredRelicParticle extends BasicColoredParticle {
         this.yd -= gravity;
     }
     
+    protected int getLightColor(float partialTick) {
+        BlockPos blockpos = BlockPos.containing(this.x, this.y, this.z);
+        return this.level.hasChunkAt(blockpos) ? LevelRenderer.getLightColor(this.level, blockpos) : 0;
+    }
+    
     @Override
     public void render(VertexConsumer buffer, Camera renderInfo, float partialTicks) {
         this.quadSize = Mth.lerp(partialTicks, this.oldQuadSize, this.currentQuadSize);
+        
+//        RenderSystem.blendFunc(770, 1);
         
         Quaternionf quaternionf = new Quaternionf();
         this.getFacingCameraMode().setRotation(quaternionf, renderInfo, partialTicks);
         if (this.roll != 0.0F) {
             quaternionf.rotateZ(Mth.lerp(partialTicks, this.oRoll, this.roll));
         }
-        
+
         this.renderRotatedQuad(buffer, renderInfo, quaternionf, partialTicks);
+        
+//        RenderSystem.defaultBlendFunc();
     }
     
 }

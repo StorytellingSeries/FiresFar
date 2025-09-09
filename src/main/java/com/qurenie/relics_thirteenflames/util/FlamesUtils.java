@@ -10,12 +10,15 @@ import com.qurenie.relics_thirteenflames.net.PlaneshiftSyncPacket;
 import com.qurenie.relics_thirteenflames.net.SkintDataAttachmentPacket;
 import lombok.experimental.UtilityClass;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderSet;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.attachment.AttachmentType;
@@ -109,6 +112,9 @@ public class FlamesUtils {
     }
     
     public static void addAntiskint(Entity entity, int count, int maxBonus) {
+        if (count == 0)
+            return;
+        
         int max = 5 + maxBonus;
         
         if (!entity.hasData(AttachmentsRegistry.ANTISKINT_DATA))
@@ -121,7 +127,7 @@ public class FlamesUtils {
         if (entity instanceof LivingEntity living) {
             living.removeEffect(EffectsRegistry.SKINTONIT_EFFECT);
             if (skint > 0)
-                living.addEffect(new MobEffectInstance(EffectsRegistry.SKINTONIT_EFFECT, 1200, skint - 1, false, false));
+                living.addEffect(new MobEffectInstance(EffectsRegistry.SKINTONIT_EFFECT, 1200, skint - 1, false, false, true));
         }
         
         if (skint != prev)
@@ -133,6 +139,9 @@ public class FlamesUtils {
     }
     
     public static void addSkint(Entity entity, int count, int maxBonus) {
+        if (count == 0)
+            return;
+        
         int max = 5 + maxBonus;
         
         if (!entity.hasData(AttachmentsRegistry.SKINT_DATA))
@@ -145,7 +154,7 @@ public class FlamesUtils {
         if (entity instanceof LivingEntity living) {
             living.removeEffect(EffectsRegistry.SKINT_EFFECT);
             if (skint > 0)
-                living.addEffect(new MobEffectInstance(EffectsRegistry.SKINT_EFFECT, 1200, skint - 1, false, false));
+                living.addEffect(new MobEffectInstance(EffectsRegistry.SKINT_EFFECT, 1200, skint - 1, false, false, true));
         }
         
         if (skint != prev)
@@ -154,6 +163,50 @@ public class FlamesUtils {
     
     public static void addSkint(@Nullable ItemStack stack, Entity entity, int count) {
         addSkint(entity, count, stack == null ? 0 : (int) ItemsRegistry.JODAH_MASK.getStatValue(stack, "reversal_aberration", "skint_bonus"));
+    }
+    
+    public static void setAntikint(Entity entity, int count, boolean addEffect) {
+        if (!entity.hasData(AttachmentsRegistry.ANTISKINT_DATA) && count != 0)
+            entity.setData(AttachmentsRegistry.ANTISKINT_DATA, 0);
+        
+        entity.setData(AttachmentsRegistry.ANTISKINT_DATA, count);
+        
+        if (addEffect && entity instanceof LivingEntity living) {
+            living.removeEffect(EffectsRegistry.SKINTONIT_EFFECT);
+            if (count > 0)
+                living.addEffect(new MobEffectInstance(EffectsRegistry.SKINTONIT_EFFECT, 1200, count - 1, false, false, true));
+        }
+        
+        Net.startTrackingSkintAttachments(entity);
+    }
+    
+    public static void setSkint(Entity entity, int count, boolean addEffect) {
+        if (!entity.hasData(AttachmentsRegistry.SKINT_DATA) && count != 0)
+            entity.setData(AttachmentsRegistry.SKINT_DATA, 0);
+        
+        entity.setData(AttachmentsRegistry.SKINT_DATA, count);
+        
+        if (addEffect && entity instanceof LivingEntity living) {
+            living.removeEffect(EffectsRegistry.SKINT_EFFECT);
+            if (count > 0)
+                living.addEffect(new MobEffectInstance(EffectsRegistry.SKINT_EFFECT, 1200, count - 1, false, false, true));
+        }
+        
+        Net.startTrackingSkintAttachments(entity);
+    }
+    
+    public static boolean isWeaponOrMiningEnchantment(HolderSet<Item> holders) {
+        return holders.unwrapKey().map(tag -> tag == ItemTags.SWORD_ENCHANTABLE || tag == ItemTags.MINING_ENCHANTABLE ||
+                tag == ItemTags.MINING_LOOT_ENCHANTABLE).orElse(false) ;
+    }
+    
+    public static boolean isMiningEnchantment(HolderSet<Item> holders) {
+        return holders.unwrapKey().map(tag -> tag == ItemTags.MINING_ENCHANTABLE ||
+                tag == ItemTags.MINING_LOOT_ENCHANTABLE).orElse(false) ;
+    }
+    
+    public static boolean isWeaponEnchantment(HolderSet<Item> holders) {
+        return holders.unwrapKey().map(tag -> tag == ItemTags.SWORD_ENCHANTABLE).orElse(false);
     }
     
     public static class Net {

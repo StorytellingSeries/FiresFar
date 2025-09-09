@@ -6,6 +6,7 @@ import com.qurenie.relics_thirteenflames.content.entities.UsableFallingBlockEnti
 import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
 import com.qurenie.relics_thirteenflames.net.HammerAOEChangePacket;
 import com.qurenie.relics_thirteenflames.net.PacketPlaySound;
+import com.qurenie.relics_thirteenflames.util.FlamesUtils;
 import it.hurts.sskirillss.relics.items.relics.base.RelicItem;
 import it.hurts.sskirillss.relics.items.relics.base.data.RelicData;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.AbilitiesData;
@@ -20,12 +21,10 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
-import net.minecraft.core.HolderSet;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
-import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionResult;
@@ -150,7 +149,7 @@ public class ItemMontuHammer
                         .ability(AbilityData.builder("slap")
                                 .maxLevel(4)
                                 .stat(StatData.builder("cooldown")
-                                        .initialValue(40.0, 60.0)
+                                        .initialValue(60, 40)
                                         .upgradeModifier(UpgradeOperation.ADD, -5.0)
                                         .formatValue(x -> (int) MathUtils.round(x, 1))
                                         .build()
@@ -178,7 +177,7 @@ public class ItemMontuHammer
                         .build()
                 )
                 .leveling(new LevelingData(100, 10, 100))
-                .loot(LootData.builder().entry(LootEntries.MINESHAFT).entry(LootEntries.END_LIKE).build())
+                .loot(LootData.builder().entry(LootEntries.MINESHAFT).build())
                 .build();
     }
     
@@ -396,19 +395,14 @@ public class ItemMontuHammer
     @Override
     public boolean isPrimaryItemFor(@NotNull ItemStack stack, Holder<Enchantment> enchantment) {
         Enchantment.EnchantmentDefinition definition = enchantment.value().definition();
-        boolean isPrimary = definition.primaryItems().isPresent() && isWeaponOrMiningEnchantment(definition.primaryItems().get());
-        boolean supports = isWeaponOrMiningEnchantment(definition.supportedItems());
+        boolean isPrimary = definition.primaryItems().isPresent() && FlamesUtils.isWeaponOrMiningEnchantment(definition.primaryItems().get());
+        boolean supports = FlamesUtils.isWeaponOrMiningEnchantment(definition.supportedItems());
         return isPrimary || supports && !enchantment.is(Enchantments.UNBREAKING) && !enchantment.is(Enchantments.SWEEPING_EDGE);
     }
     
     @Override
     public boolean supportsEnchantment(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
         return this.isPrimaryItemFor(stack, enchantment);
-    }
-    
-    private static boolean isWeaponOrMiningEnchantment(HolderSet<Item> holders) {
-        return holders.unwrapKey().map(tag -> tag == ItemTags.SWORD_ENCHANTABLE || tag == ItemTags.MINING_ENCHANTABLE ||
-                tag == ItemTags.MINING_LOOT_ENCHANTABLE).orElse(false) ;
     }
     
     @Override

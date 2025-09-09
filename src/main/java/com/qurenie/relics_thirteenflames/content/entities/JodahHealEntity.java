@@ -75,7 +75,10 @@ public class JodahHealEntity extends Entity {
         
         if (this.level().isClientSide) {
             ParticleHelper.spawnParticleLine(level(), ParticleHelper.constructSimpleSpark(PURPLE_COLOR, 0.36f,
-                    30, 0.95f), position(), clientPreviousPos, 5, 0.005, 0.02);
+                    30, 0.95f), position(), clientPreviousPos, 3, 0.005, 0.02);
+            if (Math.random() * 1.5 > tickCount % 3)
+                ParticleHelper.spawnParticleLine(level(), ParticleHelper.constructFigure(Color.GRAY, (float) (0.15f + level().random.nextDouble() * 0.09f),
+                        40, 0.95f), position(), clientPreviousPos, 1, 0.005, 0.02);
             if (tickCount % 2 == 0)
                 ParticleHelper.spawnParticleLine(level(), ParticleHelper.constructHeal(PURPLE_COLOR, (float) (0.2f + level().random.nextDouble() * 0.12f),
                         40, 0.95f), position(), clientPreviousPos, 1, 0.008, 0.02);

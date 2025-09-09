@@ -32,14 +32,15 @@ public class MontuGlovesArmorLeft<T extends LivingEntity> extends HumanoidModel<
         MeshDefinition meshdefinition = HumanoidModel.createMesh(new CubeDeformation(0.0F), 0);
         PartDefinition partdefinition = meshdefinition.getRoot();
         
-        PartDefinition right_arm = partdefinition.addOrReplaceChild("left_arm", CubeListBuilder.create(), PartPose.offset(0.0F, 3.0F, 0.0F));
-        PartDefinition bipedRightArm = right_arm.addOrReplaceChild("bipedRightArm", CubeListBuilder.create(), PartPose.offset(0, 3, 0.0F));
+        PartDefinition left_arm = partdefinition.addOrReplaceChild("left_arm", CubeListBuilder.create(), PartPose.offset(0.0F, 3.0F, 0.0F));
+        PartDefinition bipedLeftArm = left_arm.addOrReplaceChild("bipedLeftArm", CubeListBuilder.create(), PartPose.offset(-8, 1f, -0F));
         
-        PartDefinition glove_right = bipedRightArm.addOrReplaceChild("glove_right", CubeListBuilder.create().texOffs(0, 0).addBox(-2.37F, -3.3956F, -2.3559F, 6.0F, 9.0F, 6.0F, new CubeDeformation(0.0F))
-                .texOffs(0, 15).addBox(-2.37F, -3.3956F, -2.3559F, 6.0F, 9.0F, 6.0F, new CubeDeformation(0.25F))
-                .texOffs(24, 1).addBox(-3.37F, 3.6044F, -1.8559F, 6.0F, 4.0F, 5.0F, new CubeDeformation(0.0F)), PartPose.offset(1.37F, 6.3956F, -0.6441F));
+        PartDefinition glove_left = bipedLeftArm.addOrReplaceChild("glove_left", CubeListBuilder.create().texOffs(0, 0).addBox(8.37F, -3.3956F, -2.3559F, 6.0F, 9.0F, 6.0F, new CubeDeformation(0.0F))
+                .texOffs(0, 15).addBox(8.37F, -3.3956F, -2.3559F, 6.0F, 9.0F, 6.0F, new CubeDeformation(0.25F))
+                .texOffs(24, 1).addBox(7.37F, 3.6044F, -1.8559F, 6.0F, 4.0F, 5.0F, new CubeDeformation(0.0F)), PartPose.offset(-1.37F, 6.3956F, -0.6441F));
         
-        PartDefinition cube_r1 = glove_right.addOrReplaceChild("cube_r1", CubeListBuilder.create().texOffs(21, 12).addBox(-2.98F, 4.8598F, -1.2754F, 3.0F, 4.0F, 3.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(0.63F, -3.3956F, 0.6441F, -0.3927F, 0.0F, 0.0F));
+        PartDefinition cube_r1 = glove_left.addOrReplaceChild("cube_r1", CubeListBuilder.create().texOffs(21, 12).addBox(-2.98F, 4.8598F, -1.2754F, 3.0F, 4.0F, 3.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(11.37F, -3.3956F, 0.6441F, -0.3927F, 0.0F, 0.0F));
+        
         return LayerDefinition.create(meshdefinition, 64, 64);
     }
     

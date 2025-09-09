@@ -7,6 +7,7 @@ import com.qurenie.relics_thirteenflames.init.EffectsRegistry;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
 import com.qurenie.relics_thirteenflames.net.RhonasSweepPacket;
+import com.qurenie.relics_thirteenflames.util.FlamesUtils;
 import it.hurts.sskirillss.relics.items.relics.base.IRelicItem;
 import it.hurts.sskirillss.relics.items.relics.base.RelicItem;
 import it.hurts.sskirillss.relics.items.relics.base.data.RelicData;
@@ -16,6 +17,7 @@ import it.hurts.sskirillss.relics.items.relics.base.data.leveling.LevelingData;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.StatData;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.misc.UpgradeOperation;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootData;
+import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootEntry;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.misc.LootEntries;
 import it.hurts.sskirillss.relics.utils.MathUtils;
 import net.minecraft.ChatFormatting;
@@ -139,15 +141,15 @@ public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
                         .ability(AbilityData.builder("anemia")
                                 .maxLevel(2)
                                 .stat(StatData.builder("amp")
-                                        .initialValue(2, 2)
+                                        .initialValue(3, 2)
                                         .thresholdValue(0, 2)
                                         .upgradeModifier(UpgradeOperation.ADD, -1.0)
                                         .formatValue(x -> (int) MathUtils.round((1 - 0.8f / (x + 1)) * 100, 0))
                                         .build()
                                 )
                                 .stat(StatData.builder("atkspd")
-                                        .initialValue(0, 0.2)
-                                        .thresholdValue(0, 1.4)
+                                        .initialValue(0, 0.6)
+                                        .thresholdValue(0, 1.8)
                                         .upgradeModifier(UpgradeOperation.ADD, 0.6)
                                         .formatValue(x -> MathUtils.round(4 - 2.6 + x, 2))
                                         .build()
@@ -157,7 +159,7 @@ public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
                         .build()
                 )
                 .leveling(new LevelingData(50, 10, 50))
-                .loot(LootData.builder().entry(LootEntries.TROPIC).build())
+                .loot(LootData.builder().entry(LootEntry.builder().dimension(new String[]{".*"}).biome(new String[]{"[\\w]+:.*(jungle|rainforest|tropic|wildwood|thicket|boscage|humid|bamboo)[\\w_\\/]*"}).table(new String[]{"[\\w]+:chests\\/[\\w_\\/]*[\\w]+[\\w_\\/]*"}).weight(500).build()).build())
                 .build();
     }
 
@@ -220,12 +222,16 @@ public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
     }
     
     @Override
-    public boolean isPrimaryItemFor(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
-        return enchantment != Enchantments.UNBREAKING && enchantment.value().definition()
-                .primaryItems().flatMap(HolderSet::unwrapKey).map(tag -> tag == ItemTags.SWORD_ENCHANTABLE)
-                .orElse(false) || enchantment.value().definition()
-                .supportedItems().unwrapKey().map(tag -> tag == ItemTags.WEAPON_ENCHANTABLE)
-                .orElse(false);
+    public boolean isPrimaryItemFor(@NotNull ItemStack stack, Holder<Enchantment> enchantment) {
+        Enchantment.EnchantmentDefinition definition = enchantment.value().definition();
+        boolean isPrimary = definition.primaryItems().isPresent() && FlamesUtils.isWeaponEnchantment(definition.primaryItems().get());
+        boolean supports = FlamesUtils.isWeaponEnchantment(definition.supportedItems());
+        return isPrimary || supports && !enchantment.is(Enchantments.UNBREAKING) && !enchantment.is(Enchantments.SWEEPING_EDGE);
+    }
+    
+    @Override
+    public boolean supportsEnchantment(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
+        return this.isPrimaryItemFor(stack, enchantment);
     }
 
     @Override
@@ -272,11 +278,13 @@ public class ItemRonasSword extends RelicItem implements IColoredFoilItem {
                     
                     ItemStack stack = handler.getCurios().get("hands").getStacks().getStackInSlot(0);
                     if (stack.is(ItemsRegistry.MONTU_GLOVES))
-                        result += (float) ItemsRegistry.MONTU_GLOVES.getStatValue(stack, "gloves_range", "range");
+                        result += (float) ItemsRegistry.MONTU_GLOVES.getStatValue(stack, "gloves_range", "range") * 1.2f;
                     
-                    stack = handler.getCurios().get("hands").getStacks().getStackInSlot(1);
-                    if (stack.is(ItemsRegistry.MONTU_GLOVES))
-                        result += (float) ItemsRegistry.MONTU_GLOVES.getStatValue(stack, "gloves_range", "range");
+                    if (handler.getCurios().get("hands").getSlots() > 1) {
+                        stack = handler.getCurios().get("hands").getStacks().getStackInSlot(1);
+                        if (stack.is(ItemsRegistry.MONTU_GLOVES))
+                            result += (float) ItemsRegistry.MONTU_GLOVES.getStatValue(stack, "gloves_range", "range") * 1.2f;
+                    }
                     
                     return result;
                 }).orElse(0f);

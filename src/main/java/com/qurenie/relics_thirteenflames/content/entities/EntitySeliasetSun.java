@@ -96,7 +96,7 @@ public class EntitySeliasetSun extends LivingEntity implements IAnimatedEntity {
     public int burnMonstersCooldown;
     public int activeTicks;
     private int ticker = 0;
-    private List<ItemStack> fake = new ArrayList<>();
+    private final List<ItemStack> fake = new ArrayList<>();
     private Int2IntArrayMap itemsHeat = new Int2IntArrayMap();
     private Object2IntMap<BlockPos> blockHeat = new Object2IntArrayMap<>();
     
@@ -262,7 +262,7 @@ public class EntitySeliasetSun extends LivingEntity implements IAnimatedEntity {
                             if (getSunItem().getItem() instanceof IRelicItem relic &&
                                     level() instanceof ServerLevel sl &&
                                     sl.getEntity(UUID.fromString(this.getOwnerUUID())) instanceof LivingEntity livin)
-                                relic.spreadRelicExperience(livin, getSunItem(), 2);
+                                relic.spreadRelicExperience(livin, getSunItem(), 1);
                         } else {
                             ParticleHelper.spawnParticleOutbox(level(), ParticleTypes.FLAME, pos, 2, 0.005);
                             ParticleHelper.spawnParticleOutbox(level(), ParticleHelper.constructSimpleSpark(BURN_COLOR, 0.3f, 40, 0.95f), pos, 2, 0.005);
@@ -300,7 +300,7 @@ public class EntitySeliasetSun extends LivingEntity implements IAnimatedEntity {
                                 if (sun.getItem() instanceof IRelicItem relic &&
                                         level() instanceof ServerLevel sl &&
                                         sl.getEntity(UUID.fromString(this.getOwnerUUID())) instanceof LivingEntity livin)
-                                    relic.spreadRelicExperience(livin, getSunItem(), 2);
+                                    relic.spreadRelicExperience(livin, getSunItem(), 1);
                                 ItemEntity resultEntity = new ItemEntity(level(), item.getX(), item.getY(), item.getZ(), result.copy());
                                 level().addFreshEntity(resultEntity);
                             }

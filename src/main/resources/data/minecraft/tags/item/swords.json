@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "relics_thirteenflames:traveller_sword",
+    "relics_thirteenflames:jodah_staff",
+    "relics_thirteenflames:ronas_sword",
+    "relics_thirteenflames:montu_hammer",
+    "relics_thirteenflames:auritekh_sword"
+  ]
+}

@@ -1,5 +1,6 @@
 package com.qurenie.relics_thirteenflames.content.items;
 
+import com.mojang.blaze3d.platform.MacosUtil;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.qurenie.api.IRenderableArmorItem;
 import com.qurenie.relics_thirteenflames.client.particles.FeatherParticle;
@@ -26,13 +27,18 @@ import it.hurts.sskirillss.relics.items.relics.base.data.leveling.LevelingData;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.StatData;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.misc.UpgradeOperation;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootData;
+import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootEntry;
+import it.hurts.sskirillss.relics.items.relics.base.data.loot.misc.LootEntries;
 import it.hurts.sskirillss.relics.items.relics.base.data.style.BeamsData;
 import it.hurts.sskirillss.relics.items.relics.base.data.style.StyleData;
+import it.hurts.sskirillss.relics.utils.MathUtils;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
@@ -46,10 +52,7 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
-import net.minecraft.world.item.ArmorItem;
-import net.minecraft.world.item.ArmorMaterial;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.*;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.*;
@@ -64,6 +67,7 @@ import net.neoforged.neoforge.client.event.RenderLivingEvent;
 import net.neoforged.neoforge.event.entity.living.LivingChangeTargetEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingEquipmentChangeEvent;
+import net.neoforged.neoforge.event.entity.living.LivingEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.tick.EntityTickEvent;
 import org.jetbrains.annotations.NotNull;
@@ -138,6 +142,8 @@ public class ItemJodahMask extends ArmorItem implements IRelicItem, IRenderableA
         return 0;
     }
     
+    public static final LootEntry MASK_ENTRY = LootEntry.builder().dimension(".*").biome(".*").table("minecraft:chests/ruined_portal").weight(640).build();
+    
     @Override
     public RelicData constructDefaultRelicData() {
         return RelicData.builder()
@@ -154,14 +160,16 @@ public class ItemJodahMask extends ArmorItem implements IRelicItem, IRenderableA
                                         .build())
                                 .stat(StatData.builder("cooldown")
                                         .initialValue(60, 40)
-                                        .upgradeModifier(UpgradeOperation.MULTIPLY_BASE, 0.7)
+                                        .upgradeModifier(UpgradeOperation.MULTIPLY_BASE, -0.2)
                                         .thresholdValue(10, 60)
+                                        .formatValue(d -> MathUtils.round(d, 1))
                                         .build()
                                 )
                                 .stat(StatData.builder("durability")
                                         .initialValue(0.5, 1.5)
-                                        .upgradeModifier(UpgradeOperation.ADD, 0.75)
+                                        .upgradeModifier(UpgradeOperation.ADD, 0.5)
                                         .thresholdValue(0.5, 4)
+                                        .formatValue(d -> MathUtils.round(d, 1))
                                         .build()
                                 )
                                 .build()
@@ -177,15 +185,17 @@ public class ItemJodahMask extends ArmorItem implements IRelicItem, IRenderableA
                                         .type(CastType.INSTANTANEOUS)
                                         .build())
                                 .stat(StatData.builder("cooldown")
-                                        .initialValue(40, 30)
-                                        .upgradeModifier(UpgradeOperation.MULTIPLY_BASE, 0.7)
-                                        .thresholdValue(10, 40)
+                                        .initialValue(45, 35)
+                                        .upgradeModifier(UpgradeOperation.MULTIPLY_TOTAL, -0.2)
+                                        .thresholdValue(8, 45)
+                                        .formatValue(d -> MathUtils.round(d, 0))
                                         .build()
                                 )
                                 .stat(StatData.builder("range")
-                                        .initialValue(4, 7)
-                                        .upgradeModifier(UpgradeOperation.MULTIPLY_BASE, 2)
+                                        .initialValue(10, 18)
+                                        .upgradeModifier(UpgradeOperation.MULTIPLY_TOTAL, 0.35)
                                         .thresholdValue(4, 56)
+                                        .formatValue(d -> MathUtils.round(d, 0))
                                         .build()
                                 )
                                 .build()
@@ -201,15 +211,17 @@ public class ItemJodahMask extends ArmorItem implements IRelicItem, IRenderableA
                                         })
                                         .build())
                                 .stat(StatData.builder("size")
-                                        .initialValue(0.4, 0.8)
-                                        .upgradeModifier(UpgradeOperation.MULTIPLY_BASE, 1.4)
-                                        .thresholdValue(0.4, 3.2)
+                                        .initialValue(0.3, 0.8)
+                                        .upgradeModifier(UpgradeOperation.MULTIPLY_TOTAL, 0.35)
+                                        .thresholdValue(0.4, 3.4)
+                                        .formatValue(d -> MathUtils.round(d, 1))
                                         .build()
                                 )
                                 .stat(StatData.builder("cooldown")
                                         .initialValue(120, 80)
-                                        .upgradeModifier(UpgradeOperation.MULTIPLY_BASE, 0.7)
-                                        .thresholdValue(120, 30)
+                                        .upgradeModifier(UpgradeOperation.MULTIPLY_TOTAL, -0.15)
+                                        .thresholdValue(30, 120)
+                                        .formatValue(d -> MathUtils.round(d, 1))
                                         .build()
                                 )
                                 .build()
@@ -218,7 +230,7 @@ public class ItemJodahMask extends ArmorItem implements IRelicItem, IRenderableA
                                 .active(CastData.builder()
                                         .container(RelicContainerRegistry.INVENTORY.get())
                                         .type(CastType.INSTANTANEOUS)
-                                        .predicate("dark_star_predicate", PredicateType.VISIBILITY, (p, s) -> {
+                                        .predicate("skint_genesis_predicate", PredicateType.VISIBILITY, (p, s) -> {
                                             MaskState state = s.getOrDefault(ComponentRegistry.MASK_STATE, MaskState.NEUTRAL);
                                             return p.getItemBySlot(EquipmentSlot.HEAD) == s && state != MaskState.NEUTRAL;
                                         })
@@ -226,14 +238,16 @@ public class ItemJodahMask extends ArmorItem implements IRelicItem, IRenderableA
                                 .maxLevel(4)
                                 .stat(StatData.builder("damage")
                                         .initialValue(2, 4)
-                                        .upgradeModifier(UpgradeOperation.MULTIPLY_BASE, 1.4)
+                                        .upgradeModifier(UpgradeOperation.MULTIPLY_TOTAL, 0.27)
                                         .thresholdValue(2, 10)
+                                        .formatValue(d -> MathUtils.round(d, 0))
                                         .build()
                                 )
                                 .stat(StatData.builder("clusters")
                                         .initialValue(3, 5)
-                                        .upgradeModifier(UpgradeOperation.MULTIPLY_BASE, 1.4)
+                                        .upgradeModifier(UpgradeOperation.MULTIPLY_TOTAL, 0.27)
                                         .thresholdValue(3, 13)
+                                        .formatValue(Math::floor)
                                         .build()
                                 )
                                 .stat(StatData.builder("shard_count")
@@ -245,8 +259,9 @@ public class ItemJodahMask extends ArmorItem implements IRelicItem, IRenderableA
                                 )
                                 .stat(StatData.builder("cooldown")
                                         .initialValue(150, 120)
-                                        .upgradeModifier(UpgradeOperation.MULTIPLY_BASE, 0.69)
-                                        .thresholdValue(150, 40)
+                                        .upgradeModifier(UpgradeOperation.MULTIPLY_TOTAL, -0.23)
+                                        .thresholdValue(40, 150)
+                                        .formatValue(d -> MathUtils.round(d, 1))
                                         .build()
                                 )
                                 .build()
@@ -256,7 +271,7 @@ public class ItemJodahMask extends ArmorItem implements IRelicItem, IRenderableA
                                 .requiredPoints(2)
                                 .requiredLevel(7)
                                 .active(CastData.builder()
-                                        .predicate("dark_star_predicate", PredicateType.VISIBILITY, (p, s) -> {
+                                        .predicate("reversal_aberration_predicate", PredicateType.VISIBILITY, (p, s) -> {
                                             MaskState state = s.getOrDefault(ComponentRegistry.MASK_STATE, MaskState.NEUTRAL);
                                             return p.getItemBySlot(EquipmentSlot.HEAD) == s && state != MaskState.NEUTRAL;
                                         })
@@ -265,14 +280,16 @@ public class ItemJodahMask extends ArmorItem implements IRelicItem, IRenderableA
                                         .build())
                                 .stat(StatData.builder("skint_bonus")
                                         .initialValue(1, 2)
-                                        .upgradeModifier(UpgradeOperation.ADD, 2)
+                                        .upgradeModifier(UpgradeOperation.ADD, 1.4)
                                         .thresholdValue(1, 6)
+                                        .formatValue(Math::floor)
                                         .build()
                                 )
                                 .stat(StatData.builder("cooldown")
                                         .initialValue(120, 90)
-                                        .upgradeModifier(UpgradeOperation.ADD, -30)
-                                        .thresholdValue(30, 120)
+                                        .upgradeModifier(UpgradeOperation.ADD, -23)
+                                        .thresholdValue(20, 120)
+                                        .formatValue(d -> MathUtils.round(d, 1))
                                         .build()
                                 )
                                 .build()
@@ -282,10 +299,16 @@ public class ItemJodahMask extends ArmorItem implements IRelicItem, IRenderableA
                 .style(StyleData.builder()
                         .beams(BeamsData.builder().startColor(-65281).endColor(255).build())
                         .build())
-                .leveling(new LevelingData(100, 15, 75))
-                .loot(LootData.builder().build())
+                .leveling(new LevelingData(100, 16, 75))
+                .loot(LootData.builder().entry(MASK_ENTRY).build())
                 .build();
         
+    }
+    
+    @Override
+    public void appendHoverText(@NotNull ItemStack stack, @NotNull TooltipContext context, List<net.minecraft.network.chat.Component> tooltip, TooltipFlag isAdvanced) {
+        tooltip.add(Component.translatable("tooltip.relics_thirteenflames.jodah_mask.lore").withStyle(ChatFormatting.GOLD).withStyle(ChatFormatting.ITALIC));
+        super.appendHoverText(stack, context, tooltip, isAdvanced);
     }
     
     @Override
@@ -316,8 +339,10 @@ public class ItemJodahMask extends ArmorItem implements IRelicItem, IRenderableA
         FlamesUtils.startPlaneShift(stack, player, true);
         player.level().getEntitiesOfClass(Mob.class, player.getBoundingBox().inflate(30))
                 .forEach(e -> {
-                    if (e.getTarget() == player)
+                    if (e.getTarget() == player) {
                         e.setTarget(null);
+                        e.getNavigation().stop();
+                    }
                 });
         
         MaskState state = stack.getOrDefault(ComponentRegistry.MASK_STATE, MaskState.NEUTRAL);
@@ -339,11 +364,13 @@ public class ItemJodahMask extends ArmorItem implements IRelicItem, IRenderableA
                 
                 ParticleHelper.spawnParticleEntity(ParticleHelper.constructHeal(GOLD_COLOR, 0.9f,
                         70, 0.98f), player, 5 * scints, 0.24);
-                player.heal(scints);
+                player.heal(scints * 2);
+                addRelicExperience(stack, scints);
                 
                 FlamesUtils.addSkint(player, -scints, 0);
         }
         
+        addRelicExperience(stack, 2);
         stack.set(ComponentRegistry.MASK_STATE, MaskState.NEUTRAL);
     }
     
@@ -539,27 +566,35 @@ public class ItemJodahMask extends ArmorItem implements IRelicItem, IRenderableA
         addAbilityCooldown(stack, "dark_star", (int) (getStatValue(stack, "dark_star", "cooldown") * 20));
     }
     
+    @Override
+    public boolean shouldCauseReequipAnimation(@NotNull ItemStack oldStack, @NotNull ItemStack newStack, boolean slotChanged) {
+        return slotChanged;
+    }
+    
     public void castReversalAberration(ItemStack stack, Player player) {
+        if (player.level().isClientSide)
+            return;
+        
         int limitBonus = (int) getStatValue(stack, "reversal_aberration", "skint_bonus");
         MaskState state = stack.getOrDefault(ComponentRegistry.MASK_STATE, MaskState.NEUTRAL);
         
-        List<Entity> targets = player.level().getEntitiesOfClass(Entity.class, player.getBoundingBox().inflate(20, 10, 20), e -> e != player);
+        List<LivingEntity> targets = player.level().getEntitiesOfClass(LivingEntity.class, player.getBoundingBox().inflate(20, 10, 20), e -> e != player && e.isAlive() && e.isPickable() && !e.isSpectator());
         int scints = player.getData(AttachmentsRegistry.SKINT_DATA);
         
         var random = player.getRandom();
         
         double r = 1;
         
-        for (int i = 0; i < 25; i++) {
-            double x = random.nextGaussian() * r;
+        for (int i = 0; i < 35; i++) {
+            double x = (0.5 - Math.random()) * r * 2;
             double z = Math.sqrt(r * r - x * x) * (random.nextBoolean() ? 1 : -1);
-            Vec3 spawn = player.position().add(x, 0.2, z);
+            Vec3 spawn = player.getBoundingBox().getCenter().add(x, 0, z);
             
-            Vec3 radius = spawn.subtract(player.position());
-            Vec3 move = radius.normalize().yRot((float) (230f * Math.PI / 180f)).add(0, 0.5f, 0);
+            Vec3 radius = spawn.subtract(player.getBoundingBox().getCenter());
+            Vec3 move = radius.normalize().yRot((float) (230f * Math.PI / 180f)).add(0, (0.5 - Math.random()) * 0.3, 0);
             
-            ParticleHelper.spawnDirectedParticle(player.level(), ParticleHelper.constructSimpleSpark(GOLD_COLOR, 0.4f, 50, 0.93f),
-                    spawn, move.normalize().scale(0.05));
+            ParticleHelper.spawnDirectedParticle(player.level(), ParticleHelper.constructSimpleSpark(GOLD_COLOR, (float) (0.5f + Math.random() * 0.3f), 60, 0.94f),
+                    spawn.add((0.5 - Math.random()) * 0.5, (0.5 - Math.random()) * 0.5, (0.5 - Math.random()) * 0.5), move.normalize().scale(0.03 + random.nextDouble() * 0.03));
         }
         
         AABB aabb = player.getBoundingBox();
@@ -567,13 +602,14 @@ public class ItemJodahMask extends ArmorItem implements IRelicItem, IRenderableA
         double radius = Math.sqrt(Math.pow(aabb.getXsize() / 2, 2) + Math.pow(aabb.getZsize() / 2, 2)) * 1.5 + 0.3;
         int particleCount = 10 * Math.min(scints, 3);
         
-        for (int i = 0; i < particleCount; i++) {
-            Vec3 vec = new Vec3(1, 0, 0).yRot((float) (i * Math.PI * 2 / particleCount)).scale(radius).add(center);
-            ParticleHelper.spawnParticles(player.level(), ParticleHelper.constructSmoke(GOLD_COLOR, (float) (0.3f + random.nextDouble() * 0.3f),
-                    50, 0), vec, (int) (random.nextDouble() * 2), 0.2, 0.2, 0.2, 0.01);
-        }
+        if (!targets.isEmpty())
+            for (int i = 0; i < particleCount; i++) {
+                Vec3 vec = new Vec3(1, 0, 0).yRot((float) (i * Math.PI * 2 / particleCount)).scale(radius).add(center);
+                ParticleHelper.spawnParticles(player.level(), ParticleHelper.constructSmoke(GOLD_COLOR, (float) (0.3f + random.nextDouble() * 0.3f),
+                        50, 0), vec, (int) (random.nextDouble() * 2), 0.2, 0.2, 0.2, 0.01);
+            }
         
-        for (Entity e : targets) {
+        for (LivingEntity e : targets) {
             int count = e.getData(AttachmentsRegistry.ANTISKINT_DATA);
             if (scints <= 0 && count <= 0)
                 continue;
@@ -588,32 +624,33 @@ public class ItemJodahMask extends ArmorItem implements IRelicItem, IRenderableA
                 FlamesUtils.Net.startTrackingSkintAttachments(e);
             }
             
-            if (count <= 0)
-                return;
+            if (scints <= 0)
+                continue;
             
             switch (state) {
                 case DUSK -> {
-                    if (e instanceof LivingEntity l) {
-                        l.addEffect(new MobEffectInstance(EffectsRegistry.DISABILITY_EFFECT, 40 * count, 2));
-                        ParticleHelper.spawnParticleEntity(ParticleHelper.constructSimpleSpark(GRAY_COLOR, 0.5f,
-                                50, 0.95f).withLightning(false).withGravity(2f), l, 5 * count, 0.1);
-                    }
+                    e.addEffect(new MobEffectInstance(EffectsRegistry.DISABILITY_EFFECT, 40 * scints, 2, false, false, true));
+                    ParticleHelper.spawnParticleEntity(ParticleHelper.constructSimpleSpark(GRAY_COLOR, 0.5f,
+                            50, 0.95f).withLightning(false).withGravity(2f), e, 5 * count, 0.1);
+                    
                 }
                 case SPARKLING -> {
                     DamageSource source = player.damageSources().playerAttack(player);
-                    e.hurt(source, 10 * count);
-                    if (e instanceof LivingEntity l) {
-                        l.setLastHurtByPlayer(player);
-                    }
+                    e.hurt(source, 8 * scints);
+                    e.setLastHurtByPlayer(player);
                     
-                    ParticleHelper.spawnParticleEntity(ParticleHelper.constructSimpleSpark(GRAY_COLOR, 0.3f,
-                            50, 0.96f).withLightning(false), player, 5 * count, 0.1);
+                    ParticleHelper.spawnParticleEntity(ParticleHelper.constructSimpleSpark(GRAY_COLOR, 0.4f,
+                            50, 0.96f).withLightning(false), e, 5 * count, 0.1);
                 }
             }
         }
         
-        if (!targets.isEmpty())
+        if (!targets.isEmpty()) {
+            FlamesUtils.addSkint(player, -scints, 0);
             addAbilityCooldown(stack, "reversal_aberration", (int) (getStatValue(stack, "reversal_aberration", "cooldown") * 20));
+        } else {
+            addAbilityCooldown(stack, "reversal_aberration", 60);
+        }
     }
     
     public void onSparkslipPacket(ItemStack stack, Player player, Vec3 spawnPos, @Nullable LivingEntity target) {
@@ -639,6 +676,8 @@ public class ItemJodahMask extends ArmorItem implements IRelicItem, IRenderableA
             ParticleHelper.spawnParticleEntity(new FeatherParticle.Options(0.3f, 70), player, 20, 0.3);
             player.swing(player.getMainHandItem().getItem() == ItemsRegistry.JODAH_STAFF ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND, true);
         }
+        
+        addRelicExperience(stack, 2);
         addAbilityCooldown(stack, "sparkslip", (int) (getStatValue(stack, "sparkslip", "cooldown") * 20));
     }
     
@@ -688,8 +727,16 @@ public class ItemJodahMask extends ArmorItem implements IRelicItem, IRenderableA
         public static void onPlayerTick(EntityTickEvent.Pre event) {
             Entity e = event.getEntity();
             
-            if (e.hasData(AttachmentsRegistry.PLANESHIFT_TICK)
-                    || e instanceof LivingEntity living && hasTotalDisability(living)) {
+            if (e instanceof LivingEntity living && hasTotalDisability(living)) {
+                e.setDeltaMovement(Vec3.ZERO);
+                if (e instanceof Mob m) {
+                    m.setTarget(null);
+                    m.setNoAi(true);
+                    m.getNavigation().stop();
+                }
+            }
+            
+            if (e.hasData(AttachmentsRegistry.PLANESHIFT_TICK)) {
                 e.setDeltaMovement(Vec3.ZERO);
                 e.fallDistance = 0.0F;
                 e.invulnerableTime = 2;
@@ -698,6 +745,7 @@ public class ItemJodahMask extends ArmorItem implements IRelicItem, IRenderableA
                 if (e instanceof Mob m) {
                     m.setTarget(null);
                     m.setNoAi(true);
+                    m.getNavigation().stop();
                 }
                 if (e instanceof Player p) {
                     ItemStack head = p.getItemBySlot(EquipmentSlot.HEAD);
@@ -709,6 +757,14 @@ public class ItemJodahMask extends ArmorItem implements IRelicItem, IRenderableA
                 }
             }
             
+        }
+        
+        @SubscribeEvent
+        public static void onLivingTick(EntityTickEvent.Post event) {
+            if (event.getEntity() instanceof LivingEntity living && living.tickCount % 20 == 0
+                    && hasTotalDisability(living))
+                ParticleHelper.spawnParticleEntity(ParticleHelper.constructSmoke(GRAY_COLOR, living.getBbWidth(),
+                        50, 0.2f).withGravity(-1).withLightning(false), event.getEntity(), 1, 0.03);
         }
         
         @SubscribeEvent

@@ -38,15 +38,15 @@ public class RenderEvents {
                                 HumanoidModel<?> model = renderable.getModel(stack, arm);
                                 
                                 poseStack.pushPose();
-                                float scale = 1.6F;
+                                float scale = 1F;
                                 if (arm == HumanoidArm.RIGHT) {
                                     poseStack.mulPose(Axis.ZN.rotationDegrees(-5.0F));
                                     poseStack.scale(scale, scale, scale);
-                                    poseStack.translate(-0.075, -0.7, 0.0);
+                                    poseStack.translate(-0.2, -0.1, -0.0);
                                 } else {
                                     poseStack.mulPose(Axis.ZN.rotationDegrees(5.0F));
                                     poseStack.scale(scale, scale, scale);
-                                    poseStack.translate(0.01, -0.7, 0.0);
+                                    poseStack.translate(0.2 , -0.1, 0.0);
                                 }
                                 
                                 model.renderToBuffer(poseStack, ItemRenderer.getArmorFoilBuffer(event.getMultiBufferSource(), RenderType.armorCutoutNoCull(renderable.getTexture(stack, arm)), stack.hasFoil()), event.getPackedLight(), OverlayTexture.NO_OVERLAY);

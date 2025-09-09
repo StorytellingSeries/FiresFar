@@ -1,6 +1,7 @@
 package com.qurenie.relics_thirteenflames.util;
 
 import com.qurenie.relics_thirteenflames.client.particles.ColoredRelicParticle;
+import com.qurenie.relics_thirteenflames.client.particles.misc.RotationType;
 import com.qurenie.relics_thirteenflames.init.ParticlesRegistry;
 import com.qurenie.relics_thirteenflames.mixins.client.ParticleAccessor;
 import com.qurenie.relics_thirteenflames.net.PacketEnginedParticle;
@@ -35,6 +36,10 @@ public class ParticleHelper {
     
     public static ColoredRelicParticle.Options constructHeal(Color color, float diameter, int lifetime, float scaleModifier) {
         return new ColoredRelicParticle.Options(ParticlesRegistry.COLORED_HEAL, ColoredRelicParticle.Constructor.builder().color(color.getRGB()).diameter(diameter).lifetime(lifetime).scaleModifier(scaleModifier).visibleThroughWalls(false).physical(false).roll(0.05F).build());
+    }
+    
+    public static ColoredRelicParticle.Options constructFigure(Color color, float diameter, int lifetime, float scaleModifier) {
+        return new ColoredRelicParticle.Options(ParticlesRegistry.FIGURES, ColoredRelicParticle.Constructor.builder().color(color.getRGB()).diameter(diameter).lifetime(lifetime).scaleModifier(scaleModifier).visibleThroughWalls(false).roll(0.3F).physical(false).build()).withRotType(RotationType.SIDE_RANDOM);
     }
     
     public static ColoredRelicParticle.Options constructEye(Color color, float diameter, int lifetime, float scaleModifier) {

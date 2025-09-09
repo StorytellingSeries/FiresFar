@@ -4,6 +4,7 @@ import com.qurenie.relics_thirteenflames.content.entities.FeatherVortexEntity;
 import com.qurenie.relics_thirteenflames.content.entities.RespawnBookEntity;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
+import it.hurts.sskirillss.relics.client.screen.description.ability.AbilityDescriptionScreen;
 import it.hurts.sskirillss.relics.init.RelicContainerRegistry;
 import it.hurts.sskirillss.relics.items.relics.base.RelicItem;
 import it.hurts.sskirillss.relics.items.relics.base.data.RelicData;
@@ -18,9 +19,14 @@ import it.hurts.sskirillss.relics.items.relics.base.data.leveling.StatData;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.misc.UpgradeOperation;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootData;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootEntry;
+import it.hurts.sskirillss.relics.utils.MathUtils;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.renderer.ItemInHandRenderer;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ExperienceOrb;
@@ -30,6 +36,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
@@ -42,13 +49,14 @@ import org.zeith.hammerlib.api.fml.IRegisterListener;
 import org.zeith.hammerlib.util.charging.ItemChargeHelper;
 
 import java.awt.*;
+import java.util.List;
 
 import static com.qurenie.relics_thirteenflames.init.ComponentRegistry.ENTITY_UUID;
 import static net.neoforged.neoforge.common.NeoForge.EVENT_BUS;
 
 public class ItemHettFeather extends RelicItem implements IRegisterListener {
     
-    public static final LootEntry STRONGHOLD = LootEntry.builder().dimension(".*").biome(".*").table("[\\w]+:chests\\/[\\w_\\/]*(stronghold)[\\w_\\/]*").weight(500).build();
+    public static final LootEntry STRONGHOLD = LootEntry.builder().dimension(".*").biome(".*").table("[\\w]+:chests\\/[\\w_\\/]*(stronghold)[\\w_\\/]*").weight(850).build();
     static final int BOOK_ACTIVE_MAX_LEVEL = 3;
     
     public ItemHettFeather(Properties properties) {
@@ -70,6 +78,7 @@ public class ItemHettFeather extends RelicItem implements IRegisterListener {
                                         .initialValue(5, 15)
                                         .thresholdValue(0, 65)
                                         .upgradeModifier(UpgradeOperation.ADD, 10)
+                                        .formatValue(d -> MathUtils.round(d / 100, 2))
                                         .build()
                                 )
                                 .build()
@@ -79,8 +88,23 @@ public class ItemHettFeather extends RelicItem implements IRegisterListener {
                                 .active(CastData.builder()
                                         .container(RelicContainerRegistry.INVENTORY.get())
                                         .type(CastType.INSTANTANEOUS)
-                                        .predicate("book_slap_cast", PredicateType.CAST, (player, stack) -> player.getOffhandItem() == stack || player.getMainHandItem() == stack)
-                                        .predicate("book_slap_cast", PredicateType.CAST, (player, stack) -> {
+                                        .predicate("book_slap_cast_v", PredicateType.VISIBILITY, (player, stack) -> player.getOffhandItem() == stack || player.getMainHandItem() == stack)
+                                        .predicate("book_slap_cast_target", PredicateType.CAST, (player, stack) -> {
+                                            Vec3 eyePos = player.getEyePosition();
+                                            Vec3 lookVec = player.getLookAngle();
+                                            Vec3 reachVec = eyePos.add(lookVec.scale(8));
+                                            AABB aabb = player.getBoundingBox().expandTowards(lookVec.scale(8)).inflate(1.0D);
+                                            EntityHitResult hitResult = ProjectileUtil.getEntityHitResult(
+                                                    player.level(), player, eyePos, reachVec, aabb,
+                                                    entity -> !entity.isSpectator() && entity.isPickable() && entity != player
+                                            );
+                                            
+                                            if (hitResult == null)
+                                                return false;
+                                            
+                                            return hitResult.getEntity() instanceof LivingEntity living && !(living instanceof Player);
+                                        })
+                                        .predicate("book_slap_cast_c", PredicateType.CAST, (player, stack) -> {
                                             Vec3 eyePos = player.getEyePosition();
                                             Vec3 lookVec = player.getLookAngle();
                                             Vec3 reachVec = eyePos.add(lookVec.scale(8));
@@ -101,15 +125,23 @@ public class ItemHettFeather extends RelicItem implements IRegisterListener {
                                         })
                                         .build())
                                 .stat(StatData.builder("level")
-                                        .initialValue(1, 1)
+                                        .initialValue(1, 1.75)
                                         .thresholdValue(0, 3)
-                                        .upgradeModifier(UpgradeOperation.ADD, 1)
+                                        .upgradeModifier(UpgradeOperation.ADD, 0.5)
+                                        .formatValue(Math::floor)
                                         .build()
                                 )
                                 .stat(StatData.builder("max_health")
                                         .initialValue(1, 6)
                                         .thresholdValue(1, 15)
                                         .upgradeModifier(UpgradeOperation.ADD, 3)
+                                        .formatValue(d -> MathUtils.round(d, 1))
+                                        .build()
+                                )
+                                .stat(StatData.builder("cooldown")
+                                        .initialValue(30, 30)
+                                        .thresholdValue(30, 30)
+                                        .upgradeModifier(UpgradeOperation.ADD, 0)
                                         .build()
                                 )
                                 .build()
@@ -121,18 +153,21 @@ public class ItemHettFeather extends RelicItem implements IRegisterListener {
                                         .initialValue(12, 20)
                                         .thresholdValue(15, 60)
                                         .upgradeModifier(UpgradeOperation.ADD, 15)
+                                        .formatValue(d -> MathUtils.round(d, 1))
                                         .build()
                                 )
                                 .stat(StatData.builder("xp_consume")
                                         .initialValue(100, 90)
                                         .thresholdValue(30, 100)
                                         .upgradeModifier(UpgradeOperation.ADD, -20)
+                                        .formatValue(d -> MathUtils.round(d, 1))
                                         .build()
                                 )
                                 .stat(StatData.builder("hp_consume")
                                         .initialValue(100, 90)
                                         .thresholdValue(50, 100)
                                         .upgradeModifier(UpgradeOperation.ADD, -15)
+                                        .formatValue(d -> MathUtils.round(d, 1))
                                         .build()
                                 )
                                 .build()
@@ -142,6 +177,17 @@ public class ItemHettFeather extends RelicItem implements IRegisterListener {
                 .leveling(new LevelingData(100, 11, 100))
                 .loot(LootData.builder().entry(STRONGHOLD).build())
                 .build();
+    }
+    
+    @Override
+    public void appendHoverText(@NotNull ItemStack stack, @NotNull TooltipContext context, List<net.minecraft.network.chat.Component> tooltip, TooltipFlag isAdvanced) {
+        tooltip.add(Component.translatable("tooltip.relics_thirteenflames.hett_feather.lore").withStyle(ChatFormatting.GOLD).withStyle(ChatFormatting.ITALIC));
+        super.appendHoverText(stack, context, tooltip, isAdvanced);
+    }
+    
+    @Override
+    public boolean shouldCauseReequipAnimation(@NotNull ItemStack oldStack, @NotNull ItemStack newStack, boolean slotChanged) {
+        return slotChanged;
     }
     
     @Override
@@ -192,6 +238,7 @@ public class ItemHettFeather extends RelicItem implements IRegisterListener {
     public void castActiveAbility(ItemStack stack, Player player, String ability, CastType type, CastStage stage) {
         if (ability.equals("book_slap")) {
             if (!player.level().isClientSide) {
+                player.swing(player.getItemInHand(InteractionHand.MAIN_HAND) == stack ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND);
                 Vec3 eyePos = player.getEyePosition();
                 Vec3 lookVec = player.getLookAngle();
                 Vec3 reachVec = eyePos.add(lookVec.scale(8));
@@ -242,11 +289,12 @@ public class ItemHettFeather extends RelicItem implements IRegisterListener {
                 if (!it.is(this))
                     continue;
                 
-                ((ItemHettFeather) it.getItem()).addRelicExperience(it, orb.value);
                 float delta = player.getMaxHealth() - player.getHealth();
                 if (delta > 0) {
                     int perXp = (int) ((ItemHettFeather) it.getItem()).getStatValue(it, "lifegiving_knowledge", "hp_value");
-                    player.heal((float) orb.value * perXp / 100);
+                    player.heal((float) orb.value * perXp / 100f);
+                    
+                    ((ItemHettFeather) it.getItem()).addRelicExperience(it, Math.min((int) (orb.value * perXp / 100f), 1));
                 }
                 
                 int level = ((ItemHettFeather) it.getItem()).getAbilityLevel(it, "lifegiving_knowledge");

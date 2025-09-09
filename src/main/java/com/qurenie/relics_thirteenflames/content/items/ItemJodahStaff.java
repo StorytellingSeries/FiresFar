@@ -1,5 +1,6 @@
 package com.qurenie.relics_thirteenflames.content.items;
 
+import com.qurenie.relics_thirteenflames.ThirteenFlames;
 import com.qurenie.relics_thirteenflames.client.particles.FeatherParticle;
 import com.qurenie.relics_thirteenflames.client.render.entity.IJodahGlowed;
 import com.qurenie.relics_thirteenflames.client.render.misc.JodahStaffRenderUtil;
@@ -24,6 +25,10 @@ import it.hurts.sskirillss.relics.items.relics.base.data.leveling.LevelingData;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.StatData;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.misc.UpgradeOperation;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootData;
+import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootEntry;
+import it.hurts.sskirillss.relics.items.relics.base.data.loot.misc.LootEntries;
+import it.hurts.sskirillss.relics.utils.MathUtils;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
@@ -37,14 +42,13 @@ import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.SwordItem;
-import net.minecraft.world.item.Tier;
+import net.minecraft.world.item.*;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
@@ -59,6 +63,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.client.event.RenderLivingEvent;
+import net.neoforged.neoforge.event.ItemAttributeModifierEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -77,6 +82,8 @@ public class ItemJodahStaff extends SwordItem implements IRelicItem, IRegisterLi
     
     public static final int DURATION = 72000;
     private static final Color PURPLE_COLOR = new Color(160, 20, 140);
+    
+    public static final LootEntry END_LIKE = LootEntry.builder().dimension(".*").biome(".*").table("[\\w]+:chests\\/[\\w_\\/]*(end)[\\w_\\/]*").weight(800).build();
     
     public ItemJodahStaff(Tier tier, Properties properties) {
         super(tier, properties);
@@ -108,21 +115,23 @@ public class ItemJodahStaff extends SwordItem implements IRelicItem, IRegisterLi
                         .ability(AbilityData.builder("ranging")
                                 .maxLevel(4)
                                 .stat(StatData.builder("increasing")
-                                        .initialValue(0, 0)
+                                        .initialValue(0, 1)
                                         .upgradeModifier(UpgradeOperation.ADD, 1)
                                         .thresholdValue(0, 4)
                                         .build()
                                 )
                                 .stat(StatData.builder("damage_modifier")
                                         .initialValue(1, 1.2)
-                                        .upgradeModifier(UpgradeOperation.MULTIPLY_BASE, 0.2)
+                                        .upgradeModifier(UpgradeOperation.MULTIPLY_TOTAL, 0.2)
                                         .thresholdValue(1, 2.5)
+                                        .formatValue(d -> MathUtils.round(d * 100, 0))
                                         .build()
                                 )
                                 .stat(StatData.builder("xp_consume")
                                         .initialValue(1, 1.15)
-                                        .upgradeModifier(UpgradeOperation.MULTIPLY_BASE, 0.15)
-                                        .thresholdValue(1, 2)
+                                        .upgradeModifier(UpgradeOperation.MULTIPLY_TOTAL, 0.15)
+                                        .thresholdValue(1, 3)
+                                        .formatValue(d -> MathUtils.round(100 - 100 / d, 0))
                                         .build()
                                 )
                                 .build()
@@ -135,32 +144,32 @@ public class ItemJodahStaff extends SwordItem implements IRelicItem, IRegisterLi
                                         .type(CastType.INSTANTANEOUS)
                                         .predicate("health_theft_predicate", PredicateType.VISIBILITY, (p, s) -> p.getMainHandItem() == s || p.getOffhandItem() == s)
                                         .build())
-                                .active(CastData.builder()
-                                        .container(RelicContainerRegistry.INVENTORY.get())
-                                        .type(CastType.INSTANTANEOUS)
-                                        .build())
                                 .stat(StatData.builder("cooldown")
                                         .initialValue(80, 70)
                                         .thresholdValue(40, 80)
                                         .upgradeModifier(UpgradeOperation.ADD, -10)
+                                        .formatValue(d -> MathUtils.round(d, 0))
                                         .build()
                                 )
                                 .stat(StatData.builder("entity_count")
                                         .initialValue(1, 1.5)
                                         .thresholdValue(1, 3)
                                         .upgradeModifier(UpgradeOperation.ADD, 0.5)
+                                        .formatValue(d -> MathUtils.round(Math.floor(d), 0))
                                         .build()
                                 )
                                 .stat(StatData.builder("xp_modifier")
                                         .initialValue(1, 1.15)
-                                        .upgradeModifier(UpgradeOperation.MULTIPLY_BASE, 0.15)
+                                        .upgradeModifier(UpgradeOperation.MULTIPLY_TOTAL, 0.15)
                                         .thresholdValue(1, 2)
+                                        .formatValue(d -> MathUtils.round((d - 1) * 100, 0))
                                         .build()
                                 )
                                 .stat(StatData.builder("durability")
                                         .initialValue(4, 8)
                                         .thresholdValue(4, 21)
-                                        .upgradeModifier(UpgradeOperation.MULTIPLY_TOTAL, 1.5)
+                                        .upgradeModifier(UpgradeOperation.MULTIPLY_TOTAL, 0.5)
+                                        .formatValue(d -> MathUtils.round(d, 1))
                                         .build()
                                 )
                                 .build()
@@ -168,7 +177,7 @@ public class ItemJodahStaff extends SwordItem implements IRelicItem, IRegisterLi
                         .ability(AbilityData.builder("one_thousand_eyes")
                                 .requiredPoints(2)
                                 .requiredLevel(7)
-                                .maxLevel(2)
+                                .maxLevel(1)
                                 .stat(StatData.builder("empty").build())
                                 .active(CastData.builder()
                                         .predicate("one_thousand_eyes_predicate", PredicateType.VISIBILITY, (p, s) ->
@@ -181,9 +190,15 @@ public class ItemJodahStaff extends SwordItem implements IRelicItem, IRegisterLi
                         )
                         .build()
                 )
-                .leveling(new LevelingData(100, 11, 200))
-                .loot(LootData.builder().build())
+                .leveling(new LevelingData(100, 10, 200))
+                .loot(LootData.builder().entry(END_LIKE).build())
                 .build();
+    }
+    
+    @Override
+    public void appendHoverText(@NotNull ItemStack stack, @NotNull TooltipContext context, List<net.minecraft.network.chat.Component> tooltip, TooltipFlag isAdvanced) {
+        tooltip.add(Component.translatable("tooltip.relics_thirteenflames.jodah_staff.lore").withStyle(ChatFormatting.GOLD).withStyle(ChatFormatting.ITALIC));
+        super.appendHoverText(stack, context, tooltip, isAdvanced);
     }
     
     @Override
@@ -192,13 +207,13 @@ public class ItemJodahStaff extends SwordItem implements IRelicItem, IRegisterLi
             stack.set(ACTIVE_TICK, 20 * (int) getStatValue(stack, "health_theft", "durability"));
             addAbilityCooldown(stack, "health_theft", 20 * (int) getStatValue(stack, "health_theft", "cooldown"));
         }
-        if (ability.equals("one_thousand_eyes") && getAbilityLevel(stack, "one_thousand_eyes") > 1) {
+        if (ability.equals("one_thousand_eyes") && getAbilityLevel(stack, "one_thousand_eyes") > 0) {
             if (!player.level().isClientSide)
                 player.level().getEntitiesOfClass(LivingEntity.class, player.getBoundingBox().inflate(40), e -> e != player)
                         .forEach(e -> e.addEffect(new MobEffectInstance(EffectsRegistry.JODAH_VISION, 500,
                                 stack.getOrDefault(ComponentRegistry.JODAH_TIER, JodahTier.D).oneThousandEyes.targetingCount() - 1)));
             stack.set(JODAH_ACTIVE_TICK, 500);
-            addAbilityCooldown(stack, "one_thousand_eyes", 2400);
+            addAbilityCooldown(stack, "one_thousand_eyes", 1200);
             if (!player.level().isClientSide)
                 FlamesUtils.startJodahWings(player, true);
 //            player.setData(AttachmentsRegistry.WINGS_LAYER_DATA, JodahWingsLayer.ANIMATION_LENGTH);
@@ -206,9 +221,14 @@ public class ItemJodahStaff extends SwordItem implements IRelicItem, IRegisterLi
     }
     
     @Override
+    public boolean shouldCauseReequipAnimation(@NotNull ItemStack oldStack, @NotNull ItemStack newStack, boolean slotChanged) {
+        return slotChanged;
+    }
+    
+    @Override
     public void inventoryTick(@NotNull ItemStack stack, @NotNull Level level, @NotNull Entity entity, int slotId, boolean isSelected) {
         super.inventoryTick(stack, level, entity, slotId, isSelected);
-        
+      
         if (level.isClientSide || !(entity instanceof Player living))
             return;
         
@@ -247,7 +267,7 @@ public class ItemJodahStaff extends SwordItem implements IRelicItem, IRegisterLi
                 xp = Math.min(targetPlayer.totalExperience, xp);
                 targetPlayer.giveExperiencePoints(-xp);
             }
-            addRelicExperience(stack, 5);
+            addRelicExperience(stack, 2);
             level.addFreshEntity(new JodahHealEntity(EntityRegistry.JODAH_HEAL, level, Math.min(tier.thief.health(), target.getHealth()), xp, living, target));
             target.hurt(level.damageSources().wither(), tier.thief.health());
         }
@@ -269,8 +289,16 @@ public class ItemJodahStaff extends SwordItem implements IRelicItem, IRegisterLi
             
             if (hitResult != null) {
                 JodahTier tier = stack.getOrDefault(ComponentRegistry.JODAH_TIER, JodahTier.D);
+                int xp = player.isCreative() ? tier.xpSuck : Math.min(tier.xpSuck, player.totalExperience);
+                if (xp == 0)
+                    return result;
+                
+                int pxp = xp - xp / 2;
+                
+                ParticleHelper.spawnParticles(player.level(), ParticleHelper.constructFigure(Color.GRAY, 0.12f,
+                        30, 0.96f).withGravity(1f), hitResult.getLocation(), pxp, 0.05, 0.05, 0.05, 0.03);
                 ParticleHelper.spawnParticles(player.level(), ParticleHelper.constructSimpleSpark(PURPLE_COLOR, 0.3f,
-                        30, 0.96f), hitResult.getLocation(), Math.min(tier.xpSuck, player.totalExperience), 0.05, 0.05, 0.05, 0.03);
+                        30, 0.96f).withGravity(1f), hitResult.getLocation(), xp - pxp, 0.05, 0.05, 0.05, 0.03);
             }
         }
         
@@ -354,7 +382,9 @@ public class ItemJodahStaff extends SwordItem implements IRelicItem, IRegisterLi
             player.teleportTo(living.position().x,
                     isWalkable(player.level(), player, living.position()) ? living.position().y : living.position().y - 1, living.position().z);
             ParticleHelper.spawnParticleEntity(ParticleHelper.constructSimpleSpark(PURPLE_COLOR, 0.4f,
-                    50, 0.96f), player, 60, 0.2);
+                    50, 0.96f), player, 40, 0.2);
+            ParticleHelper.spawnParticleEntity(ParticleHelper.constructFigure(Color.GRAY, 0.21f,
+                    50, 0.96f), player, 15, 0.12);
             ParticleHelper.spawnParticleEntity(new FeatherParticle.Options(0.3f, 70), player, 20, 0.3);
             
             List<LivingEntity> targets = level.getEntitiesOfClass(LivingEntity.class, player.getBoundingBox().inflate(0.9),
@@ -369,6 +399,7 @@ public class ItemJodahStaff extends SwordItem implements IRelicItem, IRegisterLi
                 target.hurt(damagesource, 5 * tier.oneThousandEyes.damageMultiplier());
             }
             
+            addRelicExperience(stack, 3);
             return InteractionResultHolder.success(stack);
         }
         
@@ -411,12 +442,16 @@ public class ItemJodahStaff extends SwordItem implements IRelicItem, IRegisterLi
     }
     
     @Override
-    public boolean isPrimaryItemFor(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
-        return enchantment != Enchantments.UNBREAKING && enchantment.value().definition()
-                .primaryItems().flatMap(HolderSet::unwrapKey).map(tag -> tag == ItemTags.SWORD_ENCHANTABLE)
-                .orElse(false) || enchantment.value().definition()
-                .supportedItems().unwrapKey().map(tag -> tag == ItemTags.WEAPON_ENCHANTABLE)
-                .orElse(false);
+    public boolean isPrimaryItemFor(@NotNull ItemStack stack, Holder<Enchantment> enchantment) {
+        Enchantment.EnchantmentDefinition definition = enchantment.value().definition();
+        boolean isPrimary = definition.primaryItems().isPresent() && FlamesUtils.isWeaponEnchantment(definition.primaryItems().get());
+        boolean supports = FlamesUtils.isWeaponEnchantment(definition.supportedItems());
+        return isPrimary || supports && !enchantment.is(Enchantments.UNBREAKING) && !enchantment.is(Enchantments.SWEEPING_EDGE);
+    }
+    
+    @Override
+    public boolean supportsEnchantment(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
+        return this.isPrimaryItemFor(stack, enchantment);
     }
     
     @Override

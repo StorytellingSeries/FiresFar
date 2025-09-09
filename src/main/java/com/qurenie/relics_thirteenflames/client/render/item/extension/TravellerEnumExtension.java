@@ -8,19 +8,26 @@ public class TravellerEnumExtension {
     
     public static final EnumProxy<HumanoidModel.ArmPose> TRAVELLER_ARM_POSE_LEFT = new EnumProxy<>(HumanoidModel.ArmPose.class, true, (IArmPoseTransformer) (model, entity, arm) -> {
         var lArm = model.leftArm;
+        var rArm = model.rightArm;
         
-        lArm.xRot = lArm.xRot * 0.1F - 1.1424779F;
-        lArm.yRot = ((float) Math.PI / 7F);
+        lArm.xRot = lArm.xRot * 0.02F - 0.9424779F;
+        lArm.yRot = ((float) Math.PI / 22F);
+        
+        rArm.xRot = rArm.xRot * 0.02F - 0.9424779F;
+        rArm.yRot = (-(float) Math.PI / 3F);
     });
     
     public static final EnumProxy<HumanoidModel.ArmPose> TRAVELLER_ARM_POSE_RIGHT = new EnumProxy<>(HumanoidModel.ArmPose.class, true, (IArmPoseTransformer) (model, entity, arm) ->
     {
         
         var rArm = model.rightArm;
+        var lArm = model.leftArm;
         
-        rArm.xRot = rArm.xRot * 0.1F - 1.1424779F;
-        rArm.yRot = (-(float) Math.PI / 7F);
+        rArm.xRot = rArm.xRot * 0.02F - 0.9424779F;
+        rArm.yRot = (-(float) Math.PI / 22F);
         
+        lArm.xRot = lArm.xRot * 0.02F - 0.9424779F;
+        lArm.yRot = ((float) Math.PI / 3F);
     });
     
 }

@@ -1,45 +1,47 @@
 package com.qurenie.relics_thirteenflames.content.container;
 
-import com.qurenie.relics_thirteenflames.init.MenuRegistry;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
+import com.qurenie.relics_thirteenflames.init.MenuRegistry;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.Container;
 import net.minecraft.world.MenuProvider;
+import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.AnvilMenu;
+import net.minecraft.world.inventory.EnchantmentMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.ItemStackHandler;
-import net.neoforged.neoforge.items.SlotItemHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class ScrollOfTruthContainer extends AbstractContainerMenu {
     
-    public ItemStackHandler fakeHandler;
+    public final Container scrollContainer;
     public ItemStack scroll;
     
     public ScrollOfTruthContainer(int pContainerId, Inventory playerInv, ItemStack scroll) {
         super(MenuRegistry.SCROLL_OF_TRUTH_MENU.get(), pContainerId);
-        this.fakeHandler = new ItemStackHandler(1);
+        this.scrollContainer = new SimpleContainer(1);
+        
         this.scroll = scroll;
         int y = 67;
         
-        this.addSlot(new SlotItemHandler(fakeHandler, 0, 80, -4) {
+        this.addSlot(new Slot(scrollContainer, 0, 80, -4) {
             @Override
             public boolean mayPlace(@NotNull ItemStack stack) {
                 return stack.isEnchantable() && !stack.isEnchanted();
             }
             
             @Override
-            public void set(ItemStack stack) {
+            public void set(@NotNull ItemStack stack) {
                 super.set(stack);
                 broadcastChanges();
             }
         });
-        
         
         for (int l = 0; l < 3; ++l) {
             for (int k = 0; k < 9; ++k) {
@@ -50,7 +52,6 @@ public class ScrollOfTruthContainer extends AbstractContainerMenu {
         for (int i1 = 0; i1 < 9; ++i1) {
             this.addSlot(new Slot(playerInv, i1, 8 + i1 * 18, 109 + y));
         }
-        
     }
     
     public ScrollOfTruthContainer(int cid, Inventory playerInv, RegistryFriendlyByteBuf buf) {
@@ -58,28 +59,47 @@ public class ScrollOfTruthContainer extends AbstractContainerMenu {
     }
     
     @Override
-    public @NotNull ItemStack quickMoveStack(@NotNull Player pPlayer, int pIndex) {
-        ItemStack itemstack = ItemStack.EMPTY;
-        Slot slot = this.slots.get(pIndex);
+    public @NotNull ItemStack quickMoveStack(@NotNull Player player, int index) {
+        ItemStack moved = ItemStack.EMPTY;
+        Slot slot = this.slots.get(index);
         if (slot.hasItem()) {
-            ItemStack itemstack1 = slot.getItem();
-            itemstack = itemstack1.copy();
-            if (pIndex < this.fakeHandler.getSlots()) {
-                if (!this.moveItemStackTo(itemstack1, this.fakeHandler.getSlots(), this.slots.size(), true)) {
+            ItemStack slotStack = slot.getItem();
+            moved = slotStack.copy();
+            
+            int containerSlots = 1; // наш memoryContainer
+            int playerInvEnd = containerSlots + 27; // main inventory
+            int hotbarEnd = playerInvEnd + 9;
+            
+            if (index < containerSlots) {
+                // из memoryContainer -> инвентарь игрока
+                if (!this.moveItemStackTo(slotStack, containerSlots, hotbarEnd, true)) {
                     return ItemStack.EMPTY;
                 }
-            } else if (!this.moveItemStackTo(itemstack1, 0, this.fakeHandler.getSlots(), false)) {
-                return ItemStack.EMPTY;
+            } else {
+                // из инвентаря игрока -> memoryContainer (проверка mayPlace будет учитываться)
+                if (!this.moveItemStackTo(slotStack, 0, containerSlots, false)) {
+                    // стандартная логика: переключение между main и hotbar
+                    if (index < playerInvEnd) {
+                        if (!this.moveItemStackTo(slotStack, playerInvEnd, hotbarEnd, false)) {
+                            return ItemStack.EMPTY;
+                        }
+                    } else if (index < hotbarEnd) {
+                        if (!this.moveItemStackTo(slotStack, containerSlots, playerInvEnd, false)) {
+                            return ItemStack.EMPTY;
+                        }
+                    } else {
+                        return ItemStack.EMPTY;
+                    }
+                }
             }
             
-            if (itemstack1.isEmpty()) {
+            if (slotStack.isEmpty()) {
                 slot.set(ItemStack.EMPTY);
             } else {
                 slot.setChanged();
             }
         }
-        
-        return itemstack;
+        return moved;
     }
     
     @Override
@@ -90,7 +110,7 @@ public class ScrollOfTruthContainer extends AbstractContainerMenu {
     @Override
     public void removed(@NotNull Player player) {
         super.removed(player);
-        ItemStack item = fakeHandler.getStackInSlot(0);
+        ItemStack item = scrollContainer.getItem(0);
         if (!item.isEmpty()) {
             ItemEntity entity = new ItemEntity(player.level(), player.getX(), player.getY(), player.getZ(), item.copy());
             player.level().addFreshEntity(entity);

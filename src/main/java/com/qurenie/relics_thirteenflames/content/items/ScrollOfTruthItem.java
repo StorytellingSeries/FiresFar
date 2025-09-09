@@ -71,9 +71,7 @@ public class ScrollOfTruthItem extends RelicItem {
     
     public static float getFullLevelCost(EnchantmentInstance inst) {
         if (inst.enchantment.is(EnchantmentTags.CURSE)) return -9f;
-        
-        return inst.enchantment.value().definition().minCost().base()
-                + inst.enchantment.value().definition().minCost().perLevelAboveFirst() / 2f;
+        return inst.enchantment.value().definition().minCost().calculate(inst.level);
     }
     
     @SubscribeEvent
@@ -93,6 +91,7 @@ public class ScrollOfTruthItem extends RelicItem {
     public InteractionResultHolder<ItemStack> use(@NotNull Level level, @NotNull Player player, @NotNull InteractionHand hand) {
         if (player instanceof ServerPlayer splayer && hand == InteractionHand.MAIN_HAND) {
             ItemStack scroll = player.getItemInHand(hand);
+            
             
             splayer.openMenu(new ScrollOfTruthContainer.Provider(scroll), buf -> ItemStack.STREAM_CODEC.encode(buf, scroll));
 //            NetworkHooks.openScreen(splayer,new ScrollOfTruthContainer.Provider(scroll),
@@ -116,9 +115,16 @@ public class ScrollOfTruthItem extends RelicItem {
                         .ability(AbilityData.builder("enchant")
                                 .maxLevel(10)
                                 .stat(StatData.builder("costModifier")
-                                        .initialValue(3, 2.8)
-                                        .upgradeModifier(UpgradeOperation.ADD, -0.2)
+                                        .initialValue(3, 2.5)
+                                        .thresholdValue(0.25, 3)
+                                        .upgradeModifier(UpgradeOperation.ADD, -0.23)
                                         .formatValue(x -> (int) MathUtils.round(x * 100, 0))
+                                        .build())
+                                .stat(StatData.builder("maxLevel")
+                                        .initialValue(1, 1.5)
+                                        .upgradeModifier(UpgradeOperation.ADD, 0.75)
+                                        .thresholdValue(1, 9)
+                                        .formatValue(Math::floor)
                                         .build())
                                 .build())
                         .ability(AbilityData.builder("passive_effect")
@@ -137,7 +143,7 @@ public class ScrollOfTruthItem extends RelicItem {
     }
     
     @Override
-    public void inventoryTick(ItemStack stack, Level level, Entity entity, int slot, boolean isSelected) {
+    public void inventoryTick(@NotNull ItemStack stack, @NotNull Level level, @NotNull Entity entity, int slot, boolean isSelected) {
         super.inventoryTick(stack, level, entity, slot, isSelected);
         if (!level.isClientSide && entity instanceof Player player) {
             ScrollColorMode mode = stack.getOrDefault(SCROLL_COLOR_MODE, ScrollColorMode.GRAY);

@@ -5,6 +5,7 @@ import com.qurenie.relics_thirteenflames.init.EffectsRegistry;
 import com.qurenie.relics_thirteenflames.util.FlamesUtils;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
+import net.minecraft.world.entity.LivingEntity;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
@@ -16,6 +17,22 @@ public class SkintEffect extends MobEffect {
     
     public SkintEffect() {
         super(MobEffectCategory.BENEFICIAL, GOLD_COLOR.getRGB());
+    }
+    
+    @Override
+    public boolean applyEffectTick(LivingEntity livingEntity, int amplifier) {
+        return super.applyEffectTick(livingEntity, amplifier);
+    }
+    
+    @SubscribeEvent
+    public static void remove(MobEffectEvent.Remove remove) {
+        if (remove.getEffectInstance() == null || remove.getEffectInstance().getEffect() != EffectsRegistry.SKINT_EFFECT)
+            return;
+        
+        if (remove.getCure() != null)
+            remove.setCanceled(true);
+        else
+            FlamesUtils.setSkint(remove.getEntity(), 0, false);
     }
     
     @SubscribeEvent

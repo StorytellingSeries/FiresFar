@@ -25,11 +25,10 @@ public class ScrollOfTruthButton extends Button implements IHoverableWidget {
     
     @Override
     public void renderWidget(GuiGraphics guiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
-        Minecraft minecraft = Minecraft.getInstance();
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderTexture(0, BUTTONS_LOCATION);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, this.alpha);
-        int i = this.getYImage(this.isHoveredOrFocused());
+        int i = this.getYImage(this.isHovered());
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.enableDepthTest();
@@ -37,7 +36,7 @@ public class ScrollOfTruthButton extends Button implements IHoverableWidget {
         guiGraphics.blit(BUTTONS_LOCATION, this.getX() + (int) Math.ceil(this.width / 2f), this.getY(), (float) (134 - Math.ceil(this.width / 2f)), (float) (i * 13), (int) Math.ceil(this.width / 2f), this.height, 134, 39);
         //this.renderBg(pPoseStack, minecraft, pMouseX, pMouseY);
         this.drawButtonText(guiGraphics, pMouseX, pMouseY, pPartialTick);
-        if (this.isHoveredOrFocused()) {
+        if (this.isHovered()) {
             this.onHovered(guiGraphics, pMouseX, pMouseY);
         }
     }

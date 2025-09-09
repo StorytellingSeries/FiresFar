@@ -9,15 +9,15 @@ import com.qurenie.relics_thirteenflames.util.FlamesUtils;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
-import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
 import net.neoforged.neoforge.event.tick.EntityTickEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import org.zeith.hammerlib.net.Network;
@@ -68,7 +68,13 @@ public class CommonGameEvents {
         int skintCount = l.hasData(AttachmentsRegistry.SKINT_DATA) ? l.getData(AttachmentsRegistry.SKINT_DATA) : 0;
         int antiskintCount = l.hasData(AttachmentsRegistry.ANTISKINT_DATA) ? l.getData(AttachmentsRegistry.ANTISKINT_DATA) : 0;
         
-        event.setNewDamage(event.getNewDamage() + antiskintCount);
+        event.setNewDamage(event.getNewDamage() + antiskintCount * 2);
+        if (event.getSource().getEntity() instanceof LivingEntity living) {
+            ItemStack stack = living.getItemBySlot(EquipmentSlot.HEAD);
+            if (stack.is(ItemsRegistry.JODAH_MASK))
+                ItemsRegistry.JODAH_MASK.addRelicExperience(stack, 1 + (antiskintCount / 3));
+        }
+        
         if (skintCount > 0) {
             event.setNewDamage(Math.max(event.getNewDamage() - 10, 0));
             FlamesUtils.addSkint(null, l, -1);

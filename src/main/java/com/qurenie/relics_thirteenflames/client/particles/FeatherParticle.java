@@ -15,6 +15,8 @@ import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.Tiers;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,7 +27,7 @@ import static net.minecraft.client.particle.ParticleRenderType.PARTICLE_SHEET_TR
 
 public class FeatherParticle extends TextureSheetParticle {
     
-    private final float dRoll;
+    private float dRoll;
     
     protected FeatherParticle(ClientLevel level, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed, float roll, int lifetime) {
         super(level, x, y, z, xSpeed, ySpeed, zSpeed);
@@ -43,6 +45,9 @@ public class FeatherParticle extends TextureSheetParticle {
     public void tick() {
         super.tick();
         Vec3 movement = new Vec3(xd, yd, zd);
+        
+        if (this.onGround)
+            this.dRoll *= 0.7f;
         
         if (movement.lengthSqr() > 0.0003)
             movement = movement.scale(0.98f);

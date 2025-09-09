@@ -30,6 +30,7 @@ public class ParticlesRegistry {
     public static final DeferredHolder<ParticleType<?>, ColoredRelicParticle.Type> COLORED_HEAL;
     public static final DeferredHolder<ParticleType<?>, ColoredRelicParticle.Type> COLORED_EYE;
     public static final DeferredHolder<ParticleType<?>, ColoredRelicParticle.Type> COLORED_SMOKE;
+    public static final DeferredHolder<ParticleType<?>, ColoredRelicParticle.Type> FIGURES;
     public static final DeferredHolder<ParticleType<?>, CircleTintParticle.Type> CIRCLE_TINT_PARTICLE;
     public static final DeferredHolder<ParticleType<?>, FeatherParticle.Type> JODAH_FEATHER;
     public static final DeferredHolder<ParticleType<?>, FeatherParticle.Type> HETT_FEATHER;
@@ -41,16 +42,18 @@ public class ParticlesRegistry {
         COLORED_EYE = PARTICLES.register("colored_eye",  ColoredRelicParticle.Type::new);
         COLORED_HEAL = PARTICLES.register("colored_heal",  ColoredRelicParticle.Type::new);
         COLORED_SMOKE = PARTICLES.register("colored_smoke",  ColoredRelicParticle.Type::new);
+        FIGURES = PARTICLES.register("figures",  ColoredRelicParticle.Type::new);
         CIRCLE_TINT_PARTICLE = PARTICLES.register("circle_tint", CircleTintParticle.Type::new);
         JODAH_FEATHER = PARTICLES.register("jodah_feather", FeatherParticle.Type::new);
         HETT_FEATHER = PARTICLES.register("hett_feather", FeatherParticle.Type::new);
     }
     
-    @SubscribeEvent(priority = EventPriority.LOWEST)
+    @SubscribeEvent
     public static void registerParticles(RegisterParticleProvidersEvent event){
         event.registerSpriteSet(ParticlesRegistry.DEATH_FLAME_PARTICLE.get(), DeathFlameParticle.Factory::new);
         event.registerSpriteSet(ParticlesRegistry.COLORED_RELIC_PARTICLE.get(), ColoredRelicParticle.Factory::new);
         event.registerSpriteSet(ParticlesRegistry.COLORED_HEAL.get(), ColoredRelicParticle.Factory::new);
+        event.registerSpriteSet(ParticlesRegistry.FIGURES.get(), ColoredRelicParticle.Factory::new);
         event.registerSpriteSet(ParticlesRegistry.COLORED_EYE.get(), ColoredRelicParticle.SpellFactory::new);
         event.registerSpriteSet(ParticlesRegistry.COLORED_SMOKE.get(), ColoredRelicParticle.DisappearingParticleFactory::new);
         event.registerSpriteSet(ParticlesRegistry.CIRCLE_TINT_PARTICLE.get(), CircleTintParticle.Factory::new);

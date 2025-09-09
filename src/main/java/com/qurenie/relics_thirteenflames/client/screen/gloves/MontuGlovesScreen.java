@@ -38,6 +38,7 @@ public class MontuGlovesScreen extends DefaultMenuScreen<MontuGlovesContainer> {
         guiGraphics.drawString(this.font, this.title, this.titleLabelX, this.titleLabelY, 4210752, false);
     }
     
+    
     @Override
     protected void containerTick() {
         super.containerTick();
@@ -60,9 +61,15 @@ public class MontuGlovesScreen extends DefaultMenuScreen<MontuGlovesContainer> {
     
     @Override
     protected void slotClicked(@NotNull Slot slot, int slotId, int mouseButton, @NotNull ClickType type) {
-        // SLOT ITEM CAN BE NULL... somehow
-        if (slot == null || ItemStack.matches(slot.getItem(), menu.getGloves())) return;
+        if (slot != null && ItemStack.matches(slot.getItem(), menu.getGloves())) return;
         super.slotClicked(slot, slotId, mouseButton, type);
+    }
+    
+    @Override
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        super.render(guiGraphics, mouseX, mouseY, partialTick);
+        
+        this.renderTooltip(guiGraphics, mouseX, mouseY);
     }
     
     @Override
