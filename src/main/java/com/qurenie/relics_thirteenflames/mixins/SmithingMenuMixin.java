@@ -1,8 +1,6 @@
 package com.qurenie.relics_thirteenflames.mixins;
 
-import com.qurenie.api.SmithingBlockCraftEvent;
-import com.qurenie.relics_thirteenflames.init.EffectsRegistry;
-import net.minecraft.world.entity.Mob;
+import com.qurenie.api.event.SmithingBlockCraftEvent;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.SmithingMenu;
 import net.minecraft.world.item.ItemStack;
@@ -10,7 +8,6 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import static net.neoforged.neoforge.common.NeoForge.EVENT_BUS;
 

@@ -1,26 +1,25 @@
 package com.qurenie.relics_thirteenflames.content.items;
 
+import com.qurenie.api.IExtRelicItem;
 import com.qurenie.relics_thirteenflames.content.entities.LivingFleshEntity;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
 import com.qurenie.relics_thirteenflames.init.ParticlesRegistry;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
-import it.hurts.sskirillss.relics.api.events.common.ContainerSlotClickEvent;
-import it.hurts.sskirillss.relics.items.relics.base.IRelicItem;
+import it.hurts.sskirillss.relics.api.events.utility.ContainerSlotClickEvent;
+import it.hurts.sskirillss.relics.api.relics.IRelicItem;
 import it.hurts.sskirillss.relics.items.relics.base.RelicItem;
-import it.hurts.sskirillss.relics.items.relics.base.data.RelicData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.AbilitiesData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.AbilityData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.LevelingData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.StatData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.misc.UpgradeOperation;
-import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootData;
+import it.hurts.sskirillss.relics.api.relics.RelicTemplate;
+import it.hurts.sskirillss.relics.api.relics.abilities.AbilitiesTemplate;
+import it.hurts.sskirillss.relics.api.relics.abilities.AbilityTemplate;
+import it.hurts.sskirillss.relics.api.relics.abilities.stats.AbilityStatTemplate;
+import it.hurts.sskirillss.relics.init.RelicsScalingModels;
+import it.hurts.sskirillss.relics.items.relics.base.data.leveling.LevelingTemplate;
+import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootTemplate;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.misc.LootEntries;
 import it.hurts.sskirillss.relics.utils.MathUtils;
-import it.hurts.sskirillss.relics.utils.NBTUtils;
 import lombok.Getter;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -37,7 +36,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
@@ -57,80 +55,80 @@ import static net.neoforged.neoforge.common.NeoForge.EVENT_BUS;
 
 public class ItemKnefRose
         extends RelicItem
-        implements IColoredFoilItem, IRegisterListener {
+        implements IExtRelicItem, IColoredFoilItem, IRegisterListener {
     
     public ItemKnefRose(Properties properties) {
         super(properties);
     }
     
     @Override
-    public RelicData constructDefaultRelicData() {
-        return RelicData.builder()
-                .abilities(AbilitiesData.builder()
-                        .ability(AbilityData.builder("undeath")
-                                .maxLevel(5)
-                                .stat(StatData.builder("max_bones")
+    public RelicTemplate constructDefaultRelicTemplate() {
+        return RelicTemplate.builder()
+                .abilities(AbilitiesTemplate.builder()
+                        .ability(AbilityTemplate.builder("undeath")
+                                .initialMaxLevel(5)
+                                .stat(AbilityStatTemplate.builder("max_bones")
                                         .initialValue(7, 10)
                                         .thresholdValue(7, 20)
-                                        .upgradeModifier(UpgradeOperation.ADD, 2)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 2)
                                         .formatValue(x -> MathUtils.round(x, 0))
                                         .build()
                                 )
-                                .stat(StatData.builder("damage_taken")
+                                .stat(AbilityStatTemplate.builder("damage_taken")
                                         .initialValue(0.75, 1)
                                         .thresholdValue(0.75, 2.0)
-                                        .upgradeModifier(UpgradeOperation.ADD, 0.2)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 0.2)
                                         .formatValue(x -> MathUtils.round(x, 2))
                                         .build()
                                 )
-                                .stat(StatData.builder("deterioration_rate")
+                                .stat(AbilityStatTemplate.builder("deterioration_rate")
                                         .initialValue(800, 1200)
                                         .thresholdValue(1, 24000)
-                                        .upgradeModifier(UpgradeOperation.ADD, 240)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 240)
                                         .formatValue(x -> MathUtils.round(1200.0 / x, 2))
                                         .build()
                                 )
                                 .build()
                         )
-                        .ability(AbilityData.builder("living_rot")
-                                .maxLevel(10)
-                                .stat(StatData.builder("chance")
+                        .ability(AbilityTemplate.builder("living_rot")
+                                .initialMaxLevel(10)
+                                .stat(AbilityStatTemplate.builder("chance")
                                         .initialValue(2.5, 7.5)
                                         .thresholdValue(2.5, 40.0)
-                                        .upgradeModifier(UpgradeOperation.ADD, 2.5)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 2.5)
                                         .formatValue(x -> MathUtils.round(x, 1))
                                         .build()
                                 )
-                                .stat(StatData.builder("hp_rate")
+                                .stat(AbilityStatTemplate.builder("hp_rate")
                                         .initialValue(0.2, 0.35)
                                         .thresholdValue(0.2, 1)
-                                        .upgradeModifier(UpgradeOperation.ADD, 0.05)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 0.05)
                                         .formatValue(x -> MathUtils.round(x * 100, 0))
                                         .build()
                                 )
                                 .build()
                         )
-                        .ability(AbilityData.builder("rot_split")
+                        .ability(AbilityTemplate.builder("rot_split")
                                 .requiredLevel(10)
-                                .maxLevel(5)
-                                .stat(StatData.builder("chance")
+                                .initialMaxLevel(5)
+                                .stat(AbilityStatTemplate.builder("chance")
                                         .initialValue(10.0, 15)
                                         .thresholdValue(10.0, 40.0)
-                                        .upgradeModifier(UpgradeOperation.ADD, 2.5)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 2.5)
                                         .formatValue(x -> MathUtils.round(x, 1))
                                         .build()
                                 )
-                                .stat(StatData.builder("split_size")
+                                .stat(AbilityStatTemplate.builder("split_size")
                                         .initialValue(25.0, 35.0)
                                         .thresholdValue(30.0, 55.0)
-                                        .upgradeModifier(UpgradeOperation.ADD, 2.5)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 2.5)
                                         .formatValue(x -> MathUtils.round(x, 1))
                                         .build()
                                 )
-                                .stat(StatData.builder("max_splits")
+                                .stat(AbilityStatTemplate.builder("max_splits")
                                         .initialValue(1.0, 3.0)
                                         .thresholdValue(2.0, 8.0)
-                                        .upgradeModifier(UpgradeOperation.ADD, 0.5)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 0.5)
                                         .formatValue(Double::intValue)
                                         .build()
                                 )
@@ -138,8 +136,12 @@ public class ItemKnefRose
                         )
                         .build()
                 )
-                .leveling(new LevelingData(100, 20, 100))
-                .loot(LootData.builder().entry(LootEntries.THE_NETHER).build())
+                .leveling(LevelingTemplate.builder()
+                        .maxRank(2)
+                        .step(100)
+                        .initialCost(100)
+                        .build())
+                .loot(LootTemplate.builder().entry(LootEntries.THE_NETHER).build())
                 .build();
     }
     
@@ -165,19 +167,19 @@ public class ItemKnefRose
     
     @Override
     public void inventoryTick(ItemStack stack, Level level, Entity entity, int slot, boolean isSelected) {
-        if (!level.isClientSide()) {
+        if (!level.isClientSide() && entity instanceof LivingEntity livingEntity) {
             if (entity.level().dimension().equals(Level.NETHER)) {
                 int netherTicker = stack.getOrDefault(NETHER_TICKER, 0);
                 if (netherTicker++ >= 1200) {
                     netherTicker = 0;
-                    this.addBones(stack, 1);
+                    this.addBones(livingEntity, stack, 1);
                 }
                 stack.set(NETHER_TICKER, netherTicker);
             } else {
                 int deterioTicker = stack.getOrDefault(DETERIORATION_TICKER, 0);
-                if (this.getBones(stack) > 0 && deterioTicker++ >= this.getStatValue(stack, "undeath", "deterioration_rate")) {
+                if (this.getBones(stack) > 0 && deterioTicker++ >= this.getStatValue(livingEntity, stack, "undeath", "deterioration_rate")) {
                     deterioTicker = 0;
-                    this.takeBones(stack, 1, false);
+                    this.takeBones(livingEntity, stack, 1, false);
                 }
                 stack.set(DETERIORATION_TICKER, deterioTicker);
             }
@@ -193,8 +195,8 @@ public class ItemKnefRose
             
             // Limit to 1 bone per right click; No limit on left click.
             if (e.getAction() == ClickAction.SECONDARY) bones = Math.min(bones, 1);
-            bones = Math.min(bones, getMaxBones(stack) - getBones(stack));
-            addBones(stack, bones);
+            bones = Math.min(bones, getMaxBones(e.getEntity(), stack) - getBones(stack));
+            addBones(e.getEntity(), stack, bones);
             e.getHeldStack().shrink(bones);
             
             e.setCanceled(true);
@@ -217,11 +219,11 @@ public class ItemKnefRose
             for (int j = 0; j < ih.getSlots(); j++) {
                 var it = ih.getStackInSlot(j);
                 if (it.is(this)) {
-                    var spawnChance = this.getStatValue(it, "living_rot", "chance") / 100;
+                    var spawnChance = this.getStatValue(sp, it, "living_rot", "chance") / 100;
                     
                     if (sp.getRandom().nextFloat() < spawnChance) {
                         LivingFleshEntity ent = new LivingFleshEntity(EntityRegistry.LIVING_FLESH, sp.level())
-                                .initPrimary(e.getEntity(), new RoseStats(it));
+                                .initPrimary(e.getEntity(), new RoseStats(sp, it));
                         ent.moveTo(e.getEntity().position());
                         ent.setOwnerUUID(sp.getStringUUID());
                         ent.lifetime = (int) (e.getEntity().getMaxHealth() * 15);
@@ -261,36 +263,36 @@ public class ItemKnefRose
     }
     
     public float reduceDamage(LivingEntity pl, ItemStack stack, float damage) {
-        var damageReductionPerBone = this.getStatValue(stack, "undeath", "damage_taken");
+        var damageReductionPerBone = this.getStatValue(pl, stack, "undeath", "damage_taken");
         
         // Do not deduce bones if the damage is negligible
         if (damage < damageReductionPerBone) return damage;
         
         int neededBonesToNegateAllDamage = (int) Math.ceil(damage / damageReductionPerBone);
-        int bonesTaken = takeBones(stack, neededBonesToNegateAllDamage, false);
+        int bonesTaken = takeBones(pl, stack, neededBonesToNegateAllDamage, false);
         
         if (bonesTaken > 0) {//noinspection lossy-conversions
             damage -= bonesTaken * damageReductionPerBone;
-            spreadRelicExperience(pl, stack, bonesTaken);
+            addExperience(pl, stack, bonesTaken);
         }
         
         return Math.max(0F, damage);
     }
     
-    public void addBones(ItemStack stack, int bones) {
-        setBones(stack, getBones(stack) + bones);
+    public void addBones(LivingEntity livingEntity, ItemStack stack, int bones) {
+        setBones(livingEntity, stack, getBones(stack) + bones);
     }
     
-    public int takeBones(ItemStack stack, int bones, boolean simulate) {
+    public int takeBones(LivingEntity livingEntity, ItemStack stack, int bones, boolean simulate) {
         int avail = getBones(stack);
         bones = Math.min(bones, avail);
-        if (!simulate) setBones(stack, avail - bones);
+        if (!simulate) setBones(livingEntity, stack, avail - bones);
         return bones;
     }
     
-    public void setBones(ItemStack stack, int bones) {
+    public void setBones(LivingEntity livingEntity, ItemStack stack, int bones) {
         bones = Math.max(bones, 0);
-        bones = Math.min(bones, getMaxBones(stack));
+        bones = Math.min(bones, getMaxBones(livingEntity, stack));
         
         if (bones == 0)
             stack.remove(BONES);
@@ -302,8 +304,8 @@ public class ItemKnefRose
         return stack.getOrDefault(BONES, 0);
     }
     
-    public int getMaxBones(ItemStack stack) {
-        return (int) MathUtils.round(this.getStatValue(stack, "undeath", "max_bones"), 0);
+    public int getMaxBones(LivingEntity livingEntity, ItemStack stack) {
+        return (int) MathUtils.round(this.getStatValue(livingEntity, stack, "undeath", "max_bones"), 0);
     }
     
     @Getter
@@ -355,12 +357,12 @@ public class ItemKnefRose
             this.rose = rose;
         }
         
-        public RoseStats(ItemStack roseStack) {
-            if (roseStack.isEmpty() || !(roseStack.getItem() instanceof IRelicItem relic)) return;
-            splitChance = relic.isAbilityUnlocked(roseStack, "rot_split") ? (float) relic.getStatValue(roseStack, "rot_split", "chance") : 0;
-            splitScale = relic.isAbilityUnlocked(roseStack, "rot_split") ? (float) relic.getStatValue(roseStack, "rot_split", "split_size") : 0;
-            maxSplits = relic.isAbilityUnlocked(roseStack, "rot_split") ? (int) relic.getStatValue(roseStack, "rot_split", "max_splits") : 0;
-            hpRate = (float) relic.getStatValue(roseStack, "living_rot", "hp_rate");
+        public RoseStats(@Nullable LivingEntity livingEntity, ItemStack roseStack) {
+            if (livingEntity == null || roseStack.isEmpty() || !(roseStack.getItem() instanceof ItemKnefRose relic)) return;
+            splitChance = relic.isAbilityUnlocked(livingEntity, roseStack, "rot_split") ? (float) relic.getStatValue(livingEntity, roseStack, "rot_split", "chance") : 0;
+            splitScale = relic.isAbilityUnlocked(livingEntity, roseStack, "rot_split") ? (float) relic.getStatValue(livingEntity, roseStack, "rot_split", "split_size") : 0;
+            maxSplits = relic.isAbilityUnlocked(livingEntity, roseStack, "rot_split") ? (int) relic.getStatValue(livingEntity, roseStack, "rot_split", "max_splits") : 0;
+            hpRate = (float) relic.getStatValue(livingEntity, roseStack, "living_rot", "hp_rate");
             rose = roseStack;
         }
         

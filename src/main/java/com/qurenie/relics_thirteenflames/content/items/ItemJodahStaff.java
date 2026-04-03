@@ -1,6 +1,13 @@
 package com.qurenie.relics_thirteenflames.content.items;
 
-import com.qurenie.relics_thirteenflames.ThirteenFlames;
+import com.qurenie.api.IActivityContainer;
+import com.qurenie.api.IExtRelicItem;
+import com.qurenie.api.SettingsContainer;
+import com.qurenie.relics_thirteenflames.activity.IActivitySetting;
+import com.qurenie.relics_thirteenflames.activity.RelicActivitySetting;
+import com.qurenie.relics_thirteenflames.activity.call.settings.ActivityResult;
+import com.qurenie.relics_thirteenflames.activity.call.settings.InventoryType;
+import com.qurenie.relics_thirteenflames.activity.call.settings.RelicsActivityCallSettings;
 import com.qurenie.relics_thirteenflames.client.particles.FeatherParticle;
 import com.qurenie.relics_thirteenflames.client.render.entity.IJodahGlowed;
 import com.qurenie.relics_thirteenflames.client.render.misc.JodahStaffRenderUtil;
@@ -10,41 +17,32 @@ import com.qurenie.relics_thirteenflames.init.ComponentRegistry;
 import com.qurenie.relics_thirteenflames.init.EffectsRegistry;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
+import com.qurenie.relics_thirteenflames.style.ColorScheme;
 import com.qurenie.relics_thirteenflames.util.FlamesUtils;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
-import it.hurts.sskirillss.relics.init.RelicContainerRegistry;
-import it.hurts.sskirillss.relics.items.relics.base.IRelicItem;
-import it.hurts.sskirillss.relics.items.relics.base.data.RelicData;
-import it.hurts.sskirillss.relics.items.relics.base.data.cast.CastData;
-import it.hurts.sskirillss.relics.items.relics.base.data.cast.misc.CastStage;
-import it.hurts.sskirillss.relics.items.relics.base.data.cast.misc.CastType;
-import it.hurts.sskirillss.relics.items.relics.base.data.cast.misc.PredicateType;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.AbilitiesData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.AbilityData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.LevelingData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.StatData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.misc.UpgradeOperation;
-import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootData;
+import it.hurts.sskirillss.relics.api.relics.IRelicItem;
+import it.hurts.sskirillss.relics.api.relics.RelicTemplate;
+import it.hurts.sskirillss.relics.api.relics.abilities.AbilitiesTemplate;
+import it.hurts.sskirillss.relics.api.relics.abilities.AbilityTemplate;
+import it.hurts.sskirillss.relics.api.relics.abilities.stats.AbilityStatTemplate;
+import it.hurts.sskirillss.relics.init.RelicsScalingModels;
+import it.hurts.sskirillss.relics.items.relics.base.data.leveling.LevelingTemplate;
+import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootTemplate;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootEntry;
-import it.hurts.sskirillss.relics.items.relics.base.data.loot.misc.LootEntries;
 import it.hurts.sskirillss.relics.utils.MathUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Holder;
-import net.minecraft.core.HolderSet;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.tags.ItemTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
@@ -61,9 +59,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
-import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.client.event.RenderLivingEvent;
-import net.neoforged.neoforge.event.ItemAttributeModifierEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -78,7 +74,7 @@ import java.util.function.Consumer;
 import static com.qurenie.relics_thirteenflames.init.ComponentRegistry.*;
 import static net.neoforged.neoforge.common.NeoForge.EVENT_BUS;
 
-public class ItemJodahStaff extends SwordItem implements IRelicItem, IRegisterListener {
+public class ItemJodahStaff extends SwordItem implements IActivityContainer, IExtRelicItem, IRelicItem, IRegisterListener {
     
     public static final int DURATION = 72000;
     private static final Color PURPLE_COLOR = new Color(160, 20, 140);
@@ -109,89 +105,86 @@ public class ItemJodahStaff extends SwordItem implements IRelicItem, IRegisterLi
     }
     
     @Override
-    public RelicData constructDefaultRelicData() {
-        return RelicData.builder()
-                .abilities(AbilitiesData.builder()
-                        .ability(AbilityData.builder("ranging")
-                                .maxLevel(4)
-                                .stat(StatData.builder("increasing")
+    public RelicTemplate constructDefaultRelicTemplate() {
+        return RelicTemplate.builder()
+                .abilities(AbilitiesTemplate.builder()
+                        .ability(AbilityTemplate.builder("ranging")
+                                .initialMaxLevel(4)
+                                .stat(AbilityStatTemplate.builder("increasing")
                                         .initialValue(0, 1)
-                                        .upgradeModifier(UpgradeOperation.ADD, 1)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 1)
                                         .thresholdValue(0, 4)
                                         .build()
                                 )
-                                .stat(StatData.builder("damage_modifier")
+                                .stat(AbilityStatTemplate.builder("damage_modifier")
                                         .initialValue(1, 1.2)
-                                        .upgradeModifier(UpgradeOperation.MULTIPLY_TOTAL, 0.2)
+                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), 0.2)
                                         .thresholdValue(1, 2.5)
                                         .formatValue(d -> MathUtils.round(d * 100, 0))
                                         .build()
                                 )
-                                .stat(StatData.builder("xp_consume")
+                                .stat(AbilityStatTemplate.builder("xp_consume")
                                         .initialValue(1, 1.15)
-                                        .upgradeModifier(UpgradeOperation.MULTIPLY_TOTAL, 0.15)
+                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), 0.15)
                                         .thresholdValue(1, 3)
                                         .formatValue(d -> MathUtils.round(100 - 100 / d, 0))
                                         .build()
                                 )
                                 .build()
                         )
-                        .ability(AbilityData.builder("health_theft")
+                        .ability(AbilityTemplate.builder("health_theft")
                                 .requiredPoints(1)
-                                .maxLevel(3)
-                                .active(CastData.builder()
-                                        .container(RelicContainerRegistry.INVENTORY.get())
-                                        .type(CastType.INSTANTANEOUS)
-                                        .predicate("health_theft_predicate", PredicateType.VISIBILITY, (p, s) -> p.getMainHandItem() == s || p.getOffhandItem() == s)
-                                        .build())
-                                .stat(StatData.builder("cooldown")
-                                        .initialValue(80, 70)
-                                        .thresholdValue(40, 80)
-                                        .upgradeModifier(UpgradeOperation.ADD, -10)
-                                        .formatValue(d -> MathUtils.round(d, 0))
-                                        .build()
-                                )
-                                .stat(StatData.builder("entity_count")
+                                .initialMaxLevel(3)
+//                                .active(CastData.builder()
+//                                        .container(RelicContainerRegistry.INVENTORY.get())
+//                                        .type(CastType.INSTANTANEOUS)
+//                                        .predicate("health_theft_predicate", PredicateType.VISIBILITY, (p, s) -> p.getMainHandItem() == s || p.getOffhandItem() == s)
+//                                        .build())
+//                                .stat(AbilityStatTemplate.builder("recharge")
+//                                        .initialValue(80, 70)
+//                                        .thresholdValue(40, 80)
+//                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), -10)
+//                                        .formatValue(d -> MathUtils.round(d, 0))
+//                                        .build()
+//                                )
+                                .stat(AbilityStatTemplate.builder("entity_count")
                                         .initialValue(1, 1.5)
                                         .thresholdValue(1, 3)
-                                        .upgradeModifier(UpgradeOperation.ADD, 0.5)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 0.5)
                                         .formatValue(d -> MathUtils.round(Math.floor(d), 0))
                                         .build()
                                 )
-                                .stat(StatData.builder("xp_modifier")
+                                .stat(AbilityStatTemplate.builder("xp_modifier")
                                         .initialValue(1, 1.15)
-                                        .upgradeModifier(UpgradeOperation.MULTIPLY_TOTAL, 0.15)
+                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), 0.15)
                                         .thresholdValue(1, 2)
                                         .formatValue(d -> MathUtils.round((d - 1) * 100, 0))
                                         .build()
                                 )
-                                .stat(StatData.builder("durability")
+                                .stat(AbilityStatTemplate.builder("durability")
                                         .initialValue(4, 8)
                                         .thresholdValue(4, 21)
-                                        .upgradeModifier(UpgradeOperation.MULTIPLY_TOTAL, 0.5)
+                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), 0.5)
                                         .formatValue(d -> MathUtils.round(d, 1))
                                         .build()
                                 )
                                 .build()
                         )
-                        .ability(AbilityData.builder("one_thousand_eyes")
+                        .ability(AbilityTemplate.builder("one_thousand_eyes")
                                 .requiredPoints(2)
                                 .requiredLevel(7)
-                                .maxLevel(1)
-                                .stat(StatData.builder("empty").build())
-                                .active(CastData.builder()
-                                        .predicate("one_thousand_eyes_predicate", PredicateType.VISIBILITY, (p, s) ->
-                                                getAbilityLevel(s, "one_thousand_eyes") > 1)
-                                        .container(RelicContainerRegistry.INVENTORY.get())
-                                        .type(CastType.INSTANTANEOUS)
-                                        .predicate("one_thousand_eyes_predicate", PredicateType.VISIBILITY, (p, s) -> p.getMainHandItem() == s || p.getOffhandItem() == s)
-                                        .build())
+                                .initialMaxLevel(1)
+                                .stat(AbilityStatTemplate.builder("empty").build())
                                 .build()
                         )
                         .build()
                 )
-                .leveling(new LevelingData(100, 10, 200))
-                .loot(LootData.builder().entry(END_LIKE).build())
+                .leveling(LevelingTemplate.builder()
+                        .maxRank(2)
+                        .initialCost(100)
+                        .step(100)
+                        .build())
+                .loot(LootTemplate.builder().entry(END_LIKE).build())
                 .build();
     }
     
@@ -200,24 +193,35 @@ public class ItemJodahStaff extends SwordItem implements IRelicItem, IRegisterLi
         tooltip.add(Component.translatable("tooltip.relics_thirteenflames.jodah_staff.lore").withStyle(ChatFormatting.GOLD).withStyle(ChatFormatting.ITALIC));
         super.appendHoverText(stack, context, tooltip, isAdvanced);
     }
-    
+
     @Override
-    public void castActiveAbility(ItemStack stack, Player player, String ability, CastType type, CastStage stage) {
-        if (ability.equals("health_theft")) {
-            stack.set(ACTIVE_TICK, 20 * (int) getStatValue(stack, "health_theft", "durability"));
-            addAbilityCooldown(stack, "health_theft", 20 * (int) getStatValue(stack, "health_theft", "cooldown"));
-        }
-        if (ability.equals("one_thousand_eyes") && getAbilityLevel(stack, "one_thousand_eyes") > 0) {
-            if (!player.level().isClientSide)
-                player.level().getEntitiesOfClass(LivingEntity.class, player.getBoundingBox().inflate(40), e -> e != player)
-                        .forEach(e -> e.addEffect(new MobEffectInstance(EffectsRegistry.JODAH_VISION, 500,
-                                stack.getOrDefault(ComponentRegistry.JODAH_TIER, JodahTier.D).oneThousandEyes.targetingCount() - 1)));
-            stack.set(JODAH_ACTIVE_TICK, 500);
-            addAbilityCooldown(stack, "one_thousand_eyes", 1200);
-            if (!player.level().isClientSide)
-                FlamesUtils.startJodahWings(player, true);
-//            player.setData(AttachmentsRegistry.WINGS_LAYER_DATA, JodahWingsLayer.ANIMATION_LENGTH);
-        }
+    public SettingsContainer<IActivitySetting> constructActivitySettings() {
+        return SettingsContainer.<IActivitySetting>builder()
+                .setting(RelicActivitySetting.builderRelic("health_theft", "recharge")
+                        .color(ColorScheme.BAR_RED)
+                        .build())
+                .setting(RelicActivitySetting.builderRelic("one_thousand_eyes")
+                        .color(ColorScheme.BAR_PURPLE)
+                        .maxCooldown(1200)
+                        .callSettings(RelicsActivityCallSettings.builder("one_thousand_eyes")
+                                .inventoryType(InventoryType.IN_HAND)
+                                .minVisibilityLevel(1)
+                                .cast((living, stack) -> {
+                                    if (!living.level().isClientSide)
+                                        living.level().getEntitiesOfClass(LivingEntity.class, living.getBoundingBox().inflate(40), e -> e != living)
+                                                .forEach(e -> e.addEffect(new MobEffectInstance(EffectsRegistry.JODAH_VISION, 500,
+                                                        stack.getOrDefault(ComponentRegistry.JODAH_TIER, JodahTier.D).oneThousandEyes.targetingCount() - 1)));
+                                    stack.set(JODAH_ACTIVE_TICK, 500);
+                                    setMaxCooldown(living, stack, "one_thousand_eyes");
+
+                                    if (!living.level().isClientSide() && living instanceof Player player)
+                                        FlamesUtils.startJodahWings(player, true);
+
+                                    return ActivityResult.SUCCESS;
+                                })
+                                .build())
+                        .build())
+                .build();
     }
     
     @Override
@@ -258,16 +262,16 @@ public class ItemJodahStaff extends SwordItem implements IRelicItem, IRegisterLi
                 .stream()
                 .filter(l -> l.distanceToSqr(living.getBoundingBox().getCenter()) <= tier.thief.radius() * tier.thief.radius())
                 .sorted(Comparator.comparingDouble(l -> l.distanceToSqr(living)))
-                .limit((int) getStatValue(stack, "health_theft", "entity_count"))
+                .limit((int) getStatValue(living, stack, "health_theft", "entity_count"))
                 .toList();
         
         for (LivingEntity target : targets) {
-            int xp = (int) (tier.thief.xp() * getStatValue(stack, "health_theft", "xp_modifier"));
+            int xp = (int) (tier.thief.xp() * getStatValue(living, stack, "health_theft", "xp_modifier"));
             if (target instanceof Player targetPlayer) {
                 xp = Math.min(targetPlayer.totalExperience, xp);
                 targetPlayer.giveExperiencePoints(-xp);
             }
-            addRelicExperience(stack, 2);
+            addExperience(living, stack, 2);
             level.addFreshEntity(new JodahHealEntity(EntityRegistry.JODAH_HEAL, level, Math.min(tier.thief.health(), target.getHealth()), xp, living, target));
             target.hurt(level.damageSources().wither(), tier.thief.health());
         }
@@ -311,7 +315,7 @@ public class ItemJodahStaff extends SwordItem implements IRelicItem, IRegisterLi
         
         if (stack.is(this)) {
             JodahTier tier = stack.getOrDefault(ComponentRegistry.JODAH_TIER, JodahTier.D);
-            int bonus = (int) getStatValue(stack, "ranging", "increasing");
+            int bonus = (int) getStatValue(attacker, stack, "ranging", "increasing");
             int level = stack.getOrDefault(ComponentRegistry.LEVEL, 0) + 1;
             
             if (level + bonus >= tier.hitCount) {
@@ -321,11 +325,11 @@ public class ItemJodahStaff extends SwordItem implements IRelicItem, IRegisterLi
                 stack.set(ComponentRegistry.LEVEL, level);
             }
             
-            float fineReduce = (int) getStatValue(stack, "ranging", "xp_consume");
+            float fineReduce = (int) getStatValue(attacker, stack, "ranging", "xp_consume");
             if ((attacker instanceof Player p)) {
                 int reduce = Math.min(p.totalExperience, (int) (tier.xpSuck / fineReduce));
                 p.giveExperiencePoints(-reduce);
-                addRelicExperience(stack, (int) (tier.xpSuck * (reduce / Math.floor(tier.xpSuck / fineReduce))));
+                addExperience(attacker, stack, (int) (tier.xpSuck * (reduce / Math.floor(tier.xpSuck / fineReduce))));
             }
         }
     }
@@ -334,8 +338,13 @@ public class ItemJodahStaff extends SwordItem implements IRelicItem, IRegisterLi
     public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, @NotNull Player player, @NotNull InteractionHand usedHand) {
         if (level.isClientSide)
             return super.use(level, player, usedHand);
-        
+
         ItemStack stack = player.getItemInHand(usedHand);
+        if (player.isShiftKeyDown()) {
+            stack.set(ACTIVE_TICK, 20 * (int) getStatValue(player, stack, "health_theft", "durability"));
+            setMaxCooldown(player, stack, "health_theft");
+        }
+
         int activeTick = stack.getOrDefault(JODAH_ACTIVE_TICK, 0);
         
         if (activeTick <= 0)
@@ -399,7 +408,7 @@ public class ItemJodahStaff extends SwordItem implements IRelicItem, IRegisterLi
                 target.hurt(damagesource, 5 * tier.oneThousandEyes.damageMultiplier());
             }
             
-            addRelicExperience(stack, 3);
+            addExperience(player, stack, 3);
             return InteractionResultHolder.success(stack);
         }
         
@@ -461,8 +470,8 @@ public class ItemJodahStaff extends SwordItem implements IRelicItem, IRegisterLi
             return damageBonus;
         
         JodahTier tier = damageSource.getWeaponItem().getOrDefault(ComponentRegistry.JODAH_TIER, JodahTier.D);
-        float modifier = (int) getStatValue(damageSource.getWeaponItem(), "ranging", "damage_modifier");
-        float fineReduce = (int) getStatValue(damageSource.getWeaponItem(), "ranging", "xp_consume");
+        float modifier = (int) getStatValue(p, damageSource.getWeaponItem(), "ranging", "damage_modifier");
+        float fineReduce = (int) getStatValue(p, damageSource.getWeaponItem(), "ranging", "xp_consume");
         if (!(p.totalExperience >= tier.xpSuck / fineReduce))
             return damageBonus;
         return damageBonus + modifier * tier.damageIncrease;
@@ -472,7 +481,7 @@ public class ItemJodahStaff extends SwordItem implements IRelicItem, IRegisterLi
     public String getConfigRoute() {
         return "relics";
     }
-    
+
     @EventBusSubscriber(value = Dist.CLIENT)
     public static class JodahStaffClientEvents {
         

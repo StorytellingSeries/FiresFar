@@ -1,6 +1,6 @@
 package com.qurenie.relics_thirteenflames.mixins;
 
-import com.qurenie.api.PacketHandleEvent;
+import com.qurenie.api.event.PacketHandleEvent;
 import net.minecraft.network.PacketListener;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketUtils;

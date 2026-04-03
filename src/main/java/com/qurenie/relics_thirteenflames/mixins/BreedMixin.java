@@ -1,6 +1,6 @@
 package com.qurenie.relics_thirteenflames.mixins;
 
-import com.qurenie.api.BabySpawnCountEvent;
+import com.qurenie.api.event.BabySpawnCountEvent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ai.goal.BreedGoal;
 import net.minecraft.world.entity.animal.Animal;

@@ -1,14 +1,15 @@
 package com.qurenie.relics_thirteenflames.content.items;
 
+import com.qurenie.api.IExtRelicItem;
 import com.qurenie.relics_thirteenflames.content.entities.EntitySeliasetSun;
 import it.hurts.sskirillss.relics.items.relics.base.RelicItem;
-import it.hurts.sskirillss.relics.items.relics.base.data.RelicData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.AbilitiesData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.AbilityData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.LevelingData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.StatData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.misc.UpgradeOperation;
-import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootData;
+import it.hurts.sskirillss.relics.api.relics.RelicTemplate;
+import it.hurts.sskirillss.relics.api.relics.abilities.AbilitiesTemplate;
+import it.hurts.sskirillss.relics.api.relics.abilities.AbilityTemplate;
+import it.hurts.sskirillss.relics.api.relics.abilities.stats.AbilityStatTemplate;
+import it.hurts.sskirillss.relics.init.RelicsScalingModels;
+import it.hurts.sskirillss.relics.items.relics.base.data.leveling.LevelingTemplate;
+import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootTemplate;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.misc.LootEntries;
 import it.hurts.sskirillss.relics.utils.MathUtils;
 import net.minecraft.ChatFormatting;
@@ -28,8 +29,7 @@ import org.zeith.hammerlib.api.items.IColoredFoilItem;
 
 import java.util.List;
 
-public class ItemSeliasetSun
-		extends RelicItem implements IColoredFoilItem
+public class ItemSeliasetSun extends RelicItem implements IExtRelicItem, IColoredFoilItem
 {
 	public ItemSeliasetSun(Properties properties)
 	{
@@ -69,54 +69,58 @@ public class ItemSeliasetSun
 	}
 
 	@Override
-	public RelicData constructDefaultRelicData() {
-		return RelicData.builder()
-				.abilities(AbilitiesData.builder()
-						.ability(AbilityData.builder("blessed_light")
-								.maxLevel(5)
-								.stat(StatData.builder("speed")
+	public RelicTemplate constructDefaultRelicTemplate() {
+		return RelicTemplate.builder()
+				.abilities(AbilitiesTemplate.builder()
+						.ability(AbilityTemplate.builder("blessed_light")
+								.initialMaxLevel(5)
+								.stat(AbilityStatTemplate.builder("speed")
 										.initialValue(240, 200)
-										.upgradeModifier(UpgradeOperation.ADD, -35)
+										.upgradeModifier(RelicsScalingModels.ADDITIVE.get(), -35)
 										.thresholdValue(20, 220)
 										.formatValue(x -> (int) MathUtils.round(x / 20, 0))
 										.build())
-								.stat(StatData.builder("breed_chance")
+								.stat(AbilityStatTemplate.builder("breed_chance")
 										.initialValue(10, 30)
-										.upgradeModifier(UpgradeOperation.ADD, 8)
+										.upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 8)
 										.thresholdValue(20, 70)
 										.formatValue(x -> MathUtils.round(x, 0))
 										.build())
-								.stat(StatData.builder("radius")
+								.stat(AbilityStatTemplate.builder("radius")
 										.initialValue(8, 12)
 										.thresholdValue(10, 30)
-										.upgradeModifier(UpgradeOperation.ADD, 4F)
+										.upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 4F)
 										.formatValue(x -> (int) MathUtils.round(x, 0))
 										.build())
 								.build())
-						.ability(AbilityData.builder("heat")
-								.maxLevel(5)
-								.stat(StatData.builder("heat_time")
+						.ability(AbilityTemplate.builder("heat")
+								.initialMaxLevel(5)
+								.stat(AbilityStatTemplate.builder("heat_time")
 										.initialValue(15, 12)
-										.upgradeModifier(UpgradeOperation.ADD, -2)
+										.upgradeModifier(RelicsScalingModels.ADDITIVE.get(), -2)
 										.thresholdValue(2, 15)
 										.formatValue(x -> (int) MathUtils.round(x, 0))
 										.build())
-								.stat(StatData.builder("damage")
+								.stat(AbilityStatTemplate.builder("damage")
 										.initialValue(2, 5)
-										.upgradeModifier(UpgradeOperation.ADD, 1)
+										.upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 1)
 										.formatValue(x -> (int) MathUtils.round(x, 1))
 										.thresholdValue(2, 10)
 										.build())
-								.stat(StatData.builder("radius")
+								.stat(AbilityStatTemplate.builder("radius")
 										.initialValue(3, 3)
 										.thresholdValue(3, 18)
-										.upgradeModifier(UpgradeOperation.ADD, 3F)
+										.upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 3F)
 										.formatValue(x -> (int) MathUtils.round(x, 1))
 										.build())
 								.build())
 						.build())
-				.leveling(new LevelingData(100, 10, 130))
-				.loot(LootData.builder()
+				.leveling(LevelingTemplate.builder()
+						.initialCost(100)
+						.step(130)
+						.maxRank(2)
+						.build())
+				.loot(LootTemplate.builder()
 						.entry(LootEntries.TROPIC)
 						.entry(LootEntries.VILLAGE)
 						.build())

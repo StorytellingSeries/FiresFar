@@ -30,7 +30,7 @@ public class EnchantPacket implements IPacket {
     }
     
     public static boolean mayEnchant(Player player, ItemStack scroll, ItemStack item, Collection<EnchantmentInstance> instances) {
-        int lvlCost = ScrollOfTruthItem.getFullEnchantmentCost(scroll, instances);
+        int lvlCost = ScrollOfTruthItem.getFullEnchantmentCost(player, scroll, instances);
         if (player.experienceLevel >= lvlCost) {
             return !item.isEmpty() && !item.isEnchanted();
         }
@@ -63,7 +63,7 @@ public class EnchantPacket implements IPacket {
         
         ServerPlayer player = ctx.getSender();
         if (player.containerMenu instanceof ScrollOfTruthContainer scrollOfTruthContainer) {
-            int lvlCost = ScrollOfTruthItem.getFullEnchantmentCost(scrollOfTruthContainer.scroll, data);
+            int lvlCost = ScrollOfTruthItem.getFullEnchantmentCost(player, scrollOfTruthContainer.scroll, data);
             if (player.experienceLevel >= lvlCost) {
                 ItemStack item = scrollOfTruthContainer.scrollContainer.getItem(0);
                 if (!item.isEmpty() && !item.isEnchanted()) {

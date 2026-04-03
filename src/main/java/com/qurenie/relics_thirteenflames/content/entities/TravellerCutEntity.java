@@ -193,11 +193,11 @@ public class TravellerCutEntity extends NonLivingEntity implements IAnimatedEnti
                 return false;
             target.setLastHurtByPlayer(owner);
             DamageSource source = owner.damageSources().playerAttack(owner);
-            target.hurt(source, (float) (ItemsRegistry.TRAVELLER_SWORD.getStatValue(stack, "swordcut", "damage") * getPlayerDamage(owner, level(), target, stack, source)));
+            target.hurt(source, (float) (ItemsRegistry.TRAVELLER_SWORD.getStatValue(owner, stack, "swordcut", "damage") * getPlayerDamage(owner, level(), target, stack, source)));
             target.setRemainingFireTicks(Math.max(target.getRemainingFireTicks(), getFireAspect() * 80));
             
             if (stack.getItem() == ItemsRegistry.TRAVELLER_SWORD)
-                ItemsRegistry.TRAVELLER_SWORD.addRelicExperience(stack, 4);
+                ItemsRegistry.TRAVELLER_SWORD.addExperience(owner, stack, 4);
             
             return true;
         });

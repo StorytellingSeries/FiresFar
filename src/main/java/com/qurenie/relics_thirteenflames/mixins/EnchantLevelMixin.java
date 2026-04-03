@@ -1,6 +1,6 @@
 package com.qurenie.relics_thirteenflames.mixins;
 
-import com.qurenie.api.EnchantCostEventPre;
+import com.qurenie.api.event.EnchantCostEventPre;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.EnchantmentMenu;
 import org.spongepowered.asm.mixin.Mixin;

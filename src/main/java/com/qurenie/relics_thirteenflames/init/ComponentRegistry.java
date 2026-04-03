@@ -1,29 +1,29 @@
 package com.qurenie.relics_thirteenflames.init;
 
 import com.mojang.serialization.Codec;
+import com.qurenie.relics_thirteenflames.activity.ActivitiesData;
 import com.qurenie.relics_thirteenflames.content.entities.EntitySeliasetSun;
 import com.qurenie.relics_thirteenflames.content.items.misc.JodahTier;
 import com.qurenie.relics_thirteenflames.content.items.misc.MaskState;
 import com.qurenie.relics_thirteenflames.content.items.misc.ScrollColorMode;
-import io.netty.buffer.ByteBuf;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.core.component.DataComponentType;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
-import org.jetbrains.annotations.NotNull;
-import org.joml.Vector3f;
 import org.zeith.hammerlib.annotations.RegistryName;
 import org.zeith.hammerlib.annotations.SimplyRegister;
 import org.zeith.hammerlib.api.registrars.Registrar;
 
 import java.util.UUID;
-import java.util.Vector;
 
 @SimplyRegister
 public class ComponentRegistry {
+
+    @RegistryName("activities")
+    public static final Registrar<DataComponentType<ActivitiesData>> ACTIVITIES = Registrar.dataComponentType(DataComponentType.<ActivitiesData>builder()
+            .persistent(ActivitiesData.CODEC)
+            .networkSynchronized(ActivitiesData.STREAM_CODEC).cacheEncoding());
     
     @RegistryName("nether_ticker")
     public static final Registrar<DataComponentType<Integer>> NETHER_TICKER = Registrar.dataComponentType(DataComponentType.<Integer>builder()
@@ -32,6 +32,11 @@ public class ComponentRegistry {
     
     @RegistryName("entity_uuid")
     public static final Registrar<DataComponentType<UUID>> ENTITY_UUID = Registrar.dataComponentType(DataComponentType.<UUID>builder()
+            .persistent(UUIDUtil.CODEC)
+            .networkSynchronized(UUIDUtil.STREAM_CODEC).cacheEncoding());
+
+    @RegistryName("activity_uuid")
+    public static final Registrar<DataComponentType<UUID>> UNIQUE_UUID = Registrar.dataComponentType(DataComponentType.<UUID>builder()
             .persistent(UUIDUtil.CODEC)
             .networkSynchronized(UUIDUtil.STREAM_CODEC).cacheEncoding());
     

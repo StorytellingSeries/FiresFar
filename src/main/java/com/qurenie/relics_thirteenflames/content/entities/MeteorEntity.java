@@ -1,6 +1,6 @@
 package com.qurenie.relics_thirteenflames.content.entities;
 
-import com.qurenie.api.EntityIgnoreExplosionEvent;
+import com.qurenie.api.event.EntityIgnoreExplosionEvent;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import net.minecraft.client.Minecraft;

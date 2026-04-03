@@ -51,7 +51,12 @@ public class ThirteenRenderTypes {
             RenderSystem.blendFunc(770, 1);
             return tesselator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.PARTICLE);
         }
-        
+
+        @Override
+        public boolean isTranslucent() {
+            return false;
+        }
+
         public String toString() {
             return "relics_thirteenflames_colored_translucent_lightning";
         }
@@ -69,6 +74,11 @@ public class ThirteenRenderTypes {
             RenderSystem.enableDepthTest();
             RenderSystem.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
             return tesselator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.PARTICLE);
+        }
+
+        @Override
+        public boolean isTranslucent() {
+            return false;
         }
         
         public String toString() {

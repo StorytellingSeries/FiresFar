@@ -1,22 +1,22 @@
 package com.qurenie.relics_thirteenflames.content.items;
 
+import com.qurenie.api.IActivityContainer;
+import com.qurenie.api.IExtRelicItem;
+import com.qurenie.api.SettingsContainer;
+import com.qurenie.relics_thirteenflames.activity.IActivitySetting;
+import com.qurenie.relics_thirteenflames.activity.RelicActivitySetting;
 import com.qurenie.relics_thirteenflames.content.entities.EntitySeliasetSun;
 import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
 import com.qurenie.relics_thirteenflames.net.PacketHornSounds;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
-import it.hurts.sskirillss.relics.init.RelicContainerRegistry;
 import it.hurts.sskirillss.relics.items.relics.base.RelicItem;
-import it.hurts.sskirillss.relics.items.relics.base.data.RelicData;
-import it.hurts.sskirillss.relics.items.relics.base.data.cast.CastData;
-import it.hurts.sskirillss.relics.items.relics.base.data.cast.misc.CastStage;
-import it.hurts.sskirillss.relics.items.relics.base.data.cast.misc.CastType;
-import it.hurts.sskirillss.relics.items.relics.base.data.cast.misc.PredicateType;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.AbilitiesData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.AbilityData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.LevelingData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.StatData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.misc.UpgradeOperation;
-import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootData;
+import it.hurts.sskirillss.relics.api.relics.RelicTemplate;
+import it.hurts.sskirillss.relics.api.relics.abilities.AbilitiesTemplate;
+import it.hurts.sskirillss.relics.api.relics.abilities.AbilityTemplate;
+import it.hurts.sskirillss.relics.api.relics.abilities.stats.AbilityStatTemplate;
+import it.hurts.sskirillss.relics.init.RelicsScalingModels;
+import it.hurts.sskirillss.relics.items.relics.base.data.leveling.LevelingTemplate;
+import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootTemplate;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootEntry;
 import it.hurts.sskirillss.relics.utils.MathUtils;
 import net.minecraft.ChatFormatting;
@@ -56,15 +56,13 @@ import org.zeith.hammerlib.api.items.IColoredFoilItem;
 import org.zeith.hammerlib.net.Network;
 
 import java.awt.*;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
-import java.util.Objects;
-import java.util.Random;
 
 import static com.qurenie.relics_thirteenflames.ThirteenFlames.SCHEDULER;
 import static com.qurenie.relics_thirteenflames.init.ComponentRegistry.ACTIVE_TICK;
 
-public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
+public class ItemSeliasetHorn extends RelicItem implements IExtRelicItem, IColoredFoilItem, IActivityContainer {
     
     public static final LootEntry PILLAGE = LootEntry.builder()
             .dimension(".*")
@@ -85,6 +83,13 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
     @Override
     public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level pLevel, Player pPlayer, @NotNull InteractionHand pUsedHand) {
         ItemStack horn = pPlayer.getItemInHand(pUsedHand);
+
+        if (pPlayer.isShiftKeyDown()) {
+            int duration = (int) (this.getStatValue(pPlayer, horn, "block", "wavesCount") * 60);
+            horn.set(ACTIVE_TICK, duration);
+            setMaxCooldown(pPlayer, horn, "block");
+        }
+
         pPlayer.startUsingItem(pUsedHand);
         return InteractionResultHolder.success(horn);
     }
@@ -133,7 +138,7 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
         
         if (level.isClientSide()) {
             int tick = this.getUseDuration(horn, living) - count;
-            int segments = (int) Math.round(this.getStatValue(horn, "air_ray", "distance"));
+            int segments = (int) Math.round(this.getStatValue(living, horn, "air_ray", "distance"));
             
             Vec3 iniPos = living.getEyePosition(1).add(0, -0.45, 0);
             if (living.isShiftKeyDown()) {
@@ -237,7 +242,7 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
     
     public void releaseRay(Player player, ItemStack horn) {
         Vec3 initPos = player.getEyePosition().add(0, -0.4, 0);
-        double distance = this.getStatValue(horn, "air_ray", "distance");
+        double distance = this.getStatValue(player, horn, "air_ray", "distance");
         
         
         Vec3 endPos = initPos.add(player.getLookAngle().scale(distance / 2.0));
@@ -250,7 +255,7 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
                 
                 Vec3 entityPos = e.position().add(0, e.getEyeHeight(), 0);
                 Vec3 b = entityPos.subtract(initPos).add(player.getLookAngle());
-                double efficiency = this.getStatValue(horn, "air_ray", "efficiency") / 20;
+                double efficiency = this.getStatValue(player, horn, "air_ray", "efficiency") / 20;
                 
                 if (e instanceof LivingEntity living && living.getMaxHealth() > 50)
                     efficiency = Mth.clamp(efficiency - (living.getMaxHealth() - 50.0) / 10.0, 0, efficiency);
@@ -295,68 +300,64 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
     public UseAnim getUseAnimation(ItemStack pStack) {
         return UseAnim.TOOT_HORN;
     }
-    
-    
+
     @Override
-    public RelicData constructDefaultRelicData() {
-        return RelicData.builder()
-                .abilities(AbilitiesData.builder()
-                        .ability(AbilityData.builder("air_ray")
-                                .maxLevel(5)
-                                .stat(StatData.builder("distance")
+    public SettingsContainer<IActivitySetting> constructActivitySettings() {
+        return SettingsContainer.<IActivitySetting>builder()
+                .setting(RelicActivitySetting.builderRelic("block").build())
+                .build();
+    }
+
+    @Override
+    public RelicTemplate constructDefaultRelicTemplate() {
+        return RelicTemplate.builder()
+                .abilities(AbilitiesTemplate.builder()
+                        .ability(AbilityTemplate.builder("air_ray")
+                                .initialMaxLevel(5)
+                                .stat(AbilityStatTemplate.builder("distance")
                                         .thresholdValue(8, 42)
                                         .initialValue(10, 14)
-                                        .upgradeModifier(UpgradeOperation.MULTIPLY_TOTAL, 0.25)
+                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), 0.25)
                                         .formatValue(x -> MathUtils.round(x, 1))
                                         .build())
-                                .stat(StatData.builder("efficiency")
+                                .stat(AbilityStatTemplate.builder("efficiency")
                                         .thresholdValue(2, 5)
                                         .initialValue(2.5, 3.5)
-                                        .upgradeModifier(UpgradeOperation.ADD, 0.3)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 0.3)
                                         .formatValue(x -> (int) MathUtils.round(x, 0))
                                         .build())
                                 .build())
-                        .ability(AbilityData.builder("block")
-                                .maxLevel(5)
-                                .active(CastData.builder()
-                                        .container(RelicContainerRegistry.INVENTORY.get())
-                                        .predicate("horn_pred", PredicateType.VISIBILITY, (p, s) -> p.getMainHandItem() == s || p.getOffhandItem() == s)
-                                        .type(CastType.INSTANTANEOUS)
-                                        .build())
-                                .stat(StatData.builder("wavesCount")
+                        .ability(AbilityTemplate.builder("block")
+                                .initialMaxLevel(5)
+                                .stat(AbilityStatTemplate.builder("wavesCount")
                                         .initialValue(2, 2)
-                                        .upgradeModifier(UpgradeOperation.ADD, 1)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 1)
                                         .thresholdValue(2, 7)
                                         .formatValue(x -> (int) Math.round(x))
                                         .build())
-                                .stat(StatData.builder("cooldown")
+                                .stat(AbilityStatTemplate.builder("recharge")
                                         .initialValue(60, 40)
                                         .thresholdValue(10, 60)
-                                        .upgradeModifier(UpgradeOperation.ADD, -6)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), -6)
                                         .formatValue(x -> (int) Math.round(x))
                                         .build())
-                                .stat(StatData.builder("stunDuration")
+                                .stat(AbilityStatTemplate.builder("stunDuration")
                                         .initialValue(0.4, 0.6)
                                         .thresholdValue(0.5, 4)
-                                        .upgradeModifier(UpgradeOperation.ADD, 0.3)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 0.3)
                                         .formatValue(x -> MathUtils.round(x, 1))
                                         .build())
                                 .build())
                         .build())
-                .leveling(new LevelingData(100, 10, 100))
-                .loot(LootData.builder()
+                .leveling(LevelingTemplate.builder()
+                        .step(100)
+                        .initialCost(100)
+                        .maxRank(1)
+                        .build())
+                .loot(LootTemplate.builder()
                         .entry(PILLAGE)
                         .build())
                 .build();
-    }
-    
-    @Override
-    public void castActiveAbility(ItemStack stack, Player player, String ability, CastType type, CastStage stage) {
-        if (ability.equals("block")) {
-            int duration = (int) (this.getStatValue(stack, "block", "wavesCount") * 60);
-            stack.set(ACTIVE_TICK, duration);
-            this.addAbilityCooldown(stack, "block", (int) (this.getStatValue(stack, "block", "cooldown") * 20));
-        }
     }
     
     @Override
@@ -409,8 +410,10 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
                     return;
                 
                 if (!living.hasEffect(MobEffects.MOVEMENT_SLOWDOWN) && entity instanceof LivingEntity livin)
-                    this.spreadRelicExperience(livin, stack, 1);
-                living.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, (int) Math.round(this.getStatValue(stack, "block", "stunDuration") * 20), 3));
+                    this.addExperience(livin, stack, 1);
+
+                if (entity instanceof LivingEntity livin)
+                    living.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, (int) Math.round(this.getStatValue(livin, stack, "block", "stunDuration") * 20), 3));
             }
         }
     }
@@ -483,7 +486,7 @@ public class ItemSeliasetHorn extends RelicItem implements IColoredFoilItem {
     public int getFoilColor(@NotNull ItemStack stack) {
         return /*0xFA9FEB7D*/ new Color(183, 155, 58).getRGB();
     }
-    
+
     @OnlyIn(Dist.CLIENT)
     public static class TootSoundInstance extends AbstractTickableSoundInstance {
         

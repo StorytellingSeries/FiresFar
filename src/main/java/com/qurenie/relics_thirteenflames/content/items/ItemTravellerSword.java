@@ -2,8 +2,13 @@ package com.qurenie.relics_thirteenflames.content.items;
 
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Sets;
-import com.qurenie.api.MeleeAttackCheckEvent;
+import com.qurenie.api.IActivityContainer;
+import com.qurenie.api.IExtRelicItem;
+import com.qurenie.api.SettingsContainer;
+import com.qurenie.api.event.MeleeAttackCheckEvent;
 import com.qurenie.relics_thirteenflames.ThirteenFlames;
+import com.qurenie.relics_thirteenflames.activity.IActivitySetting;
+import com.qurenie.relics_thirteenflames.activity.RelicActivitySetting;
 import com.qurenie.relics_thirteenflames.content.entities.TravellerCutEntity;
 import com.qurenie.relics_thirteenflames.content.entities.TravellerSweepEntity;
 import com.qurenie.relics_thirteenflames.init.ComponentRegistry;
@@ -14,20 +19,15 @@ import com.qurenie.relics_thirteenflames.net.TravellerSweepPacket;
 import com.qurenie.relics_thirteenflames.util.FlamesUtils;
 import com.qurenie.relics_thirteenflames.util.MixinHooks;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
-import it.hurts.sskirillss.relics.init.RelicContainerRegistry;
-import it.hurts.sskirillss.relics.items.relics.base.IRelicItem;
-import it.hurts.sskirillss.relics.items.relics.base.data.RelicData;
-import it.hurts.sskirillss.relics.items.relics.base.data.cast.CastData;
-import it.hurts.sskirillss.relics.items.relics.base.data.cast.misc.CastStage;
-import it.hurts.sskirillss.relics.items.relics.base.data.cast.misc.CastType;
-import it.hurts.sskirillss.relics.items.relics.base.data.cast.misc.PredicateType;
+import it.hurts.sskirillss.relics.api.relics.abilities.AbilitiesTemplate;
+import it.hurts.sskirillss.relics.api.relics.abilities.AbilityTemplate;
+import it.hurts.sskirillss.relics.api.relics.abilities.stats.AbilityStatTemplate;
+import it.hurts.sskirillss.relics.api.relics.IRelicItem;
+import it.hurts.sskirillss.relics.api.relics.RelicTemplate;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.*;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.misc.GemColor;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.misc.GemShape;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.misc.UpgradeOperation;
-import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootData;
+import it.hurts.sskirillss.relics.init.RelicsScalingModels;
+import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootTemplate;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootEntry;
-import it.hurts.sskirillss.relics.items.relics.base.data.loot.misc.LootEntries;
 import it.hurts.sskirillss.relics.utils.MathUtils;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -41,6 +41,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlotGroup;
@@ -76,7 +77,7 @@ import java.util.function.Consumer;
 import static com.qurenie.relics_thirteenflames.init.ComponentRegistry.*;
 import static net.neoforged.neoforge.common.NeoForge.EVENT_BUS;
 
-public class ItemTravellerSword extends SwordItem implements IRelicItem, IRegisterListener {
+public class ItemTravellerSword extends SwordItem implements IExtRelicItem, IRelicItem, IRegisterListener, IActivityContainer {
     
     public static final ResourceLocation TRAVELLER_STEP_HEIGHT = ThirteenFlames.rl("traveller_step_height");
     public static final ResourceLocation TRAVELLER_MOVEMENT_SPEED = ThirteenFlames.rl("traveller_movement_speed");
@@ -191,87 +192,84 @@ public class ItemTravellerSword extends SwordItem implements IRelicItem, IRegist
     public boolean supportsEnchantment(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
         return this.isPrimaryItemFor(stack, enchantment);
     }
-    
+
     @Override
-    public RelicData constructDefaultRelicData() {
-        return RelicData.builder()
-                .abilities(AbilitiesData.builder()
-                        .ability(AbilityData.builder("travelers_stride")
-                                .maxLevel(4)
-                                .stat(StatData.builder("charge")
+    public SettingsContainer<IActivitySetting> constructActivitySettings() {
+        return SettingsContainer.<IActivitySetting>builder()
+                .setting(RelicActivitySetting.builderRelic("dash", "recharge").build())
+                .setting(RelicActivitySetting.builderRelic("swordcut", "recharge").build())
+                .build();
+    }
+
+    @Override
+    public RelicTemplate constructDefaultRelicTemplate() {
+        return RelicTemplate.builder()
+                .abilities(AbilitiesTemplate.builder()
+                        .ability(AbilityTemplate.builder("travelers_stride")
+                                .initialMaxLevel(4)
+                                .stat(AbilityStatTemplate.builder("charge")
                                         .initialValue(1, 2)
-                                        .upgradeModifier(UpgradeOperation.ADD, 0.75)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 0.75)
                                         .thresholdValue(1, 5)
                                         .formatValue(d -> MathUtils.round(5d / d, 1))
                                         .build()
                                 )
-                                .stat(StatData.builder("stride_damage")
+                                .stat(AbilityStatTemplate.builder("stride_damage")
                                         .initialValue(10, 15)
-                                        .upgradeModifier(UpgradeOperation.ADD, 4)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 4)
                                         .thresholdValue(10, 30)
                                         .formatValue(d -> MathUtils.round(d, 0))
                                         .build()
                                 )
-                                .stat(StatData.builder("sweep_damage_multi")
+                                .stat(AbilityStatTemplate.builder("sweep_damage_multi")
                                         .initialValue(0.5, 1)
-                                        .upgradeModifier(UpgradeOperation.ADD, 0.5)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 0.5)
                                         .thresholdValue(0.5, 3)
                                         .formatValue(d -> MathUtils.round(d * 100, 0))
                                         .build()
                                 )
                                 .build()
                         )
-                        .ability(AbilityData.builder("dash")
-                                .maxLevel(5)
-                                .active(CastData.builder()
-                                        .container(RelicContainerRegistry.INVENTORY.get())
-                                        .type(CastType.INSTANTANEOUS)
-                                        .predicate("dash_predicate", PredicateType.VISIBILITY, (p, s) -> p.getMainHandItem() == s || p.getOffhandItem() == s)
-                                        .build())
-                                .stat(StatData.builder("range")
+                        .ability(AbilityTemplate.builder("dash")
+                                .initialMaxLevel(5)
+                                .stat(AbilityStatTemplate.builder("range")
                                         .initialValue(4, 7)
-                                        .upgradeModifier(UpgradeOperation.ADD, 1)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 1)
                                         .thresholdValue(4, 12)
                                         .formatValue(d -> MathUtils.round(d, 1))
                                         .build()
                                 )
-                                .stat(StatData.builder("damage_boost")
+                                .stat(AbilityStatTemplate.builder("damage_boost")
                                         .initialValue(0.5, 1)
-                                        .upgradeModifier(UpgradeOperation.ADD, 0.6)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 0.6)
                                         .thresholdValue(0.5, 6)
                                         .formatValue(d -> MathUtils.round(d * 100, 0))
                                         .build()
                                 )
-                                .stat(StatData.builder("cooldown")
-                                        .initialValue(15, 10)
-                                        .thresholdValue(3, 15)
-                                        .upgradeModifier(UpgradeOperation.ADD, -1.5)
+                                .stat(AbilityStatTemplate.builder("recharge")
+                                        .initialValue(300, 200)
+                                        .thresholdValue(60, 300)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), -30)
                                         .formatValue(d -> MathUtils.round(d, 1))
                                         .build()
                                 )
                                 .build()
                         )
-                        .ability(AbilityData.builder("swordcut")
+                        .ability(AbilityTemplate.builder("swordcut")
                                 .requiredPoints(2)
                                 .requiredLevel(9)
-                                .maxLevel(2)
-                                .active(CastData.builder()
-                                        .container(RelicContainerRegistry.INVENTORY.get())
-                                        .type(CastType.INSTANTANEOUS)
-                                        .predicate("swordcut_predicate", PredicateType.VISIBILITY,
-                                                (p, s) -> p.getMainHandItem() == s || p.getOffhandItem() == s)
-                                        .build())
-                                .stat(StatData.builder("damage")
+                                .initialMaxLevel(2)
+                                .stat(AbilityStatTemplate.builder("damage")
                                         .initialValue(1.5, 2)
                                         .thresholdValue(1.5, 4)
-                                        .upgradeModifier(UpgradeOperation.ADD, 0.35)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 0.35)
                                         .formatValue(d -> MathUtils.round(d * 100, 0))
                                         .build()
                                 )
-                                .stat(StatData.builder("cooldown")
+                                .stat(AbilityStatTemplate.builder("recharge")
                                         .initialValue(55, 45)
                                         .thresholdValue(35, 55)
-                                        .upgradeModifier(UpgradeOperation.ADD, -5)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), -5)
                                         .formatValue(d -> MathUtils.round(d, 1))
                                         .build()
                                 )
@@ -279,15 +277,20 @@ public class ItemTravellerSword extends SwordItem implements IRelicItem, IRegist
                         )
                         .build()
                 )
-                .leveling(LevelingData.builder().initialCost(100).maxLevel(13).step(100)
-                        .sources(LevelingSourcesData.builder()
-                                .source(LevelingSourceData.genericBuilder("travelers_stride_run").initialValue(1).gem(GemShape.SQUARE, GemColor.CYAN).build())
-                                .source(LevelingSourceData.genericBuilder("travelers_stride_attack").initialValue(2).gem(GemShape.SQUARE, GemColor.CYAN).build())
-                                .source(LevelingSourceData.abilityBuilder("dash").initialValue(6).gem(GemShape.SQUARE, GemColor.CYAN).build())
-                                .source(LevelingSourceData.genericBuilder("dash_attack").initialValue(1).gem(GemShape.SQUARE, GemColor.CYAN).build())
-                                .build())
+                .leveling(LevelingTemplate.builder()
+                        .step(100)
+                        .initialCost(100)
+                        .maxRank(2)
                         .build())
-                .loot(LootData.builder().entry(RUINED_PORTAL).build())
+//                .leveling(LevelingData.builder().initialCost(100).initialMaxLevel(13).step(100)
+//                        .sources(LevelingSourcesData.builder()
+//                                .source(LevelingSourceData.genericBuilder("travelers_stride_run").initialValue(1).gem(GemShape.SQUARE, GemColor.CYAN).build())
+//                                .source(LevelingSourceData.genericBuilder("travelers_stride_attack").initialValue(2).gem(GemShape.SQUARE, GemColor.CYAN).build())
+//                                .source(LevelingSourceData.abilityBuilder("dash").initialValue(6).gem(GemShape.SQUARE, GemColor.CYAN).build())
+//                                .source(LevelingSourceData.genericBuilder("dash_attack").initialValue(1).gem(GemShape.SQUARE, GemColor.CYAN).build())
+//                                .build())
+//                        .build())
+                .loot(LootTemplate.builder().entry(RUINED_PORTAL).build())
                 .build();
     }
     
@@ -301,23 +304,24 @@ public class ItemTravellerSword extends SwordItem implements IRelicItem, IRegist
     public boolean shouldCauseReequipAnimation(@NotNull ItemStack oldStack, @NotNull ItemStack newStack, boolean slotChanged) {
         return slotChanged;
     }
-    
+
     @Override
-    public void castActiveAbility(ItemStack stack, Player player, String ability, CastType type, CastStage stage) {
-        if (ability.equals("dash")) {
-            this.addAbilityCooldown(stack, "dash", 20 * (int) this.getStatValue(stack, "dash", "cooldown"));
+    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand usedHand) {
+        ItemStack stack = player.getItemInHand(usedHand);
+        if (canCast(player, stack, "dash")) {
+            setMaxCooldown(player, stack, "dash");
             stack.set(TRAVELLER_ACTIVE_TICK, DASH_TICKS);
-            
-            double range = ItemsRegistry.TRAVELLER_SWORD.getStatValue(stack, "dash", "range");
+
+            double range = ItemsRegistry.TRAVELLER_SWORD.getStatValue(player, stack, "dash", "range");
             Vec3 lookAngle = player.getLookAngle();
             double scale = 1 / lookAngle.multiply(1, 0, 1).length();
             boolean onSurface = !player.isFallFlying() && !player.isInFluidType() && !player.level().getBlockState(player.blockPosition().below()).isAir();
             TravellerDashPointer pointer = createPointer(player.level(), player, player.getEyePosition(),
                     player.getEyePosition().add(player.getLookAngle().scale(scale * range)), !onSurface);
-            
+
             if (pointer == null)
-                return;
-            
+                return super.use(level, player, usedHand);
+
             int fireAspect = stack.getEnchantmentLevel(player.level().holder(Enchantments.FIRE_ASPECT).get());
             if (player.level().isClientSide) {
                 Vec3 last = player.position();
@@ -330,48 +334,35 @@ public class ItemTravellerSword extends SwordItem implements IRelicItem, IRegist
                     }
                     last = pos;
                 }
-                
+
             }
             stack.set(DIRECTION, pointer.getEnd().subtract(player.position()));
             player.moveTo(pointer.getEnd());
             player.swing(stack == player.getItemInHand(InteractionHand.MAIN_HAND) ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND);
-            
+
             if (player.level().isClientSide)
-                return;
-            
+                return super.use(level, player, usedHand);
+
             Vec3 last = player.position();
             for (Vec3 pos : pointer) {
                 AABB aabb = new AABB(pos, last).inflate(1.5, 1.5, 1.5).expandTowards(0, 4, 0);
                 for (LivingEntity living : player.level().getEntitiesOfClass(LivingEntity.class, aabb, l -> l != player)) {
                     living.setLastHurtByPlayer(player);
                     DamageSource source = player.damageSources().playerAttack(player);
-                    living.hurt(source, (float) this.getStatValue(stack, "dash", "damage_boost") * getPlayerDamage(player, player.level(), living, stack, source) * 0.75f);
-                    
+                    living.hurt(source, (float) this.getStatValue(player, stack, "dash", "damage_boost") * getPlayerDamage(player, player.level(), living, stack, source) * 0.75f);
+
                     if (fireAspect > 0)
                         living.setRemainingFireTicks(Math.max(living.getRemainingFireTicks(), 60 * fireAspect));
-                    
+
                     if (stack.getItem() == ItemsRegistry.TRAVELLER_SWORD)
-                        ItemsRegistry.TRAVELLER_SWORD.addRelicExperience(stack, 3);
+                        addExperience(player, stack, 3);
                 }
             }
 
-//            if (!player.level().isClientSide) {
-//                TravellerAfterdashEntity afterdash = new TravellerAfterdashEntity(
-//                        EntityRegistry.TRAVELLER_AFTERDASH,
-//                        player.level(),
-//                        player,
-//                        fireAspect,
-//                        (int) (this.getStatValue(stack, "dash", "range")),
-//                        (float) this.getStatValue(stack, "dash", "damage_boost") * 8
-//                );
-//                player.level().addFreshEntity(afterdash);
-//            }
-            
-            ItemsRegistry.TRAVELLER_SWORD.addRelicExperience(stack, 8);
-        } else if (ability.equals("swordcut")) {
-            stack.set(ACTIVE_TICK, 400);
-            addAbilityCooldown(stack, "swordcut", (int) (20 * getStatValue(stack, "swordcut", "cooldown")));
+            addExperience(player, stack, 8);
         }
+
+        return super.use(level, player, usedHand);
     }
     
     private void spawnDashParticles(Level level, Vec3 point, Vec3 lastPoint, boolean upParticles, boolean onFire) {
@@ -438,7 +429,7 @@ public class ItemTravellerSword extends SwordItem implements IRelicItem, IRegist
             float d = 1f / DASH_TICKS;
             float completion = 1 - d * dashTick;
             
-            double range = getStatValue(stack, "dash", "range") / 2;
+            double range = getStatValue(player, stack, "dash", "range") / 2;
             Vec3 delta = stack.getOrDefault(DIRECTION, Vec3.ZERO).normalize().scale(range * 1.5);
             Vec3 eyePos = player.getEyePosition().subtract(0, 0.5, 0);
             
@@ -490,7 +481,7 @@ public class ItemTravellerSword extends SwordItem implements IRelicItem, IRegist
             }
             for (var target : targets) {
                 DamageSource source = player.damageSources().playerAttack(player);
-                target.hurt(source, (float) this.getStatValue(stack, "dash", "damage_boost") * getPlayerDamage(player, player.level(), living, stack, source));
+                target.hurt(source, (float) this.getStatValue(player, stack, "dash", "damage_boost") * getPlayerDamage(player, player.level(), living, stack, source));
                 
                 if (fireAspect > 0)
                     target.setRemainingFireTicks(Math.max(living.getRemainingFireTicks(), 60 * fireAspect));
@@ -501,10 +492,10 @@ public class ItemTravellerSword extends SwordItem implements IRelicItem, IRegist
         if (entity instanceof Player p) {
             float charge = stack.getOrDefault(ComponentRegistry.SPEED, 0f);
             if (p.isSprinting()) {
-                charge = (float) Math.min(charge + this.getStatValue(stack, "travelers_stride", "charge") / 20f, MAX_CHARGE);
+                charge = (float) Math.min(charge + this.getStatValue(living, stack, "travelers_stride", "charge") / 20f, MAX_CHARGE);
                 stack.set(ComponentRegistry.SPEED, charge);
                 if (p.tickCount % 40 == 0)
-                    this.addRelicExperience(stack, 1);
+                    this.addExperience(living, stack, 1);
                 DamageSource damagesource = p.damageSources().playerAttack(p);
                 applySpeedModifier(p, charge);
                 if (charge > 2) {
@@ -513,10 +504,10 @@ public class ItemTravellerSword extends SwordItem implements IRelicItem, IRegist
                     AABB aoe = living.getBoundingBox().inflate(0.5);
                     for (LivingEntity target : living.level().getEntitiesOfClass(LivingEntity.class, aoe, e -> !e.getUUID().equals(living.getUUID()))) {
                         target.hurt(damagesource, (float) (getPlayerDamage(p, level, entity, stack, damagesource) *
-                                this.getStatValue(stack, "travelers_stride", "stride_damage") / 100));
+                                this.getStatValue(living, stack, "travelers_stride", "stride_damage") / 100));
                         p.setLastHurtMob(entity);
                         target.setRemainingFireTicks(Math.max(entity.getRemainingFireTicks(), 30 * fireAspect));
-                        this.addRelicExperience(stack, 2);
+                        this.addExperience(living, stack, 2);
                         Vec3 awayctor = target.position().subtract(living.position()).subtract(p.getDeltaMovement());
                         
                         if (target.isPushable())
@@ -550,6 +541,8 @@ public class ItemTravellerSword extends SwordItem implements IRelicItem, IRegist
         player.level().addFreshEntity(cutEnt);
         player.getCooldowns().addCooldown(this, 10);
     }
+
+
     
     public void onSprintSweep(Player player, ItemStack stack) {
         player.setSprinting(false);
@@ -563,7 +556,7 @@ public class ItemTravellerSword extends SwordItem implements IRelicItem, IRegist
         int fireAspect = stack.getEnchantmentLevel(player.level().holder(Enchantments.FIRE_ASPECT).get());
         applySpeedModifier(player, 0);
         TravellerSweepEntity sweepEntity = new TravellerSweepEntity(EntityRegistry.TRAVELLER_SWEEP, player.level(),
-                player, stack, ((IRelicItem) stack.getItem()).getStatValue(stack, "travelers_stride", "sweep_damage_multi"), fireAspect);
+                player, stack, ((ItemTravellerSword) stack.getItem()).getStatValue(player, stack, "travelers_stride", "sweep_damage_multi"), fireAspect);
         sweepEntity.setPos(player.position());
         player.level().addFreshEntity(sweepEntity);
     }
@@ -592,6 +585,9 @@ public class ItemTravellerSword extends SwordItem implements IRelicItem, IRegist
             if (activeTick > 0 && !click.getEntity().getCooldowns().isOnCooldown(this))
                 Network.sendToServer(new TravellerCutPacket(click.getItemStack()));
         }
+
+        if (canCast(click.getEntity(), click.getItemStack(), "swordcut") && click.getEntity().isShiftKeyDown())
+            Network.sendToServer(new TravellerCutPacket(click.getItemStack()));
     }
     
     @SubscribeEvent
@@ -613,10 +609,15 @@ public class ItemTravellerSword extends SwordItem implements IRelicItem, IRegist
                 }
             });
         }
-        
+
         int activeTick = event.getItemStack().getOrDefault(ComponentRegistry.ACTIVE_TICK, 0);
         if (activeTick > 0 && !event.getEntity().getCooldowns().isOnCooldown(this))
             onSwordCut(event.getEntity(), event.getItemStack());
+
+        if (canCast(event.getEntity(), stack, "swordcut") && event.getEntity().isShiftKeyDown()) {
+            stack.set(ACTIVE_TICK, 400);
+            setMaxCooldown(event.getEntity(), stack, "swordcut");
+        }
     }
     
     @Override

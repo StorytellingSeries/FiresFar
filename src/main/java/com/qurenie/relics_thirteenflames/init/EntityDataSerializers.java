@@ -2,11 +2,7 @@ package com.qurenie.relics_thirteenflames.init;
 
 import com.qurenie.relics_thirteenflames.ThirteenFlames;
 import com.qurenie.relics_thirteenflames.content.items.ItemKnefRose;
-import com.qurenie.relics_thirteenflames.content.items.ItemSeliasetHorn;
-import it.hurts.sskirillss.relics.items.relics.back.MidnightRobeItem;
 import net.minecraft.network.syncher.EntityDataSerializer;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.util.function.Supplier;

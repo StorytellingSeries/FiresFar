@@ -59,7 +59,6 @@ public class ScrollOfTruthContainerScreen extends DefaultMenuScreen<ScrollOfTrut
         this.inventoryLabelY += 33;
     }
     
-    
     @Override
     protected void init() {
         super.init();
@@ -96,7 +95,7 @@ public class ScrollOfTruthContainerScreen extends DefaultMenuScreen<ScrollOfTrut
                 Enchantment e = instance.enchantment.value();
                 int maxAllowedLevel = 0;
                 if (menu.scroll.getItem() instanceof ScrollOfTruthItem sot) {
-                    maxAllowedLevel = (int) (sot.getStatValue(menu.scroll, "enchant", "maxLevel"));
+                    maxAllowedLevel = (int) (sot.getStatValue(Minecraft.getInstance().player, menu.scroll, "enchant", "maxLevel"));
                 }
                 if (instance.level < e.getMaxLevel() && instance.level < maxAllowedLevel) {
                     selectedEnchantButton.increment();
@@ -228,7 +227,7 @@ public class ScrollOfTruthContainerScreen extends DefaultMenuScreen<ScrollOfTrut
     }
     
     @Override
-    public void render(GuiGraphics guiGraphics, int mx, int my, float pTicks) {
+    public void render(@NotNull GuiGraphics guiGraphics, int mx, int my, float pTicks) {
         //guiGraphics.fill(0,0,10000,100000,0xaa000000);
         
         this.deactivateEnchantButtonsOutOfReach(this.toEnchantButtons);
@@ -246,8 +245,8 @@ public class ScrollOfTruthContainerScreen extends DefaultMenuScreen<ScrollOfTrut
         Scissors.end();
         
         if (!this.menu.scrollContainer.getItem(0).isEmpty()) {
-            int cost = ScrollOfTruthItem.getFullEnchantmentCost(menu.scroll, this.toEnchant.values());
             Player player = Minecraft.getInstance().player;
+            int cost = ScrollOfTruthItem.getFullEnchantmentCost(player, menu.scroll, this.toEnchant.values());
             int level = player == null ? 0 : player.experienceLevel;
             RenderTools.renderCenteredScaledText(guiGraphics, Component.translatable("tooltip.relics_thirteenflames.scroll_of_truth.gui.levelCost").getString() + " " + cost,
                     relX + this.getScreenWidth() / 2, relY + 87, 0.95f, RenderTools.DEFAULT_SHADOW_COLOR, level >= cost ? RenderTools.DEFAULT_TEXT_COLOR : 0xdb1e10);
@@ -292,7 +291,7 @@ public class ScrollOfTruthContainerScreen extends DefaultMenuScreen<ScrollOfTrut
     }
     
     @Override
-    protected void slotClicked(Slot slot, int p_97779_, int p_97780_, @NotNull ClickType p_97781_) {
+    protected void slotClicked(@NotNull Slot slot, int p_97779_, int p_97780_, @NotNull ClickType p_97781_) {
         if (slot != null && ItemStack.matches(slot.getItem(), menu.scroll)) return;
         super.slotClicked(slot, p_97779_, p_97780_, p_97781_);
     }
@@ -363,7 +362,7 @@ public class ScrollOfTruthContainerScreen extends DefaultMenuScreen<ScrollOfTrut
             int maxWeight = 0;
             
             if (menu.scroll.getItem() instanceof ScrollOfTruthItem sot)
-                maxWeight = (int) sot.getStatValue(menu.scroll, "enchant", "maxLevel");
+                maxWeight = (int) sot.getStatValue(Minecraft.getInstance().player, menu.scroll, "enchant", "maxLevel");
             
             for (Holder<Enchantment> e : allEnchantments) {
                 if (stack.supportsEnchantment(e)

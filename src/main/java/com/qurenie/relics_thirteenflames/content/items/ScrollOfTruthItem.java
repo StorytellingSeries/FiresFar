@@ -1,18 +1,19 @@
 package com.qurenie.relics_thirteenflames.content.items;
 
+import com.qurenie.api.IExtRelicItem;
 import com.qurenie.relics_thirteenflames.content.container.ScrollOfTruthContainer;
 import com.qurenie.relics_thirteenflames.content.items.misc.ScrollColorMode;
 import com.qurenie.relics_thirteenflames.net.ScrollChangeModePacket;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
-import it.hurts.sskirillss.relics.items.relics.base.IRelicItem;
+import it.hurts.sskirillss.relics.api.relics.IRelicItem;
 import it.hurts.sskirillss.relics.items.relics.base.RelicItem;
-import it.hurts.sskirillss.relics.items.relics.base.data.RelicData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.AbilitiesData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.AbilityData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.LevelingData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.StatData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.misc.UpgradeOperation;
-import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootData;
+import it.hurts.sskirillss.relics.api.relics.RelicTemplate;
+import it.hurts.sskirillss.relics.api.relics.abilities.AbilitiesTemplate;
+import it.hurts.sskirillss.relics.api.relics.abilities.AbilityTemplate;
+import it.hurts.sskirillss.relics.api.relics.abilities.stats.AbilityStatTemplate;
+import it.hurts.sskirillss.relics.init.RelicsScalingModels;
+import it.hurts.sskirillss.relics.items.relics.base.data.leveling.LevelingTemplate;
+import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootTemplate;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.misc.LootEntries;
 import it.hurts.sskirillss.relics.utils.MathUtils;
 import net.minecraft.ChatFormatting;
@@ -24,6 +25,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -43,24 +45,34 @@ import static com.qurenie.relics_thirteenflames.init.ComponentRegistry.SCROLL_CO
 import static com.qurenie.relics_thirteenflames.init.ComponentRegistry.SCROLL_XP_COUNTER;
 
 @EventBusSubscriber
-public class ScrollOfTruthItem extends RelicItem {
+public class ScrollOfTruthItem extends RelicItem implements IExtRelicItem {
     
     public ScrollOfTruthItem(Properties props) {
         super(props);
     }
     
-    public static int getEffectLevel(ItemStack scroll) {
+    public static int getEffectLevel(LivingEntity livingEntity, ItemStack scroll) {
         if (!(scroll.getItem() instanceof IRelicItem relic)) return -1;
-        return (int) relic.getStatValue(scroll, "passive_effect", "effectLevel");
+        return (int) relic.
+                getRelicData(livingEntity, scroll)
+                .getAbilitiesData()
+                .getAbilityData("passive_effect")
+                .getStatData("effectLevel")
+                .getValue();
     }
     
-    public static float getCostModifier(ItemStack scroll) {
+    public static float getCostModifier(LivingEntity livingEntity, ItemStack scroll) {
         if (!(scroll.getItem() instanceof IRelicItem relic)) return -1;
-        return (float) relic.getStatValue(scroll, "enchant", "costModifier");
+        return (float) relic.
+                getRelicData(livingEntity, scroll)
+                .getAbilitiesData()
+                .getAbilityData("enchant")
+                .getStatData("costModifier")
+                .getValue();
     }
     
-    public static int getFullEnchantmentCost(ItemStack scroll, Collection<EnchantmentInstance> instances) {
-        float costModifier = getCostModifier(scroll); //0.5 <- 1.5
+    public static int getFullEnchantmentCost(LivingEntity livingEntity, ItemStack scroll, Collection<EnchantmentInstance> instances) {
+        float costModifier = getCostModifier(livingEntity, scroll); //0.5 <- 1.5
         float fullCost = 0;
         for (EnchantmentInstance inst : instances) {
             float cost = getFullLevelCost(inst);
@@ -81,7 +93,7 @@ public class ScrollOfTruthItem extends RelicItem {
             if (stack.getItem() instanceof ScrollOfTruthItem scroll) {
                 int cntXP = stack.getOrDefault(SCROLL_XP_COUNTER, 0);
                 cntXP += event.getAmount();
-                scroll.spreadRelicExperience(event.getEntity(), stack, cntXP / 5);
+                scroll.addExperience(event.getEntity(), stack, cntXP / 5);
                 stack.set(SCROLL_XP_COUNTER, cntXP % 5);
             }
         }
@@ -109,36 +121,40 @@ public class ScrollOfTruthItem extends RelicItem {
     }
     
     @Override
-    public RelicData constructDefaultRelicData() {
-        return RelicData.builder()
-                .abilities(AbilitiesData.builder()
-                        .ability(AbilityData.builder("enchant")
-                                .maxLevel(10)
-                                .stat(StatData.builder("costModifier")
+    public RelicTemplate constructDefaultRelicTemplate() {
+        return RelicTemplate.builder()
+                .abilities(AbilitiesTemplate.builder()
+                        .ability(AbilityTemplate.builder("enchant")
+                                .initialMaxLevel(10)
+                                .stat(AbilityStatTemplate.builder("costModifier")
                                         .initialValue(3, 2.5)
                                         .thresholdValue(0.25, 3)
-                                        .upgradeModifier(UpgradeOperation.ADD, -0.23)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), -0.23)
                                         .formatValue(x -> (int) MathUtils.round(x * 100, 0))
                                         .build())
-                                .stat(StatData.builder("maxLevel")
+                                .stat(AbilityStatTemplate.builder("maxLevel")
                                         .initialValue(1, 1.5)
-                                        .upgradeModifier(UpgradeOperation.ADD, 0.75)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 0.75)
                                         .thresholdValue(1, 9)
                                         .formatValue(Math::floor)
                                         .build())
                                 .build())
-                        .ability(AbilityData.builder("passive_effect")
-                                .maxLevel(1)
-                                .stat(StatData.builder("effectLevel")
+                        .ability(AbilityTemplate.builder("passive_effect")
+                                .initialMaxLevel(1)
+                                .stat(AbilityStatTemplate.builder("effectLevel")
                                         .initialValue(0, 0)
                                         .thresholdValue(0, 2)
-                                        .upgradeModifier(UpgradeOperation.ADD, 1)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 1)
                                         .formatValue(x -> (int) (MathUtils.round(x + 1, 1)))
                                         .build())
                                 .build())
                         .build())
-                .leveling(new LevelingData(100, 11, 100))
-                .loot(LootData.builder().entry(LootEntries.END_LIKE).build())
+                .leveling(LevelingTemplate.builder()
+                        .maxRank(2)
+                        .initialCost(100)
+                        .step(100)
+                        .build())
+                .loot(LootTemplate.builder().entry(LootEntries.END_LIKE).build())
                 .build();
     }
     
@@ -147,7 +163,7 @@ public class ScrollOfTruthItem extends RelicItem {
         super.inventoryTick(stack, level, entity, slot, isSelected);
         if (!level.isClientSide && entity instanceof Player player) {
             ScrollColorMode mode = stack.getOrDefault(SCROLL_COLOR_MODE, ScrollColorMode.GRAY);
-            int lvl = getEffectLevel(stack);
+            int lvl = getEffectLevel(player, stack);
             player.addEffect(new MobEffectInstance(mode.effect, 25, lvl, true, true));
         }
         

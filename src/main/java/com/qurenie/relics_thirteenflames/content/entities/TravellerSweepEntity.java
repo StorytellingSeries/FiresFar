@@ -147,7 +147,7 @@ public class TravellerSweepEntity extends NonLivingEntity implements IAnimatedEn
                 target.setRemainingFireTicks(Math.max(target.getRemainingFireTicks(), getFireAspect() * 80));
                 
                 if (stack.getItem() == ItemsRegistry.TRAVELLER_SWORD)
-                    ItemsRegistry.TRAVELLER_SWORD.addRelicExperience(stack, 4);
+                    ItemsRegistry.TRAVELLER_SWORD.addExperience(owner, stack, 4);
                 
                 return true;
             });

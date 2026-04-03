@@ -29,7 +29,7 @@ public abstract class LocalPlayerMixin extends LivingEntityMixin {
     public void mojank(CallbackInfo ci) {
         LocalPlayer deez = ((LocalPlayer)(Object) this);
         if(deez.getUseItem().getItem() instanceof ItemRonasShield shit) {
-            float speedmodif = (float) shit.getStatValue(deez.getUseItem(), "block", "speed");
+            float speedmodif = (float) shit.getStatValue(deez, deez.getUseItem(), "block", "speed");
             deez.input.leftImpulse *= 5F * speedmodif;
             deez.input.forwardImpulse *= 5F * speedmodif;
         }

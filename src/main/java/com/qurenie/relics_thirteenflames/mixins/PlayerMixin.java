@@ -4,6 +4,7 @@ import com.qurenie.relics_thirteenflames.content.items.ScrollOfTruthItem;
 import com.qurenie.relics_thirteenflames.init.DamageSourceRegistry;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -31,7 +32,7 @@ public abstract class PlayerMixin extends LivingEntityMixin {
         if(deez == null) return;
         for(ItemStack stack : deez.getInventory().items) {
             if(stack.getItem() instanceof  ScrollOfTruthItem scroll) {
-                scroll.spreadRelicExperience(deez, stack, pLevelCost);
+                scroll.addExperience(deez, stack, pLevelCost);
             }
         }
     }

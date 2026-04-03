@@ -1,5 +1,10 @@
 package com.qurenie.relics_thirteenflames.content.items;
 
+import com.qurenie.api.IActivityContainer;
+import com.qurenie.api.IExtRelicItem;
+import com.qurenie.api.SettingsContainer;
+import com.qurenie.relics_thirteenflames.activity.IActivitySetting;
+import com.qurenie.relics_thirteenflames.activity.RelicActivitySetting;
 import com.qurenie.relics_thirteenflames.content.blocks.BlockShaking;
 import com.qurenie.relics_thirteenflames.content.entities.SkintClusterEntity;
 import com.qurenie.relics_thirteenflames.content.entities.UsableFallingBlockEntity;
@@ -8,13 +13,13 @@ import com.qurenie.relics_thirteenflames.net.HammerAOEChangePacket;
 import com.qurenie.relics_thirteenflames.net.PacketPlaySound;
 import com.qurenie.relics_thirteenflames.util.FlamesUtils;
 import it.hurts.sskirillss.relics.items.relics.base.RelicItem;
-import it.hurts.sskirillss.relics.items.relics.base.data.RelicData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.AbilitiesData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.AbilityData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.LevelingData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.StatData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.misc.UpgradeOperation;
-import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootData;
+import it.hurts.sskirillss.relics.api.relics.RelicTemplate;
+import it.hurts.sskirillss.relics.api.relics.abilities.AbilitiesTemplate;
+import it.hurts.sskirillss.relics.api.relics.abilities.AbilityTemplate;
+import it.hurts.sskirillss.relics.api.relics.abilities.stats.AbilityStatTemplate;
+import it.hurts.sskirillss.relics.init.RelicsScalingModels;
+import it.hurts.sskirillss.relics.items.relics.base.data.leveling.LevelingTemplate;
+import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootTemplate;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.misc.LootEntries;
 import it.hurts.sskirillss.relics.utils.MathUtils;
 import net.minecraft.ChatFormatting;
@@ -71,7 +76,7 @@ import static com.qurenie.relics_thirteenflames.init.ComponentRegistry.BLOCKS_MI
 import static com.qurenie.relics_thirteenflames.init.ComponentRegistry.MONTU_AOE;
 
 public class ItemMontuHammer
-        extends RelicItem implements IColoredFoilItem {
+        extends RelicItem implements IColoredFoilItem, IExtRelicItem, IActivityContainer {
     
     protected final Tool tool;
     protected final TagKey<Block> blocks = BlockTags.MINEABLE_WITH_PICKAXE;
@@ -143,41 +148,45 @@ public class ItemMontuHammer
     }
     
     @Override
-    public RelicData constructDefaultRelicData() {
-        return RelicData.builder()
-                .abilities(AbilitiesData.builder()
-                        .ability(AbilityData.builder("slap")
-                                .maxLevel(4)
-                                .stat(StatData.builder("cooldown")
+    public RelicTemplate constructDefaultRelicTemplate() {
+        return RelicTemplate.builder()
+                .abilities(AbilitiesTemplate.builder()
+                        .ability(AbilityTemplate.builder("slap")
+                                .initialMaxLevel(4)
+                                .stat(AbilityStatTemplate.builder("recharge")
                                         .initialValue(60, 40)
-                                        .upgradeModifier(UpgradeOperation.ADD, -5.0)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), -5.0)
                                         .formatValue(x -> (int) MathUtils.round(x, 1))
                                         .build()
                                 )
-                                .stat(StatData.builder("radius")
+                                .stat(AbilityStatTemplate.builder("radius")
                                         .initialValue(3.0, 4.0)
                                         .thresholdValue(3.0, 10)
-                                        .upgradeModifier(UpgradeOperation.ADD, 1.5)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 1.5)
                                         .formatValue(x -> (int) MathUtils.round(x, 0))
                                         .build()
                                 )
                                 .build()
                         )
-                        .ability(AbilityData.builder("aoe")
-                                .maxLevel(2)
+                        .ability(AbilityTemplate.builder("aoe")
+                                .initialMaxLevel(2)
                                 .requiredPoints(3)
-                                .stat(StatData.builder("radius")
+                                .stat(AbilityStatTemplate.builder("radius")
                                         .initialValue(0.0, 0.0)
                                         .thresholdValue(0.0, 2.0)
-                                        .upgradeModifier(UpgradeOperation.ADD, 1.0)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 1.0)
                                         .formatValue(x -> (int) MathUtils.round(x + 1, 0))
                                         .build()
                                 )
                                 .build())
                         .build()
                 )
-                .leveling(new LevelingData(100, 10, 100))
-                .loot(LootData.builder().entry(LootEntries.MINESHAFT).build())
+                .leveling(LevelingTemplate.builder()
+                        .initialCost(100)
+                        .step(100)
+                        .maxRank(2)
+                        .build())
+                .loot(LootTemplate.builder().entry(LootEntries.MINESHAFT).build())
                 .build();
     }
     
@@ -191,9 +200,11 @@ public class ItemMontuHammer
     public @NotNull InteractionResult useOn(UseOnContext ctx) {
         if (ctx.getLevel().getBlockState(ctx.getClickedPos()).hasBlockEntity() || ctx.getPlayer() == null || !ctx.getPlayer().isShiftKeyDown())
             return super.useOn(ctx);
-        
-        var cooldown = getStatValue(ctx.getItemInHand(), "slap", "cooldown");
-        var radius = (int) Math.round(getStatValue(ctx.getItemInHand(), "slap", "radius"));
+
+        if (!canCast(ctx.getPlayer(), ctx.getItemInHand(), "slap"))
+            return InteractionResult.FAIL;
+
+        var radius = (int) Math.round(getStatValue(ctx.getPlayer(), ctx.getItemInHand(), "slap", "radius"));
         
         var level = ctx.getLevel();
         
@@ -289,7 +300,7 @@ public class ItemMontuHammer
                 
                 SCHEDULER.schedule(Math.max(0, delay - 2), () ->
                 {
-                    spreadRelicExperience(ctx.getPlayer(), ctx.getItemInHand(), 1);
+                    addExperience(ctx.getPlayer(), ctx.getItemInHand(), 1);
                     UsableFallingBlockEntity fbe = UsableFallingBlockEntity.createFalling(level, height0, state, ctx.getItemInHand());
                     Vec3 dist = new Vec3(height0.getX(), pos.getY(), height0.getZ()).subtract(new Vec3(pos.getX(), pos.getY(), pos.getZ())).yRot(RNG.nextFloat(-10, 10) * Mth.DEG_TO_RAD);
                     Vec3 move = dist.normalize().scale(Math.min(0.6, 0.2 / dist.length())).add(new Vec3(RNG.nextFloat(0.05f), 0, 0).yRot(RNG.nextFloat(3.14f)));
@@ -302,7 +313,7 @@ public class ItemMontuHammer
             }
         }
         Network.sendToAll(new PacketPlaySound(ctx.getClickLocation(), SoundsRegistry.MONTU_SLAP.get(), SoundSource.MASTER, 1, 1));
-        ctx.getPlayer().getCooldowns().addCooldown(this, (int) (20 * cooldown));
+        setMaxCooldown(ctx.getPlayer(), ctx.getItemInHand(), "slap");
         return InteractionResult.SUCCESS;
     }
     
@@ -318,7 +329,7 @@ public class ItemMontuHammer
     {
         int radius = stack.getComponents().getOrDefault(MONTU_AOE.get(), 0);
 
-        if(radius > getStatValue(stack, "aoe", "radius")) {
+        if(radius > getStatValue(miner, stack, "aoe", "radius")) {
             radius = 0;
             stack.set(MONTU_AOE.get(),  radius);
         }
@@ -357,7 +368,7 @@ public class ItemMontuHammer
         }
         blocksMined++;
         if (blocksMined >= 25) {
-            spreadRelicExperience(player, stack, blocksMined / 25);
+            addExperience(player, stack, blocksMined / 25);
             blocksMined %= 25;
         }
         
@@ -414,7 +425,14 @@ public class ItemMontuHammer
     public int getFoilColor(@NotNull ItemStack stack) {
         return new Color(116, 229, 0).getRGB();
     }
-    
+
+    @Override
+    public SettingsContainer<IActivitySetting> constructActivitySettings() {
+        return SettingsContainer.<IActivitySetting>builder()
+                .setting(RelicActivitySetting.builderRelic("slap", "recharge").build())
+                .build();
+    }
+
     @EventBusSubscriber
     public static class EventHandler {
         
@@ -424,7 +442,7 @@ public class ItemMontuHammer
             if (player != null) {
                 ItemStack mainHandItem = player.getMainHandItem();
                 if (mainHandItem.getItem() instanceof ItemMontuHammer relic && player.isShiftKeyDown()) {
-                    int maxAOE = (int) relic.getStatValue(mainHandItem, "aoe", "radius");
+                    int maxAOE = (int) relic.getStatValue(Minecraft.getInstance().player, mainHandItem, "aoe", "radius");
                     int delta = event.getScrollDeltaY() > 0 ? 1 : -1;
                     int aoe = mainHandItem.getOrDefault(MONTU_AOE, 0);
                     

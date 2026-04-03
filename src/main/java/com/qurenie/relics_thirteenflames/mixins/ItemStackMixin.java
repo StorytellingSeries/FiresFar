@@ -1,6 +1,6 @@
 package com.qurenie.relics_thirteenflames.mixins;
 
-import com.qurenie.api.ItemHurtEvent;
+import com.qurenie.api.event.ItemHurtEvent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;

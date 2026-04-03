@@ -5,7 +5,6 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.qurenie.relics_thirteenflames.init.ParticlesRegistry;
 import io.netty.buffer.ByteBuf;
-import it.hurts.sskirillss.relics.init.ParticleRegistry;
 import lombok.Getter;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.*;

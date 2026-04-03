@@ -1,30 +1,30 @@
 package com.qurenie.relics_thirteenflames.content.items;
 
-import com.qurenie.api.AnvilUpdatePostEvent;
-import com.qurenie.api.ItemHurtEvent;
+import com.qurenie.api.IActivityContainer;
+import com.qurenie.api.IExtRelicItem;
+import com.qurenie.api.SettingsContainer;
+import com.qurenie.api.event.AnvilUpdatePostEvent;
+import com.qurenie.api.event.ItemHurtEvent;
 import com.qurenie.relics_thirteenflames.ThirteenFlames;
+import com.qurenie.relics_thirteenflames.activity.ActivitySetting;
+import com.qurenie.relics_thirteenflames.activity.IActivitySetting;
+import com.qurenie.relics_thirteenflames.activity.call.settings.*;
 import com.qurenie.relics_thirteenflames.content.container.MontuCompositeContainer;
 import com.qurenie.relics_thirteenflames.content.container.MontuGlovesContainer;
 import com.qurenie.relics_thirteenflames.content.items.base.IRenderableCurioHand;
 import com.qurenie.relics_thirteenflames.content.items.models.MontuGlovesArmorLeft;
 import com.qurenie.relics_thirteenflames.content.items.models.MontuGlovesArmorRight;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
-import it.hurts.sskirillss.relics.init.RelicContainerRegistry;
-import it.hurts.sskirillss.relics.items.relics.base.IRelicItem;
 import it.hurts.sskirillss.relics.items.relics.base.RelicItem;
 import it.hurts.sskirillss.relics.items.relics.base.data.RelicAttributeModifier;
-import it.hurts.sskirillss.relics.items.relics.base.data.RelicData;
+import it.hurts.sskirillss.relics.api.relics.RelicTemplate;
 import it.hurts.sskirillss.relics.items.relics.base.data.RelicSlotModifier;
-import it.hurts.sskirillss.relics.items.relics.base.data.cast.CastData;
-import it.hurts.sskirillss.relics.items.relics.base.data.cast.misc.CastStage;
-import it.hurts.sskirillss.relics.items.relics.base.data.cast.misc.CastType;
-import it.hurts.sskirillss.relics.items.relics.base.data.cast.misc.PredicateType;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.AbilitiesData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.AbilityData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.LevelingData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.StatData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.misc.UpgradeOperation;
-import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootData;
+import it.hurts.sskirillss.relics.api.relics.abilities.AbilitiesTemplate;
+import it.hurts.sskirillss.relics.api.relics.abilities.AbilityTemplate;
+import it.hurts.sskirillss.relics.api.relics.abilities.stats.AbilityStatTemplate;
+import it.hurts.sskirillss.relics.init.RelicsScalingModels;
+import it.hurts.sskirillss.relics.items.relics.base.data.leveling.LevelingTemplate;
+import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootTemplate;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.misc.LootEntries;
 import it.hurts.sskirillss.relics.utils.MathUtils;
 import net.minecraft.ChatFormatting;
@@ -41,11 +41,9 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AnvilMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.common.util.TriState;
-import net.neoforged.neoforge.event.AnvilUpdateEvent;
 import net.neoforged.neoforge.event.entity.player.AnvilRepairEvent;
 import org.apache.logging.log4j.util.Lazy;
 import org.jetbrains.annotations.NotNull;
@@ -62,7 +60,7 @@ import java.util.stream.IntStream;
 
 import static net.neoforged.neoforge.common.NeoForge.EVENT_BUS;
 
-public class ItemMontuGloves extends RelicItem implements IRegisterListener, IRenderableCurioHand {
+public class ItemMontuGloves extends RelicItem implements IActivityContainer, IRegisterListener, IRenderableCurioHand, IExtRelicItem {
     
     public static final ResourceLocation BLOCK_INTERACTION_RANGE_ID = ThirteenFlames.rl("gloves_block_interaction_range");
     public static final ResourceLocation ENTITY_INTERACTION_RANGE_ID = ThirteenFlames.rl("gloves_entity_interaction_range");
@@ -75,67 +73,105 @@ public class ItemMontuGloves extends RelicItem implements IRegisterListener, IRe
     }
     
     @Override
-    public RelicData constructDefaultRelicData() {
-        return RelicData.builder()
-                .abilities(AbilitiesData.builder()
-                        .ability(AbilityData.builder("gloves_range")
-                                .maxLevel(5)
-                                .stat(StatData.builder("range")
+    public RelicTemplate constructDefaultRelicTemplate() {
+        return RelicTemplate.builder()
+                .abilities(AbilitiesTemplate.builder()
+                        .ability(AbilityTemplate.builder("gloves_range")
+                                .initialMaxLevel(5)
+                                .stat(AbilityStatTemplate.builder("range")
                                         .initialValue(1, 3)
                                         .thresholdValue(1, 8)
-                                        .upgradeModifier(UpgradeOperation.ADD, 1)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 1)
                                         .formatValue(d -> MathUtils.round(d, 1))
                                         .build()
                                 )
-                                .stat(StatData.builder("unbreaking")
+                                .stat(AbilityStatTemplate.builder("unbreaking")
                                         .initialValue(10, 25)
                                         .thresholdValue(10, 75)
-                                        .upgradeModifier(UpgradeOperation.ADD, 10)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 10)
                                         .formatValue(d -> MathUtils.round(d, 0))
                                         .build()
                                 )
-                                .stat(StatData.builder("block_braking")
+                                .stat(AbilityStatTemplate.builder("block_braking")
                                         .initialValue(10, 15)
                                         .thresholdValue(10, 50)
-                                        .upgradeModifier(UpgradeOperation.MULTIPLY_TOTAL, 0.28)
+                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), 0.28)
                                         .formatValue(d -> MathUtils.round(d, 0))
                                         .build()
                                 )
                                 .build()
                         )
-                        .ability(AbilityData.builder("crafting")
-                                .maxLevel(4)
-                                .active(CastData.builder()
-                                        .container(RelicContainerRegistry.CURIOS.get())
-                                        .type(CastType.INSTANTANEOUS)
-                                        .predicate("crafting_predicate", PredicateType.VISIBILITY,
-                                                (p, s) -> getAbilityLevel(s, "crafting") > 1)
-                                        .build())
-                                .stat(StatData.builder("discount")
+                        .ability(AbilityTemplate.builder("crafting")
+                                .initialMaxLevel(4)
+                                .stat(AbilityStatTemplate.builder("discount")
                                         .initialValue(9.99, 9.99)
                                         .thresholdValue(5, 55)
-                                        .upgradeModifier(UpgradeOperation.ADD, 10)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 10)
                                         .build()
                                 )
                                 .build()
                         )
-                        .ability(AbilityData.builder("smelting")
-                                .maxLevel(1)
-                                .active(CastData.builder()
-                                        .predicate("smelting_predicate", PredicateType.VISIBILITY,
-                                                (p, s) -> getAbilityLevel(s, "smelting") > 0)
-                                        .container(RelicContainerRegistry.CURIOS.get())
-                                        .type(CastType.INSTANTANEOUS)
-                                        .build())
+                        .ability(AbilityTemplate.builder("smelting")
+                                .initialMaxLevel(1)
                                 .requiredPoints(5)
                                 .requiredLevel(8)
-                                .stat(StatData.builder("empty").build())
+                                .stat(AbilityStatTemplate.builder("empty").build())
                                 .build()
                         )
                         .build()
                 )
-                .leveling(new LevelingData(75, 15, 50))
-                .loot(LootData.builder().entry(LootEntries.MINESHAFT).build())
+                .leveling(LevelingTemplate.builder()
+                        .maxRank(2)
+                        .step(50)
+                        .initialCost(75)
+                        .build())
+                .loot(LootTemplate.builder().entry(LootEntries.MINESHAFT).build())
+                .build();
+    }
+
+    @Override
+    public SettingsContainer<IActivitySetting> constructActivitySettings() {
+        return SettingsContainer.<IActivitySetting>builder()
+                .setting(ActivitySetting.builder("smelting")
+                        .maxCooldown(0)
+                        .callSettings(RelicsActivityCallSettings.builder("smelting")
+                                .inventoryType(InventoryType.CURIO)
+                                .minVisibilityLevel(1)
+                                .cast((l, s) -> {
+                                    if (l.level().isClientSide)
+                                        return ActivityResult.FAILURE;
+
+                                    if (!(l instanceof Player player))
+                                        return ActivityResult.FAILURE;
+
+                                    player.openMenu(new MontuGlovesContainer.Provider(s), buf -> ItemStack.STREAM_CODEC.encode(buf, s));
+                                    player.stopUsingItem();
+                                    return ActivityResult.SUCCESS;
+                                })
+                                .build())
+                        .build())
+                .setting(ActivitySetting.builder("crafting")
+                        .maxCooldown(0)
+                        .callSettings(RelicsActivityCallSettings.builder("crafting")
+                                .inventoryType(InventoryType.CURIO)
+                                .minVisibilityLevel(2)
+                                .cast((l, s) -> {
+                                    if (l.level().isClientSide)
+                                        return ActivityResult.FAILURE;
+
+                                    if (!(l instanceof Player player))
+                                        return ActivityResult.FAILURE;
+
+                                    int level = getAbilityLevel(player, s, "crafting");
+                                    player.openMenu(new MontuCompositeContainer.Provider(level - 1, s), buf -> {
+                                        ByteBufCodecs.INT.encode(buf, level - 1);
+                                        ItemStack.STREAM_CODEC.encode(buf, s);
+                                    });
+                                    player.stopUsingItem();
+                                    return ActivityResult.SUCCESS;
+                                })
+                                .build())
+                        .build())
                 .build();
     }
     
@@ -146,35 +182,14 @@ public class ItemMontuGloves extends RelicItem implements IRegisterListener, IRe
     }
     
     @Override
-    public @Nullable RelicAttributeModifier getRelicAttributeModifiers(ItemStack stack) {
+    public @Nullable RelicAttributeModifier getRelicAttributeModifiers(LivingEntity livingEntity, ItemStack stack) {
         return RelicAttributeModifier.builder()
-                .attribute(new RelicAttributeModifier.Modifier(Attributes.BLOCK_INTERACTION_RANGE, (float) ((IRelicItem) stack.getItem()).getStatValue(stack, "gloves_range", "range"), AttributeModifier.Operation.ADD_VALUE))
-                .attribute(new RelicAttributeModifier.Modifier(Attributes.ENTITY_INTERACTION_RANGE, (float) ((IRelicItem) stack.getItem()).getStatValue(stack, "gloves_range", "range"), AttributeModifier.Operation.ADD_VALUE))
-                .attribute(new RelicAttributeModifier.Modifier(Attributes.BLOCK_BREAK_SPEED, (float) ((IRelicItem) stack.getItem()).getStatValue(stack, "gloves_range", "block_braking") / 100, AttributeModifier.Operation.ADD_VALUE))
+                .attribute(new RelicAttributeModifier.Modifier(Attributes.BLOCK_INTERACTION_RANGE, (float) ((ItemMontuGloves) stack.getItem()).getStatValue(livingEntity, stack, "gloves_range", "range"), AttributeModifier.Operation.ADD_VALUE))
+                .attribute(new RelicAttributeModifier.Modifier(Attributes.ENTITY_INTERACTION_RANGE, (float) ((ItemMontuGloves) stack.getItem()).getStatValue(livingEntity, stack, "gloves_range", "range"), AttributeModifier.Operation.ADD_VALUE))
+                .attribute(new RelicAttributeModifier.Modifier(Attributes.BLOCK_BREAK_SPEED, (float) ((ItemMontuGloves) stack.getItem()).getStatValue(livingEntity, stack, "gloves_range", "block_braking") / 100, AttributeModifier.Operation.ADD_VALUE))
                 .build();
     }
-    
-    @Override
-    public void castActiveAbility(ItemStack stack, Player player, String ability, CastType type, CastStage stage) {
-        if (player.level().isClientSide)
-            return;
-        
-        if (ability.equals("smelting") && getAbilityLevel(stack, "smelting") > 0) {
-            player.openMenu(new MontuGlovesContainer.Provider(stack), buf -> ItemStack.STREAM_CODEC.encode(buf, stack));
-            player.stopUsingItem();
-            return;
-        }
-        
-        int level = getAbilityLevel(stack, "crafting");
-        if (ability.equals("crafting") && level >= 1) {
-            player.openMenu(new MontuCompositeContainer.Provider(level - 1, stack), buf -> {
-                ByteBufCodecs.INT.encode(buf, level - 1);
-                ItemStack.STREAM_CODEC.encode(buf, stack);
-            });
-            player.stopUsingItem();
-        }
-    }
-    
+
     @Override
     public void onPostRegistered(ResourceLocation id) {
         EVENT_BUS.register(this);
@@ -196,11 +211,11 @@ public class ItemMontuGloves extends RelicItem implements IRegisterListener, IRe
             for (int i = 0; i < stacks.getSlots(); i++) {
                 ItemStack relic = stacks.getStackInSlot(i);
                 if (relic.is(this)) {
-                    modified = (1 - ItemsRegistry.MONTU_GLOVES.getStatValue(relic, "gloves_range", "unbreaking") / 100d) * damage;
+                    modified = (1 - ItemsRegistry.MONTU_GLOVES.getStatValue(owner, relic, "gloves_range", "unbreaking") / 100d) * damage;
                     double d = modified - (int) modified;
                     if (d < 1)
                         modified += owner.getRandom().nextDouble() < d ? 0 : 1;
-                    addRelicExperience(relic, 3 * (damage - ((int) modified)));
+                    addExperience(owner, relic, 3 * (damage - ((int) modified)));
                 }
                 modified = damage;
             }
@@ -256,7 +271,7 @@ public class ItemMontuGloves extends RelicItem implements IRegisterListener, IRe
     }
     
     @Override
-    public @Nullable RelicSlotModifier getSlotModifiers(ItemStack stack) {
+    public @Nullable RelicSlotModifier getSlotModifiers(LivingEntity livingEntity, ItemStack stack) {
         return RelicSlotModifier.builder().modifier("hands", -1).build();
     }
     
@@ -275,8 +290,8 @@ public class ItemMontuGloves extends RelicItem implements IRegisterListener, IRe
                 if (!it.is(this))
                     continue;
                 
-                double discount = ((ItemMontuGloves) it.getItem()).getStatValue(it, "crafting", "discount");
-                addRelicExperience(it, (int) (menu.getCost() * 100 / (100 - discount)));
+                double discount = ((ItemMontuGloves) it.getItem()).getStatValue(player, it, "crafting", "discount");
+                addExperience(player, it, (int) (menu.getCost() * 100 / (100 - discount)));
             }
         }
     }
@@ -292,7 +307,7 @@ public class ItemMontuGloves extends RelicItem implements IRegisterListener, IRe
                 if (!it.is(this))
                     continue;
                 
-                double discount = ((ItemMontuGloves) it.getItem()).getStatValue(it, "crafting", "discount");
+                double discount = ((ItemMontuGloves) it.getItem()).getStatValue(player, it, "crafting", "discount");
                 int newCost = (int) (updateEvent.getCost() * (1 - discount / 100));
                 updateEvent.setCost(newCost == 0 ? 1 : newCost);
                 
@@ -310,5 +325,6 @@ public class ItemMontuGloves extends RelicItem implements IRegisterListener, IRe
     public ResourceLocation getTexture(ItemStack stack, HumanoidArm arm) {
         return TEXTURE;
     }
-    
+
+
 }

@@ -1,5 +1,8 @@
 package com.qurenie.relics_thirteenflames.event;
 
+import com.qurenie.api.IActivityContainer;
+import com.qurenie.relics_thirteenflames.activity.call.CallInput;
+import com.qurenie.relics_thirteenflames.activity.call.settings.InventoryType;
 import com.qurenie.relics_thirteenflames.init.AttachmentsRegistry;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
 import com.qurenie.relics_thirteenflames.net.EntityPacket;
@@ -11,6 +14,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -22,8 +26,12 @@ import net.neoforged.neoforge.event.tick.EntityTickEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import org.zeith.hammerlib.net.Network;
 import org.zeith.hammerlib.net.PacketContext;
+import top.theillusivec4.curios.api.CuriosApi;
+import top.theillusivec4.curios.api.type.inventory.IDynamicStackHandler;
 
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 
 
 @EventBusSubscriber
@@ -52,6 +60,30 @@ public class CommonGameEvents {
             });
         }
     }
+
+    @SubscribeEvent
+    public static void tickActivities(EntityTickEvent.Post event) {
+        if (!(event.getEntity() instanceof Player player) || player.level().isClientSide)
+            return;
+
+        var items = new ArrayList<ItemStack>();
+        items.addAll(player.getInventory().items);
+        items.addAll(player.getInventory().armor);
+        items.addAll(player.getInventory().offhand);
+        for (ItemStack stack : items) {
+            if (!stack.isEmpty() && stack.getItem() instanceof IActivityContainer container)
+                container.tick(stack, player);
+        }
+
+        CuriosApi.getCuriosInventory(player).ifPresent((handler) -> handler.getCurios().values().forEach(stacks -> {
+            var dStacks = stacks.getStacks();
+            for (int i = 0; i < dStacks.getSlots(); i++) {
+                ItemStack stack = dStacks.getStackInSlot(i);
+                if (!stack.isEmpty() && stack.getItem() instanceof IActivityContainer container)
+                    container.tick(stack, player);
+            }
+        }));
+    }
     
     @SubscribeEvent
     public static void tickAttachments(EntityTickEvent.Post event) {
@@ -72,12 +104,12 @@ public class CommonGameEvents {
         if (event.getSource().getEntity() instanceof LivingEntity living) {
             ItemStack stack = living.getItemBySlot(EquipmentSlot.HEAD);
             if (stack.is(ItemsRegistry.JODAH_MASK))
-                ItemsRegistry.JODAH_MASK.addRelicExperience(stack, 1 + (antiskintCount / 3));
-        }
-        
-        if (skintCount > 0) {
-            event.setNewDamage(Math.max(event.getNewDamage() - 10, 0));
-            FlamesUtils.addSkint(null, l, -1);
+                ItemsRegistry.JODAH_MASK.addExperience(living, stack, 1 + (antiskintCount / 3));
+
+            if (skintCount > 0) {
+                event.setNewDamage(Math.max(event.getNewDamage() - 10, 0));
+                FlamesUtils.addSkint(null, living, l, -1);
+            }
         }
     }
     

@@ -1,7 +1,7 @@
 package com.qurenie.relics_thirteenflames.content.container;
 
-import com.qurenie.api.PacketHandleEvent;
-import com.qurenie.api.SmithingBlockCraftEvent;
+import com.qurenie.api.event.PacketHandleEvent;
+import com.qurenie.api.event.SmithingBlockCraftEvent;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
 import com.qurenie.relics_thirteenflames.init.MenuRegistry;
 import com.qurenie.relics_thirteenflames.mixins.AbstractContainerMenuAccessor;
@@ -178,13 +178,13 @@ public class MontuCompositeContainer extends AbstractContainerMenu {
     @SubscribeEvent
     public static void onCraft(AnvilRepairEvent event) {
         if (event.getEntity().containerMenu instanceof MontuCompositeContainer montuCompositeContainer)
-            ItemsRegistry.MONTU_GLOVES.addRelicExperience(montuCompositeContainer.gloves, 4);
+            ItemsRegistry.MONTU_GLOVES.addExperience(event.getEntity(), montuCompositeContainer.gloves, 4);
     }
     
     @SubscribeEvent
     public static void onCraft(SmithingBlockCraftEvent event) {
         if (event.getEntity().containerMenu instanceof MontuCompositeContainer montuCompositeContainer)
-            ItemsRegistry.MONTU_GLOVES.addRelicExperience(montuCompositeContainer.gloves, 4);
+            ItemsRegistry.MONTU_GLOVES.addExperience(event.getEntity(), montuCompositeContainer.gloves, 4);
     }
     
     public enum MontuMenuType {

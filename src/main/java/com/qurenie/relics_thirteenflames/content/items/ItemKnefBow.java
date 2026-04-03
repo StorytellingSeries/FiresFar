@@ -1,5 +1,10 @@
 package com.qurenie.relics_thirteenflames.content.items;
 
+import com.qurenie.api.IActivityContainer;
+import com.qurenie.api.IExtRelicItem;
+import com.qurenie.api.SettingsContainer;
+import com.qurenie.relics_thirteenflames.activity.ActivitySetting;
+import com.qurenie.relics_thirteenflames.activity.IActivitySetting;
 import com.qurenie.relics_thirteenflames.content.entities.KnefProjCarrier;
 import com.qurenie.relics_thirteenflames.content.entities.KnefProjectile;
 import com.qurenie.relics_thirteenflames.content.entities.KnefProjectileSpecial;
@@ -9,18 +14,14 @@ import com.qurenie.relics_thirteenflames.init.EntityRegistry;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
 import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
-import it.hurts.sskirillss.relics.init.RelicContainerRegistry;
 import it.hurts.sskirillss.relics.items.relics.base.RelicItem;
-import it.hurts.sskirillss.relics.items.relics.base.data.RelicData;
-import it.hurts.sskirillss.relics.items.relics.base.data.cast.CastData;
-import it.hurts.sskirillss.relics.items.relics.base.data.cast.misc.CastType;
-import it.hurts.sskirillss.relics.items.relics.base.data.cast.misc.PredicateType;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.AbilitiesData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.AbilityData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.LevelingData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.StatData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.misc.UpgradeOperation;
-import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootData;
+import it.hurts.sskirillss.relics.api.relics.RelicTemplate;
+import it.hurts.sskirillss.relics.api.relics.abilities.AbilitiesTemplate;
+import it.hurts.sskirillss.relics.api.relics.abilities.AbilityTemplate;
+import it.hurts.sskirillss.relics.api.relics.abilities.stats.AbilityStatTemplate;
+import it.hurts.sskirillss.relics.init.RelicsScalingModels;
+import it.hurts.sskirillss.relics.items.relics.base.data.leveling.LevelingTemplate;
+import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootTemplate;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.misc.LootEntries;
 import it.hurts.sskirillss.relics.utils.MathUtils;
 import net.minecraft.ChatFormatting;
@@ -55,7 +56,7 @@ import java.util.List;
 import static com.qurenie.relics_thirteenflames.init.ComponentRegistry.PULL;
 import static com.qurenie.relics_thirteenflames.init.ComponentRegistry.SHIFTING;
 
-public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
+public class ItemKnefBow extends RelicItem implements IExtRelicItem, IColoredFoilItem, IActivityContainer {
 
 
     public ItemKnefBow(Properties properties) {
@@ -66,85 +67,81 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
     RandomSource random = RandomSource.create();
 
     @Override
-    public RelicData constructDefaultRelicData() {
-        return RelicData.builder()
-                .abilities(AbilitiesData.builder()
-                        .ability(AbilityData.builder("shot")
-                                .maxLevel(10)
-                                .stat(StatData.builder("rays")
+    public RelicTemplate constructDefaultRelicTemplate() {
+        return RelicTemplate.builder()
+                .abilities(AbilitiesTemplate.builder()
+                        .ability(AbilityTemplate.builder("shot")
+                                .initialMaxLevel(10)
+                                .stat(AbilityStatTemplate.builder("rays")
                                         .initialValue(3, 3)
                                         .thresholdValue(3, 23)
-                                        .upgradeModifier(UpgradeOperation.ADD, 2)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 2)
                                         .formatValue(x -> (int) MathUtils.round(x, 1))
                                         .build()
                                 )
-                                .stat(StatData.builder("dmg")
+                                .stat(AbilityStatTemplate.builder("dmg")
                                         .initialValue(3, 4)
                                         .thresholdValue(3, 5)
-                                        .upgradeModifier(UpgradeOperation.ADD, 0.1)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 0.1)
                                         .formatValue(x -> MathUtils.round(x, 1))
                                         .build()
                                 )
-                                .stat(StatData.builder("drain")
+                                .stat(AbilityStatTemplate.builder("drain")
                                         .initialValue(0.25, 0.2)
                                         .thresholdValue(0.05, 0.25)
-                                        .upgradeModifier(UpgradeOperation.ADD, -0.015)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), -0.015)
                                         .formatValue(x -> MathUtils.round(x * 100, 1))
                                         .build()
                                 )
                                 .build()
                         )
-                        .ability(AbilityData.builder("swim")
-                                .maxLevel(5)
-                                .active(CastData.builder()
-                                        .container(RelicContainerRegistry.INVENTORY.get())
-                                        .type(CastType.TOGGLEABLE)
-                                        .predicate("swim_pred", PredicateType.VISIBILITY, (p, s) -> p.getMainHandItem() == s || p.getOffhandItem() == s)
-                                        .build())
-                                .stat(StatData.builder("speed")
+                        .ability(AbilityTemplate.builder("swim")
+                                .initialMaxLevel(5)
+                                .modes("on", "off")
+                                .stat(AbilityStatTemplate.builder("speed")
                                         .initialValue(4, 6)
                                         .thresholdValue(4, 11)
-                                        .upgradeModifier(UpgradeOperation.ADD, 1)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 1)
                                         .formatValue(x -> MathUtils.round(x, 1))
                                         .build()
                                 )
-                                .stat(StatData.builder("dmg")
+                                .stat(AbilityStatTemplate.builder("dmg")
                                         .initialValue(6, 8)
                                         .thresholdValue(6, 20)
-                                        .upgradeModifier(UpgradeOperation.ADD, 2.4)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 2.4)
                                         .formatValue(x -> MathUtils.round(x, 1))
                                         .build()
                                 )
                                 .build()
                         )
-                        .ability(AbilityData.builder("storm")
+                        .ability(AbilityTemplate.builder("storm")
                                 .requiredLevel(10)
-                                .maxLevel(5)
-                                .stat(StatData.builder("radius")
+                                .initialMaxLevel(5)
+                                .stat(AbilityStatTemplate.builder("radius")
                                         .initialValue(4.0, 5.0)
                                         .thresholdValue(4, 20)
-                                        .upgradeModifier(UpgradeOperation.ADD, 3.0)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 3.0)
                                         .formatValue(x -> MathUtils.round(x, 1))
                                         .build()
                                 )
-                                .stat(StatData.builder("dur")
+                                .stat(AbilityStatTemplate.builder("dur")
                                         .initialValue(11, 16)
                                         .thresholdValue(11, 32)
-                                        .upgradeModifier(UpgradeOperation.ADD, 4.0)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 4.0)
                                         .formatValue(x -> (int) MathUtils.round(x, 1))
                                         .build()
                                 )
-                                .stat(StatData.builder("dmg")
+                                .stat(AbilityStatTemplate.builder("dmg")
                                         .initialValue(6, 8)
                                         .thresholdValue(6, 13)
-                                        .upgradeModifier(UpgradeOperation.ADD, 1)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 1)
                                         .formatValue(x -> (int) MathUtils.round(x, 1))
                                         .build()
                                 )
-                                .stat(StatData.builder("heal")
+                                .stat(AbilityStatTemplate.builder("heal")
                                         .initialValue(2, 3)
                                         .thresholdValue(2, 10)
-                                        .upgradeModifier(UpgradeOperation.ADD, 1.4)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 1.4)
                                         .formatValue(x -> MathUtils.round(x, 1))
                                         .build()
                                 )
@@ -152,8 +149,12 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
                         )
                         .build()
                 )
-                .leveling(new LevelingData(100, 20, 100))
-                .loot(LootData.builder().entry(LootEntries.AQUATIC).build())
+                .leveling(LevelingTemplate.builder()
+                        .maxRank(2)
+                        .step(100)
+                        .initialCost(100)
+                        .build())
+                .loot(LootTemplate.builder().entry(LootEntries.AQUATIC).build())
                 .build();
     }
 
@@ -173,26 +174,34 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
         return true;
     }
 
+    @Override
+    public SettingsContainer<IActivitySetting> constructActivitySettings() {
+        return SettingsContainer.<IActivitySetting>builder()
+                .setting(ActivitySetting.builder("storm")
+                        .maxCooldown(600)
+                        .build())
+                .build();
+    }
     //private boolean isSurging = false;
 
     @Override
     public void releaseUsing(@NotNull ItemStack pStack, @NotNull Level pLevel, LivingEntity pLivingEntity, int pTimeCharged) {
-        if(!(pLivingEntity instanceof Player)|| (isAbilityTicking(pStack, "swim") && pLivingEntity.isInWaterOrRain())) return;
+        if(!(pLivingEntity instanceof Player)|| (isModEnabled(pLivingEntity, pStack, "swim", "on") && pLivingEntity.isInWaterOrRain())) return;
 
         int delta = this.getUseDuration(pStack, pLivingEntity) - pTimeCharged;
         if (hasGloves(pLivingEntity))
             delta *= 2;
         
-        float baseDmg = (float) getStatValue(pStack, "shot", "dmg");
+        float baseDmg = (float) getStatValue(pLivingEntity, pStack, "shot", "dmg");
         boolean isShitting = pLivingEntity.isShiftKeyDown();
-        if (!isShitting || !isAbilityUnlocked(pStack, "storm") || isAbilityOnCooldown(pStack, "storm")) {
+        if (!isShitting || !isAbilityUnlocked(pLivingEntity, pStack, "storm") || !canCast(pLivingEntity, pStack, "storm")) {
             if (delta > 19) {
                 if (!pLevel.isClientSide()) {
                     float fl = random.nextFloat();
                     pLevel.playSound(null, pLivingEntity.getX(), pLivingEntity.getY(), pLivingEntity.getZ(), SoundsRegistry.KNEF_BOW_SHOT.get(), SoundSource.MASTER, 0.5f, 1.8f - fl * 0.15f);
                     pLevel.playSound(null, pLivingEntity.getX(), pLivingEntity.getY(), pLivingEntity.getZ(), SoundsRegistry.KNEF_BOW_SHOT.get(), SoundSource.MASTER, 0.5f, 0.6f);
                 }
-                int count = (int) getStatValue(pStack, "shot", "rays");
+                int count = (int) getStatValue(pLivingEntity, pStack, "shot", "rays");
 
                 Vec3 pos = pLivingEntity.getEyePosition(1f).add(pLivingEntity.getLookAngle().scale(1.6))
                         .add(pLivingEntity.getLookAngle()
@@ -236,7 +245,7 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
                 proj.shootFromRotation(pLivingEntity, pLivingEntity.getXRot(), pLivingEntity.getYRot(), 0.75f, 1f, 0);
                 pLevel.addFreshEntity(proj);
             }
-        } else if (delta > 19 && !isAbilityOnCooldown(pStack, "storm")/* && !pLevel.isClientSide()*/) {
+        } else if (delta > 19 && canCast(pLivingEntity, pStack, "storm")/* && !pLevel.isClientSide()*/) {
             pLevel.playSound(null, pLivingEntity.getX(), pLivingEntity.getY(), pLivingEntity.getZ(), SoundsRegistry.KNEF_BOW_SHOT.get(), SoundSource.MASTER, 0.7f, 0.6f);
             pLevel.playSound(null, pLivingEntity.getX(), pLivingEntity.getY(), pLivingEntity.getZ(), SoundsRegistry.KNEF_BOW_SHOT.get(), SoundSource.MASTER, 0.6f, 0.3f);
 
@@ -261,7 +270,7 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
             stormcaller.shootFromRotation(pLivingEntity, pLivingEntity.getXRot(), pLivingEntity.getYRot(), 0.75f, 2.5f, 0);
             for (KnefProjectileSpecial proj : stormcaller.rays) pLevel.addFreshEntity(proj);
             pLevel.addFreshEntity(stormcaller);
-            addAbilityCooldown(pStack, "storm", 600);
+            setMaxCooldown(pLivingEntity, pStack, "storm");
         } else if (delta > 5) {
             if (!pLevel.isClientSide()) {
                 float fl = random.nextFloat();
@@ -319,11 +328,11 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
 
     @Override
     public void onUseTick(@NotNull Level level, @NotNull LivingEntity living, @NotNull ItemStack stack, int count) {
-        if ( isAbilityTicking(stack, "swim") && living.isInWaterOrRain() && living instanceof Player p) {
+        if ( isModEnabled(living, stack, "swim", "on") && living.isInWaterOrRain() && living instanceof Player p) {
 
             if (!p.isCreative()) {
                 if (living.getHealth() > 1)
-                    living.hurt(DamageSourceRegistry.SUCC, living.getMaxHealth() * (float) getStatValue(stack, "shot", "drain") * 0.02f);
+                    living.hurt(DamageSourceRegistry.SUCC, living.getMaxHealth() * (float) getStatValue(living, stack, "shot", "drain") * 0.02f);
                 else living.kill();
             }
             living.hurtTime = 0;
@@ -333,18 +342,18 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
             living.setSwimming(false);
             Vec3 luk = p.getLookAngle();
             Vec3 motion = living.getDeltaMovement();
-            double speedd = getStatValue(stack, "swim", "speed") / 5;
+            double speedd = getStatValue(living, stack, "swim", "speed") / 5;
 
             AABB aoe = living.getBoundingBox().inflate(2);
             for (LivingEntity target : living.level().getEntitiesOfClass(LivingEntity.class, aoe, e -> !e.getUUID().equals(living.getUUID()))) {
-                target.hurt(p.damageSources().playerAttack(p), (float) getStatValue(stack, "swim", "dmg"));
+                target.hurt(p.damageSources().playerAttack(p), (float) getStatValue(living, stack, "swim", "dmg"));
                 Vec3 awayctor = target.position().subtract(living.position()).subtract(motion);
                 target.push(awayctor.x() * 1 / awayctor.length(), awayctor.y() * 1 / awayctor.length(), awayctor.z() * 1 / awayctor.length());
             }
 
             p.setDeltaMovement(0,0,0);
             p.push(luk.x() * speedd, luk.y() * speedd, luk.z() * speedd);
-            p.startAutoSpinAttack(2, (float) getStatValue(stack, "swim", "dmg") ,stack);
+            p.startAutoSpinAttack(2, (float) getStatValue(living, stack, "swim", "dmg") ,stack);
             p.fallDistance = 0;
             for (int i = 0; i < 12; i++) {
 
@@ -376,7 +385,7 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
                 if (!p.isCreative()) {
                     if (living.getHealth() > 1) {
                         boolean isShitting = stack.getOrDefault(SHIFTING, false);
-                        living.hurt(DamageSourceRegistry.SUCC, living.getMaxHealth() * (float) getStatValue(stack, "shot", "drain") * (isShitting ? 0.1f : 0.05f) * (hasGloves ? 1.5f : 1));
+                        living.hurt(DamageSourceRegistry.SUCC, living.getMaxHealth() * (float) getStatValue(living, stack, "shot", "drain") * (isShitting ? 0.1f : 0.05f) * (hasGloves ? 1.5f : 1));
                     }
                     else living.kill();
                 }
@@ -419,16 +428,16 @@ public class ItemKnefBow extends RelicItem implements IColoredFoilItem {
     public int getFoilColor(@NotNull ItemStack stack) {
         return /*0xFA9FEB7D*/ new Color(0, 133, 108).getRGB();
     }
-    
+
     @EventBusSubscriber
     public static class EventHandler {
         
         @SubscribeEvent
         public static void onItemUseEvent(LivingEntityUseItemEvent.Tick event) {
             if (event.getItem().is(ItemsRegistry.KNEF_BOW)
-                    && ItemsRegistry.KNEF_BOW.isAbilityTicking(event.getItem(), "swim")
                     && event.getEntity().isInWaterOrRain() &&
-                    event.getEntity() instanceof Player) {
+                    event.getEntity() instanceof Player player &&
+                    ItemsRegistry.KNEF_BOW.isModEnabled(player, event.getItem(), "swim", "on")) {
                 event.setDuration(event.getItem().getUseDuration(event.getEntity()));
             }
         }

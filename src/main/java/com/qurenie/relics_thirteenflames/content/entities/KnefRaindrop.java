@@ -1,8 +1,9 @@
 package com.qurenie.relics_thirteenflames.content.entities;
 
+import com.qurenie.relics_thirteenflames.content.items.ItemKnefBow;
 import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
-import it.hurts.sskirillss.relics.items.relics.base.IRelicItem;
+import it.hurts.sskirillss.relics.api.relics.IRelicItem;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.nbt.CompoundTag;
@@ -82,7 +83,7 @@ public class KnefRaindrop extends ThrowableProjectile
         if(pResult.getEntity() instanceof LivingEntity living) {
             if (this.getOwner() != null && pResult.getEntity().equals(this.getOwner())) {
                 living.heal(living.getMaxHealth() * getHeal());
-                if(getBow().getItem() instanceof IRelicItem relic) relic.spreadRelicExperience(living, getBow(), Math.round(Math.min(living.getMaxHealth() * getHeal(), living.getMaxHealth() - living.getHealth())));
+                if(getBow().getItem() instanceof ItemKnefBow relic) relic.addExperience(living, getBow(), Math.round(Math.min(living.getMaxHealth() * getHeal(), living.getMaxHealth() - living.getHealth())));
             } else {
                 pResult.getEntity().hurt(level().damageSources().thrown(this, this.getOwner()), getDmg());
                 pResult.getEntity().invulnerableTime = 0;

@@ -1,6 +1,6 @@
 package com.qurenie.relics_thirteenflames.mixins;
 
-import com.qurenie.api.AnvilUpdatePostEvent;
+import com.qurenie.api.event.AnvilUpdatePostEvent;
 import net.minecraft.world.inventory.AnvilMenu;
 import net.minecraft.world.inventory.DataSlot;
 import org.spongepowered.asm.mixin.Final;

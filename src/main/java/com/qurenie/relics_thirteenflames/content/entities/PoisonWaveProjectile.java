@@ -1,9 +1,10 @@
 package com.qurenie.relics_thirteenflames.content.entities;
 
 import com.qurenie.relics_thirteenflames.content.effects.PoisonEffectInstance;
+import com.qurenie.relics_thirteenflames.content.items.ItemRonasSword;
 import com.qurenie.relics_thirteenflames.init.EffectsRegistry;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
-import it.hurts.sskirillss.relics.items.relics.base.IRelicItem;
+import it.hurts.sskirillss.relics.api.relics.IRelicItem;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import lombok.Getter;
 import lombok.Setter;
@@ -72,7 +73,7 @@ public class PoisonWaveProjectile extends ThrowableProjectile
         super.tick();
 
         setDeltaMovement(motion);
-        if(!level().isClientSide() && this.getOwner() instanceof Player p && sword.getItem() instanceof IRelicItem relic) {
+        if(!level().isClientSide() && this.getOwner() instanceof Player p && sword.getItem() instanceof ItemRonasSword relic) {
 
             Vec3 dist = this.position().subtract(startVec);
             if(dist.length() > getMaxRange() + 0.5) this.discard();
@@ -87,8 +88,8 @@ public class PoisonWaveProjectile extends ThrowableProjectile
                         flatluk.scale(dist.length() + 0.1).yRot((float) ((-spreadAngle + spreadAngle / particlesPer * j * 2) * Mth.DEG_TO_RAD))
                 ).add(this.position().subtract(startVec.add(flatluk.scale(dist.length() + 0.1))));
 
-                int duration = (int) Math.round(relic.getStatValue(sword, "spit", "poisondur") * 20);
-                int maxAmp = (int) Math.round(relic.getStatValue(sword, "spit", "maxstacks") - 1);
+                int duration = (int) Math.round(relic.getStatValue(p, sword, "spit", "poisondur") * 20);
+                int maxAmp = (int) Math.round(relic.getStatValue(p, sword, "spit", "maxstacks") - 1);
                 List<LivingEntity> eList = level().getEntitiesOfClass(LivingEntity.class, new AABB(vec, vec).inflate(getDeltaMovement().length() / 4), e -> !Objects.equals(e, this.getOwner()) && !entityBlackList.contains(e) );
                 entityBlackList.addAll(eList);
                 for(LivingEntity lE : eList){
@@ -99,13 +100,13 @@ public class PoisonWaveProjectile extends ThrowableProjectile
                         int appliedAmplifier = lE.getEffect(EffectsRegistry.POISSON).getAmplifier() + 1;
                         if (appliedAmplifier <= maxAmp) {
                             lE.addEffect(new PoisonEffectInstance(EffectsRegistry.POISSON, duration + appliedAmplifier * 20, appliedAmplifier, false, true, false, sword));
-                            if (rng.nextFloat() < 0.25f) relic.spreadRelicExperience(p, sword, 1);
+                            if (rng.nextFloat() < 0.25f) relic.addExperience(p, sword, 1);
                         } else {
                             lE.addEffect(new PoisonEffectInstance(EffectsRegistry.POISSON, duration + maxAmp * 20, maxAmp, false, true, false, sword));
                         }
                     } else {
                         lE.addEffect(new PoisonEffectInstance(EffectsRegistry.POISSON, duration, 0, false, true, false, sword));
-                        if (rng.nextFloat() < 0.25f) relic.spreadRelicExperience(p, sword, 1);
+                        if (rng.nextFloat() < 0.25f) relic.addExperience(p, sword, 1);
                     }
                 }
 

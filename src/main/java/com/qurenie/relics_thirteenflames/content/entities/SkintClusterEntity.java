@@ -1,6 +1,6 @@
 package com.qurenie.relics_thirteenflames.content.entities;
 
-import com.qurenie.api.EntityIgnoreExplosionEvent;
+import com.qurenie.api.event.EntityIgnoreExplosionEvent;
 import com.qurenie.relics_thirteenflames.client.AnimationsRegistry;
 import com.qurenie.relics_thirteenflames.content.entities.base.NonLivingEntity;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
@@ -169,7 +169,7 @@ public class SkintClusterEntity extends NonLivingEntity implements IAnimatedEnti
                 if (owner != null) {
                     ItemStack stack = owner.getItemBySlot(EquipmentSlot.HEAD);
                     if (stack.is(ItemsRegistry.JODAH_MASK)) {
-                        ItemsRegistry.JODAH_MASK.addRelicExperience(stack, 1);
+                        ItemsRegistry.JODAH_MASK.addExperience(owner, stack, 1);
                     }
                 }
             }

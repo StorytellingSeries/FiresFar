@@ -117,7 +117,7 @@ public class AuritekhElytraItem extends ElytraItem implements IRegisterListener,
         // Проверяем, летит ли на элитрах
         ItemStack stack = player.getItemBySlot(EquipmentSlot.CHEST);
         
-        if (player.isFallFlying() && stack.is(this)) {
+        if (player.isFallFlying() && stack.is(this) && Minecraft.getInstance().screen == null) {
             long window = mc.getWindow().getWindow();
             if (InputConstants.isKeyDown(window, GLFW.GLFW_KEY_LEFT_CONTROL)) {
                 Network.sendToServer(new EntityPacket(player.getId()) {

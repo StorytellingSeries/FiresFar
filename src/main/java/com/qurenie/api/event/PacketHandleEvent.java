@@ -1,4 +1,4 @@
-package com.qurenie.api;
+package com.qurenie.api.event;
 
 import lombok.Getter;
 import net.minecraft.network.PacketListener;

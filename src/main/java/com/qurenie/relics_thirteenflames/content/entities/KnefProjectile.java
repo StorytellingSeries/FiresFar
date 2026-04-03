@@ -1,10 +1,11 @@
 package com.qurenie.relics_thirteenflames.content.entities;
 
 import com.qurenie.relics_thirteenflames.client.particles.CircleTintParticle;
+import com.qurenie.relics_thirteenflames.content.items.ItemKnefBow;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
 import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
-import it.hurts.sskirillss.relics.items.relics.base.IRelicItem;
+import it.hurts.sskirillss.relics.api.relics.IRelicItem;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -161,8 +162,8 @@ public class KnefProjectile extends ThrowableProjectile
                 ParticleHelper.spawnParticles(this.level(), new CircleTintParticle.Options(colors[rng.nextInt(colors.length)], 0.1f, 0, 11, 0.5f, false),
                         this.getPosition(1), 10, 0, 0, 0, 0.08);
                 
-                if(this.bow.getItem() instanceof IRelicItem relic && owner instanceof LivingEntity livin){
-                    relic.spreadRelicExperience(livin, bow, 1);
+                if(this.bow.getItem() instanceof ItemKnefBow relic && owner instanceof LivingEntity livin){
+                    relic.addExperience(livin, bow, 1);
                 }
 
                 result.getEntity().invulnerableTime = 0;

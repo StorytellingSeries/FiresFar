@@ -1,23 +1,27 @@
 package com.qurenie.relics_thirteenflames.content.items;
 
 import com.mojang.blaze3d.platform.InputConstants;
+import com.qurenie.api.IActivityContainer;
+import com.qurenie.api.IExtRelicItem;
+import com.qurenie.api.SettingsContainer;
+import com.qurenie.relics_thirteenflames.activity.ActivitySetting;
+import com.qurenie.relics_thirteenflames.activity.IActivitySetting;
+import com.qurenie.relics_thirteenflames.client.bar.BarSetting;
+import com.qurenie.relics_thirteenflames.client.bar.IBarSetting;
+import com.qurenie.relics_thirteenflames.init.ComponentRegistry;
 import com.qurenie.relics_thirteenflames.net.RhonasRebukePacket;
+import com.qurenie.relics_thirteenflames.style.ColorScheme;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
-import it.hurts.sskirillss.relics.init.EffectRegistry;
-import it.hurts.sskirillss.relics.init.HotkeyRegistry;
-import it.hurts.sskirillss.relics.init.RelicContainerRegistry;
-import it.hurts.sskirillss.relics.items.relics.base.IRelicItem;
-import it.hurts.sskirillss.relics.items.relics.base.data.RelicData;
-import it.hurts.sskirillss.relics.items.relics.base.data.cast.CastData;
-import it.hurts.sskirillss.relics.items.relics.base.data.cast.misc.CastStage;
-import it.hurts.sskirillss.relics.items.relics.base.data.cast.misc.CastType;
-import it.hurts.sskirillss.relics.items.relics.base.data.cast.misc.PredicateType;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.AbilitiesData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.AbilityData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.LevelingData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.StatData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.misc.UpgradeOperation;
-import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootData;
+import it.hurts.sskirillss.relics.api.relics.IRelicItem;
+import it.hurts.sskirillss.relics.api.relics.RelicTemplate;
+import it.hurts.sskirillss.relics.api.relics.abilities.AbilitiesTemplate;
+import it.hurts.sskirillss.relics.api.relics.abilities.AbilityTemplate;
+import it.hurts.sskirillss.relics.api.relics.abilities.stats.AbilityStatTemplate;
+import it.hurts.sskirillss.relics.init.RelicsHotkeys;
+import it.hurts.sskirillss.relics.init.RelicsMobEffects;
+import it.hurts.sskirillss.relics.init.RelicsScalingModels;
+import it.hurts.sskirillss.relics.items.relics.base.data.leveling.LevelingTemplate;
+import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootTemplate;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.misc.LootEntries;
 import it.hurts.sskirillss.relics.utils.EntityUtils;
 import it.hurts.sskirillss.relics.utils.MathUtils;
@@ -59,8 +63,11 @@ import net.neoforged.neoforge.common.ItemAbility;
 import net.neoforged.neoforge.event.entity.living.LivingKnockBackEvent;
 import net.neoforged.neoforge.event.entity.living.LivingShieldBlockEvent;
 import org.jetbrains.annotations.NotNull;
+import org.lwjgl.glfw.GLFW;
 import org.zeith.hammerlib.api.items.IColoredFoilItem;
+import org.zeith.hammerlib.net.IPacket;
 import org.zeith.hammerlib.net.Network;
+import org.zeith.hammerlib.net.PacketContext;
 
 import java.awt.*;
 import java.util.List;
@@ -70,7 +77,7 @@ import java.util.Random;
 import static com.qurenie.relics_thirteenflames.init.ComponentRegistry.*;
 
 @EventBusSubscriber
-public class ItemRonasShield extends ShieldItem implements IColoredFoilItem, IRelicItem {
+public class ItemRonasShield extends ShieldItem implements IExtRelicItem, IColoredFoilItem, IRelicItem, IActivityContainer {
     
     private static final Random RNG = new Random();
     
@@ -83,21 +90,21 @@ public class ItemRonasShield extends ShieldItem implements IColoredFoilItem, IRe
         ItemStack stack = event.getEntity().getItemInHand(event.getEntity().getUsedItemHand());
         if (stack.getItem() instanceof ItemRonasShield shit && event.getEntity().isUsingItem()) {
             
-            float blockRate = (float) shit.getStatValue(stack, "block", "blockrate");
+            float blockRate = (float) shit.getStatValue(event.getEntity(), stack, "block", "blockrate");
             float blockedDmg = event.getOriginalBlockedDamage() * blockRate;
-            float hungerDmg = (float) shit.getStatValue(stack, "block", "hungerdmg");
+            float hungerDmg = (float) shit.getStatValue(event.getEntity(), stack, "block", "hungerdmg");
             if (event.getEntity() instanceof Player p) {
                 p.causeFoodExhaustion(blockedDmg * hungerDmg);
             }
             
-            double chargeRate = shit.getStatValue(stack, "rebuke", "chargerate");
-            int maxCharge = (int) shit.getStatValue(stack, "rebuke", "maxcharge");
+            double chargeRate = shit.getStatValue(event.getEntity(), stack, "rebuke", "chargerate");
+            int maxCharge = (int) shit.getStatValue(event.getEntity(), stack, "rebuke", "maxcharge");
             
             float charge = stack.getOrDefault(RHONAS_BLOCKED, 0f);
             
             int chargesToPut = stack.getOrDefault(RHONAS_CHARGES, 0);
             
-            shit.spreadRelicExperience(event.getEntity(), stack, (int) Math.min(blockedDmg, 15));
+            shit.addExperience(event.getEntity(), stack, (int) Math.min(blockedDmg, 15));
             
             
             charge += blockedDmg;
@@ -122,99 +129,115 @@ public class ItemRonasShield extends ShieldItem implements IColoredFoilItem, IRe
     @SubscribeEvent
     public static void onKnockback(LivingKnockBackEvent event) {
         if (event.getEntity().getUseItem().getItem() instanceof ItemRonasShield shit) {
-            float blockRate = (float) shit.getStatValue(event.getEntity().getUseItem(), "block", "blockrate");
+            float blockRate = (float) shit.getStatValue(event.getEntity(), event.getEntity().getUseItem(), "block", "blockrate");
             event.setStrength(event.getStrength() * (1 - blockRate));
         }
-    }
-    
-    public String getConfigRoute() {
-        return "relics";
     }
     
     @Override
     public boolean canPerformAction(@NotNull ItemStack stack, @NotNull ItemAbility itemAbility) {
         return ItemAbilities.DEFAULT_SHIELD_ACTIONS.contains(itemAbility);
     }
-    
+
     @Override
-    public RelicData constructDefaultRelicData() {
-        return RelicData.builder()
-                .abilities(AbilitiesData.builder()
-                        .ability(AbilityData.builder("block")
-                                .maxLevel(8)
-                                .stat(StatData.builder("blockrate")
+    public SettingsContainer<IActivitySetting> constructActivitySettings() {
+        return SettingsContainer.<IActivitySetting>builder()
+                .setting(ActivitySetting.builder("rebuke")
+                        .maxCooldown((s, p) -> 400)
+                        .color(ColorScheme.BAR_YELLOW)
+                        .build())
+                .setting(ActivitySetting.builder("charge")
+                        .maxCooldown((s, p) -> 400)
+                        .color(ColorScheme.BAR_RED)
+                        .build())
+                .build();
+    }
+
+    @Override
+    public SettingsContainer<IBarSetting> constructBarSettings() {
+        return SettingsContainer.<IBarSetting>builder()
+                .setting(BarSetting.builder()
+                        .color(ColorScheme.BAR_YELLOW)
+                        .maxValue((s, p) -> getStatValue(p, s, "rebuke", "maxcharge"))
+                        .value((s, p) -> Double.valueOf(s.getOrDefault(ComponentRegistry.RHONAS_CHARGES, 0)))
+                        .build())
+                .build();
+    }
+
+    @Override
+    public RelicTemplate constructDefaultRelicTemplate() {
+        return RelicTemplate.builder()
+                .abilities(AbilitiesTemplate.builder()
+                        .ability(AbilityTemplate.builder("block")
+                                .initialMaxLevel(8)
+                                .stat(AbilityStatTemplate.builder("blockrate")
                                         .initialValue(0.6, 0.64)
                                         .thresholdValue(0, 1)
-                                        .upgradeModifier(UpgradeOperation.ADD, 0.05)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 0.05)
                                         .formatValue(x -> (int) MathUtils.round(x * 100, 0))
                                         .build()
                                 )
-                                .stat(StatData.builder("speed")
+                                .stat(AbilityStatTemplate.builder("speed")
                                         .initialValue(0.2, 0.2)
                                         .thresholdValue(0, 1)
-                                        .upgradeModifier(UpgradeOperation.ADD, 0.075)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 0.075)
                                         .formatValue(x -> (int) MathUtils.round((1 - x) * 100, 0))
                                         .build()
                                 )
-                                .stat(StatData.builder("hungerdmg")
+                                .stat(AbilityStatTemplate.builder("hungerdmg")
                                         .initialValue(1.8, 1.6)
                                         .thresholdValue(0, 10)
-                                        .upgradeModifier(UpgradeOperation.ADD, -0.1)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), -0.1)
                                         .formatValue(x -> MathUtils.round(x, 1))
                                         .build()
                                 )
                                 .build()
                         )
-                        .ability(AbilityData.builder("rebuke")
-                                .maxLevel(2)
-                                .stat(StatData.builder("maxcharge")
+                        .ability(AbilityTemplate.builder("rebuke")
+                                .initialMaxLevel(2)
+                                .stat(AbilityStatTemplate.builder("maxcharge")
                                         .initialValue(1, 1)
                                         .thresholdValue(1, 3)
-                                        .upgradeModifier(UpgradeOperation.ADD, 1)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 1)
                                         .formatValue(x -> (int) MathUtils.round(x, 0))
                                         .build()
                                 )
-                                .stat(StatData.builder("chargerate")
+                                .stat(AbilityStatTemplate.builder("chargerate")
                                         .initialValue(8.0, 7.0)
                                         .thresholdValue(1.0, 20.0)
-                                        .upgradeModifier(UpgradeOperation.ADD, -1)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), -1)
                                         .formatValue(x -> (int) MathUtils.round(x, 0))
                                         .build()
                                 )
-                                .stat(StatData.builder("dmg")
+                                .stat(AbilityStatTemplate.builder("dmg")
                                         .initialValue(7, 8)
                                         .thresholdValue(0, 40)
-                                        .upgradeModifier(UpgradeOperation.ADD, 4)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 4)
                                         .formatValue(x -> MathUtils.round(x, 1))
                                         .build()
                                 )
                                 .build()
                         )
-                        .ability(AbilityData.builder("charge")
-                                .maxLevel(5)
-                                .active(CastData.builder()
-                                        .type(CastType.INSTANTANEOUS)
-                                        .container(RelicContainerRegistry.INVENTORY.get())
-                                        .predicate("chargecast", PredicateType.CAST, (p, stack) -> p.getUseItem().equals(stack))
-                                        .build())
-                                .stat(StatData.builder("dur")
+                        .ability(AbilityTemplate.builder("charge")
+                                .initialMaxLevel(5)
+                                .stat(AbilityStatTemplate.builder("dur")
                                         .initialValue(10, 20)
                                         .thresholdValue(1, 120)
-                                        .upgradeModifier(UpgradeOperation.ADD, 12)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 12)
                                         .formatValue(x -> MathUtils.round(x / 20, 1))
                                         .build()
                                 )
-                                .stat(StatData.builder("dmg")
+                                .stat(AbilityStatTemplate.builder("dmg")
                                         .initialValue(4, 5)
                                         .thresholdValue(0, 10)
-                                        .upgradeModifier(UpgradeOperation.ADD, 1)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 1)
                                         .formatValue(x -> MathUtils.round(x, 1))
                                         .build()
                                 )
-                                .stat(StatData.builder("stunduration")
+                                .stat(AbilityStatTemplate.builder("stunduration")
                                         .initialValue(10, 20)
                                         .thresholdValue(0, 80)
-                                        .upgradeModifier(UpgradeOperation.ADD, 8)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 8)
                                         .formatValue(x -> MathUtils.round(x / 20, 1))
                                         .build()
                                 )
@@ -222,21 +245,26 @@ public class ItemRonasShield extends ShieldItem implements IColoredFoilItem, IRe
                         )
                         .build()
                 )
-                .leveling(new LevelingData(100, 15, 100))
-                .loot(LootData.builder().entry(LootEntries.DESERT).build())
+                .leveling(LevelingTemplate.builder()
+                        .maxRank(2)
+                        .step(15)
+                        .initialCost(100)
+                        .build())
+                .loot(LootTemplate.builder().entry(LootEntries.DESERT).build())
                 .build();
     }
-    
-    @Override
-    public void castActiveAbility(ItemStack stack, Player player, String ability, CastType type, CastStage stage) {
-        if (ability.equals("charge")) {
-            stack.set(CHARGING_TICKER, (int) getStatValue(stack, "charge", "dur"));
-            addAbilityCooldown(stack, "charge", 400);
-            EntityUtils.applyAttribute(player, stack, Attributes.STEP_HEIGHT, 0.6F, AttributeModifier.Operation.ADD_VALUE);
-        }
-        if (ability.equals("rebuke"))
-            rebuke(player, stack);
-        IRelicItem.super.castActiveAbility(stack, player, ability, type, stage);
+
+    private boolean isCtrlPressed() {
+        Minecraft minecraft = Minecraft.getInstance();
+        // На клиенте GLFW‑модификаторы доступны здесь
+        long window = minecraft.getWindow().getWindow();
+        if (window == 0) return false;
+
+        // Проверяем, нажат ли Ctrl (или другой модификатор, если нужно)
+        boolean isCtrl = GLFW.glfwGetKey(window, GLFW.GLFW_KEY_LEFT_CONTROL) == GLFW.GLFW_PRESS
+                || GLFW.glfwGetKey(window, GLFW.GLFW_KEY_RIGHT_CONTROL) == GLFW.GLFW_PRESS;
+
+        return isCtrl;
     }
     
     @Override
@@ -247,7 +275,7 @@ public class ItemRonasShield extends ShieldItem implements IColoredFoilItem, IRe
         
         tooltip.add(Component.literal(" "));
         if (Minecraft.getInstance().screen instanceof AbstractContainerScreen) {
-            tooltip.add(Component.translatable("tooltip.relics.researching.info", HotkeyRegistry.RESEARCH_RELIC.getKey().getDisplayName()).withStyle(ChatFormatting.GRAY));
+            tooltip.add(Component.translatable("tooltip.relics.researching.info", RelicsHotkeys.RESEARCH_RELIC.getKey().getDisplayName()).withStyle(ChatFormatting.GRAY));
         }
         
         tooltip.add(Component.literal(" "));
@@ -259,10 +287,10 @@ public class ItemRonasShield extends ShieldItem implements IColoredFoilItem, IRe
     }
     
     @Override
-    public void inventoryTick(ItemStack stack, Level level, Entity entity, int p_41407_, boolean p_41408_) {
+    public void inventoryTick(ItemStack stack, Level level, Entity entity, int slot, boolean selected) {
         if (entity instanceof LivingEntity l && stack.getOrDefault(BLOCKED, false) != (l.getUseItem() == stack))
             stack.set(BLOCKED, l.getUseItem() == stack);
-        super.inventoryTick(stack, level, entity, p_41407_, p_41408_);
+
     }
     
     @Override
@@ -308,12 +336,12 @@ public class ItemRonasShield extends ShieldItem implements IColoredFoilItem, IRe
             
             AABB aoe = player.getBoundingBox().inflate(2, 0.3, 2);
             for (LivingEntity target : player.level().getEntitiesOfClass(LivingEntity.class, aoe, e -> !e.getUUID().equals(player.getUUID()))) {
-                float damag = (float) (getStatValue(stack, "charge", "dmg") + (getStatValue(stack, "charge", "dur") - chargingTicker) / 8);
+                float damag = (float) (getStatValue(living, stack, "charge", "dmg") + (getStatValue(living, stack, "charge", "dur") - chargingTicker) / 8);
                 if (target.hurt(player.damageSources().playerAttack(player), damag)) {
                     Vec3 awayctor = target.position().subtract(player.position()).subtract(player.getDeltaMovement()).normalize().scale(2);
                     target.push(awayctor.x(), awayctor.y() + 1, awayctor.z());
-                    target.addEffect(new MobEffectInstance(EffectRegistry.STUN, (int) getStatValue(stack, "charge", "stunduration"), 0));
-                    this.spreadRelicExperience(player, stack, 1);
+                    target.addEffect(new MobEffectInstance(RelicsMobEffects.STUN, (int) getStatValue(living, stack, "charge", "stunduration"), 0));
+                    this.addExperience(player, stack, 1);
                 }
             }
             
@@ -378,7 +406,7 @@ public class ItemRonasShield extends ShieldItem implements IColoredFoilItem, IRe
                     player.level().playSound(null, player.blockPosition(), SoundEvents.BLAZE_SHOOT, SoundSource.PLAYERS, 0.45f, 0.8f);
                 
                 double range = 2 + charges * 1.2;
-                float damage = (float) this.getStatValue(shield, "rebuke", "dmg") * charges;
+                float damage = (float) this.getStatValue(player, shield, "rebuke", "dmg") * charges;
                 
                 AABB box = AABB.ofSize(player.getEyePosition().add(player.getLookAngle().scale(range * 0.5)), range, range / 2, range);
                 
@@ -389,7 +417,7 @@ public class ItemRonasShield extends ShieldItem implements IColoredFoilItem, IRe
                         e.setDeltaMovement(e.getDeltaMovement().add(knockback.add(0, 0.2, 0)));
                         if (charges == 3) e.setRemainingFireTicks(120);
                         
-                        this.spreadRelicExperience(player, shield, 1);
+                        this.addExperience(player, shield, 1);
                     }
                     
                 }
@@ -435,7 +463,12 @@ public class ItemRonasShield extends ShieldItem implements IColoredFoilItem, IRe
     public int getFoilColor(@NotNull ItemStack stack) {
         return /*0xFA9FEB7D*/ new Color(145, 43, 29).getRGB();
     }
-    
+
+    @Override
+    public String getConfigRoute() {
+        return "relics";
+    }
+
     @OnlyIn(Dist.CLIENT)
     @EventBusSubscriber
     public static class ClientEventHandler {
@@ -451,6 +484,46 @@ public class ItemRonasShield extends ShieldItem implements IColoredFoilItem, IRe
                     && player.getUseItem().getOrDefault(CHARGING_TICKER, 0) == 0) {
                 
                 Network.sendToServer(new RhonasRebukePacket());
+            }
+        }
+
+        private static boolean isCtrl = false;
+
+        @SubscribeEvent(priority = EventPriority.HIGHEST)
+        public static void onKeyInput(InputEvent.Key event) {
+
+            if (event.getAction() != GLFW.GLFW_PRESS) return;
+
+            int key = event.getKey();
+
+            if (key != GLFW.GLFW_KEY_LEFT_CONTROL &&
+                    key != GLFW.GLFW_KEY_RIGHT_CONTROL) {
+                return;
+            }
+
+            if (!isCtrl) {
+                isCtrl = true;
+
+                Network.sendToServer(new IPacket() {
+                    @Override
+                    public void serverExecute(PacketContext ctx) {
+                        Player player = ctx.getSender();
+                        ItemStack stack = player.getItemInHand(player.getUsedItemHand());
+                        if (stack.getItem() instanceof ItemRonasShield shield && player.isUsingItem()) {
+                            stack.set(CHARGING_TICKER, (int) shield.getStatValue(player, stack, "charge", "dur"));
+                            shield.setMaxCooldown(player, stack, "charge");
+                            EntityUtils.applyAttribute(player, stack, Attributes.STEP_HEIGHT, 0.6F, AttributeModifier.Operation.ADD_VALUE);
+                            return;
+                        }
+                    }
+                });
+            }
+
+            if (event.getAction() == GLFW.GLFW_RELEASE &&
+                    (event.getKey() == GLFW.GLFW_KEY_LEFT_CONTROL ||
+                            event.getKey() == GLFW.GLFW_KEY_RIGHT_CONTROL)) {
+
+                isCtrl = false;
             }
         }
         

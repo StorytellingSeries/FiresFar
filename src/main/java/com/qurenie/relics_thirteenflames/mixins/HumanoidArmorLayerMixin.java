@@ -1,7 +1,7 @@
 package com.qurenie.relics_thirteenflames.mixins;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.qurenie.api.IRenderableArmorItem;
+import com.qurenie.api.event.IRenderableArmorItem;
 import com.qurenie.relics_thirteenflames.content.items.base.IArmor;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.Model;
@@ -49,15 +49,17 @@ public abstract class HumanoidArmorLayerMixin<T extends LivingEntity, A extends 
             armoritem.render(poseStack, bufferSource, livingEntity, slot, packedLight, limbSwing, limbSwingAmount, partialTick, ageInTicks, netHeadYaw, headPitch);
             if (armoritem.cancelDefaultRenderer(livingEntity, slot))
                 ci.cancel();
+
         }
+
         if (itemstack.getItem() instanceof IArmor armoritem) {
             if (armoritem.getType().getSlot() == slot) {
-                self().getParentModel().copyPropertiesTo(p_model);
-                setPartVisibility(p_model, slot);
+                ((A) self().getParentModel()).copyPropertiesTo(p_model);
+                this.setPartVisibility(p_model, slot);
                 net.minecraft.client.model.Model model = getArmorModelHook(livingEntity, itemstack, slot, p_model);
                 boolean flag = this.usesInnerModel(slot);
                 ArmorMaterial armormaterial = armoritem.getMaterial().value();
-                
+
                 net.neoforged.neoforge.client.extensions.common.IClientItemExtensions extensions = net.neoforged.neoforge.client.extensions.common.IClientItemExtensions.of(itemstack);
                 extensions.setupModelAnimations(livingEntity, itemstack, slot, model, limbSwing, limbSwingAmount, partialTick, ageInTicks, netHeadYaw, headPitch);
                 int fallbackColor = extensions.getDefaultDyeColor(itemstack);
@@ -66,17 +68,17 @@ public abstract class HumanoidArmorLayerMixin<T extends LivingEntity, A extends 
                     int j = extensions.getArmorLayerTintColor(itemstack, livingEntity, armormaterial$layer, layerIdx, fallbackColor);
                     if (j != 0) {
                         var texture = net.neoforged.neoforge.client.ClientHooks.getArmorTexture(livingEntity, itemstack, armormaterial$layer, flag, slot);
-                        renderModel(poseStack, bufferSource, packedLight, (A) model, j, texture);
+                        this.renderModel(poseStack, bufferSource, packedLight, (A) model, j, texture);
                     }
                 }
-                
+
                 ArmorTrim armortrim = itemstack.get(DataComponents.TRIM);
                 if (armortrim != null) {
-                    renderTrim(armoritem.getMaterial(), poseStack, bufferSource, packedLight, armortrim, (A) model, flag);
+                    this.renderTrim(armoritem.getMaterial(), poseStack, bufferSource, packedLight, armortrim, (A) model, flag);
                 }
-                
+
                 if (itemstack.hasFoil()) {
-                    renderGlint(poseStack, bufferSource, packedLight, (A) model);
+                    this.renderGlint(poseStack, bufferSource, packedLight, (A) model);
                 }
             }
         }

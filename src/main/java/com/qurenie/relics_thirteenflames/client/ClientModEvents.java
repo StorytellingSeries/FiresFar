@@ -2,7 +2,9 @@ package com.qurenie.relics_thirteenflames.client;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.qurenie.api.IBarContainer;
 import com.qurenie.relics_thirteenflames.ThirteenFlames;
+import com.qurenie.relics_thirteenflames.client.bar.BarDecorator;
 import com.qurenie.relics_thirteenflames.client.render.entity.CommonRenderer;
 import com.qurenie.relics_thirteenflames.client.render.entity.EntityRendererSeliasetSun;
 import com.qurenie.relics_thirteenflames.client.render.entity.FallingRenderer;
@@ -39,6 +41,7 @@ import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.resources.PlayerSkin;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -48,10 +51,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
-import net.neoforged.neoforge.client.event.EntityRenderersEvent;
-import net.neoforged.neoforge.client.event.ModelEvent;
-import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
-import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
+import net.neoforged.neoforge.client.event.*;
 import org.jetbrains.annotations.NotNull;
 import org.zeith.hammeranims.api.geometry.IGeometryContainer;
 import org.zeith.hammeranims.api.tile.IAnimatedEntity;
@@ -62,7 +62,7 @@ import java.util.Map;
 import static com.qurenie.relics_thirteenflames.init.ItemsRegistry.JODAH_MASK;
 
 
-@EventBusSubscriber(modid = ThirteenFlames.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = ThirteenFlames.MODID, value = Dist.CLIENT)
 public class ClientModEvents {
     
     @SubscribeEvent
@@ -171,6 +171,18 @@ public class ClientModEvents {
                 ThirteenFlames.rl("textures/entity/respawn_book.png")
         ));
     }
+
+    @SubscribeEvent
+    public static void onRegisterKeyMappings(RegisterKeyMappingsEvent event) {
+        KeyBindRegistry.register(event);
+    }
+
+    @SubscribeEvent
+    public static void registerDecorators(RegisterItemDecorationsEvent event) {
+        for (var entry : BuiltInRegistries.ITEM.entrySet())
+            if (entry.getValue() instanceof IBarContainer)
+                event.register(entry.getValue(), BarDecorator.INSTANCE);
+    }
     
     public static <T extends LivingEntity & IAnimatedEntity, R extends CommonRenderer<T>> EntityRendererProvider<T> rendererProvider(IGeometryContainer model, RendererFactory<T, R> renderer, ResourceLocation texture) {
         return manager -> renderer.create(manager, new RendererFactory.ModelConfiguration(model), 0.5F, texture);
@@ -271,7 +283,7 @@ public class ClientModEvents {
                 width = 72;
                 height = 16;
                 
-                int maxStacks = (int) relic.getStatValue(player.getMainHandItem(), "spit", "maxstacks");
+                int maxStacks = (int) relic.getStatValue(player, player.getMainHandItem(), "spit", "maxstacks");
                 
                 x = guiGraphics.guiWidth() / 2 - (width - 12 * (6 - maxStacks)) / 2 / scale;
                 y = guiGraphics.guiHeight() / 2 + 20;

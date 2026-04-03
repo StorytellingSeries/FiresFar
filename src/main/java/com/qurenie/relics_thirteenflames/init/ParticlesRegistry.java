@@ -20,7 +20,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import org.zeith.hammerlib.core.adapter.recipe.SmeltingRecipeBuilder;
 import org.zeith.hammerlib.util.mcf.RecipeRegistrationContext;
 
-@EventBusSubscriber(modid = ThirteenFlames.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = ThirteenFlames.MODID, value = Dist.CLIENT)
 public class ParticlesRegistry {
     
     public static final DeferredRegister<ParticleType<?>> PARTICLES;

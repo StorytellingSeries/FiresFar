@@ -1,8 +1,15 @@
 package com.qurenie.relics_thirteenflames.content.items;
 
-import com.mojang.blaze3d.platform.MacosUtil;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.qurenie.api.IRenderableArmorItem;
+import com.qurenie.api.IActivityContainer;
+import com.qurenie.api.IExtRelicItem;
+import com.qurenie.api.SettingsContainer;
+import com.qurenie.api.event.IRenderableArmorItem;
+import com.qurenie.relics_thirteenflames.activity.IActivitySetting;
+import com.qurenie.relics_thirteenflames.activity.RelicActivitySetting;
+import com.qurenie.relics_thirteenflames.activity.call.settings.ActivityResult;
+import com.qurenie.relics_thirteenflames.activity.call.settings.InventoryType;
+import com.qurenie.relics_thirteenflames.activity.call.settings.RelicsActivityCallSettings;
 import com.qurenie.relics_thirteenflames.client.particles.FeatherParticle;
 import com.qurenie.relics_thirteenflames.client.render.entity.IJodahGlowed;
 import com.qurenie.relics_thirteenflames.content.entities.MeteorEntity;
@@ -14,23 +21,16 @@ import com.qurenie.relics_thirteenflames.net.MaskDarkStarPacket;
 import com.qurenie.relics_thirteenflames.net.MaskSparkslipPacket;
 import com.qurenie.relics_thirteenflames.util.FlamesUtils;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
-import it.hurts.sskirillss.relics.init.RelicContainerRegistry;
-import it.hurts.sskirillss.relics.items.relics.base.IRelicItem;
-import it.hurts.sskirillss.relics.items.relics.base.data.RelicData;
-import it.hurts.sskirillss.relics.items.relics.base.data.cast.CastData;
-import it.hurts.sskirillss.relics.items.relics.base.data.cast.misc.CastStage;
-import it.hurts.sskirillss.relics.items.relics.base.data.cast.misc.CastType;
-import it.hurts.sskirillss.relics.items.relics.base.data.cast.misc.PredicateType;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.AbilitiesData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.AbilityData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.LevelingData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.StatData;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.misc.UpgradeOperation;
-import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootData;
+
+import it.hurts.sskirillss.relics.api.relics.RelicTemplate;
+import it.hurts.sskirillss.relics.api.relics.abilities.AbilitiesTemplate;
+import it.hurts.sskirillss.relics.api.relics.abilities.AbilityTemplate;
+import it.hurts.sskirillss.relics.api.relics.abilities.stats.AbilityStatTemplate;
+import it.hurts.sskirillss.relics.api.relics.IRelicItem;
+import it.hurts.sskirillss.relics.init.RelicsScalingModels;
+import it.hurts.sskirillss.relics.items.relics.base.data.leveling.LevelingTemplate;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootEntry;
-import it.hurts.sskirillss.relics.items.relics.base.data.loot.misc.LootEntries;
-import it.hurts.sskirillss.relics.items.relics.base.data.style.BeamsData;
-import it.hurts.sskirillss.relics.items.relics.base.data.style.StyleData;
+import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootTemplate;
 import it.hurts.sskirillss.relics.utils.MathUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -67,7 +67,6 @@ import net.neoforged.neoforge.client.event.RenderLivingEvent;
 import net.neoforged.neoforge.event.entity.living.LivingChangeTargetEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingEquipmentChangeEvent;
-import net.neoforged.neoforge.event.entity.living.LivingEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.tick.EntityTickEvent;
 import org.jetbrains.annotations.NotNull;
@@ -80,7 +79,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class ItemJodahMask extends ArmorItem implements IRelicItem, IRenderableArmorItem {
+public class ItemJodahMask extends ArmorItem implements IActivityContainer, IExtRelicItem, IRelicItem, IRenderableArmorItem {
     
     public static final Color GOLD_COLOR = new Color(200, 150, 20);
     public static final Color GRAY_COLOR = new Color(50, 50, 50);
@@ -145,150 +144,110 @@ public class ItemJodahMask extends ArmorItem implements IRelicItem, IRenderableA
     public static final LootEntry MASK_ENTRY = LootEntry.builder().dimension(".*").biome(".*").table("minecraft:chests/ruined_portal").weight(640).build();
     
     @Override
-    public RelicData constructDefaultRelicData() {
-        return RelicData.builder()
-                .abilities(AbilitiesData.builder()
-                        .ability(AbilityData.builder("planeshift")
-                                .maxLevel(4)
-                                .active(CastData.builder()
-                                        .predicate("planeshift_predicate", PredicateType.VISIBILITY, (p, s) -> {
-                                            MaskState state = s.getOrDefault(ComponentRegistry.MASK_STATE, MaskState.NEUTRAL);
-                                            return p.getItemBySlot(EquipmentSlot.HEAD) == s;
-                                        })
-                                        .container(RelicContainerRegistry.INVENTORY.get())
-                                        .type(CastType.INSTANTANEOUS)
-                                        .build())
-                                .stat(StatData.builder("cooldown")
-                                        .initialValue(60, 40)
-                                        .upgradeModifier(UpgradeOperation.MULTIPLY_BASE, -0.2)
-                                        .thresholdValue(10, 60)
+    public RelicTemplate constructDefaultRelicTemplate() {
+        return RelicTemplate.builder()
+                .abilities(AbilitiesTemplate.builder()
+                        .ability(AbilityTemplate.builder("planeshift")
+                                .initialMaxLevel(4)
+                                .stat(AbilityStatTemplate.builder("recharge")
+                                        .initialValue(1200, 800)
+                                        .upgradeModifier(RelicsScalingModels.MULTIPLICATIVE_BASE.get(), -0.2)
+                                        .thresholdValue(200, 1200)
                                         .formatValue(d -> MathUtils.round(d, 1))
                                         .build()
                                 )
-                                .stat(StatData.builder("durability")
+                                .stat(AbilityStatTemplate.builder("durability")
                                         .initialValue(0.5, 1.5)
-                                        .upgradeModifier(UpgradeOperation.ADD, 0.5)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 0.5)
                                         .thresholdValue(0.5, 4)
                                         .formatValue(d -> MathUtils.round(d, 1))
                                         .build()
                                 )
                                 .build()
                         )
-                        .ability(AbilityData.builder("sparkslip")
-                                .maxLevel(4)
-                                .active(CastData.builder()
-                                        .predicate("sparkslip_predicate", PredicateType.VISIBILITY, (p, s) -> {
-                                            MaskState state = s.getOrDefault(ComponentRegistry.MASK_STATE, MaskState.NEUTRAL);
-                                            return p.getItemBySlot(EquipmentSlot.HEAD) == s && state == MaskState.NEUTRAL;
-                                        })
-                                        .container(RelicContainerRegistry.INVENTORY.get())
-                                        .type(CastType.INSTANTANEOUS)
-                                        .build())
-                                .stat(StatData.builder("cooldown")
-                                        .initialValue(45, 35)
-                                        .upgradeModifier(UpgradeOperation.MULTIPLY_TOTAL, -0.2)
-                                        .thresholdValue(8, 45)
+                        .ability(AbilityTemplate.builder("sparkslip")
+                                .initialMaxLevel(4)
+                                .stat(AbilityStatTemplate.builder("recharge")
+                                        .initialValue(900, 700)
+                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), -0.2)
+                                        .thresholdValue(160, 900)
                                         .formatValue(d -> MathUtils.round(d, 0))
                                         .build()
                                 )
-                                .stat(StatData.builder("range")
+                                .stat(AbilityStatTemplate.builder("range")
                                         .initialValue(10, 18)
-                                        .upgradeModifier(UpgradeOperation.MULTIPLY_TOTAL, 0.35)
+                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), 0.35)
                                         .thresholdValue(4, 56)
                                         .formatValue(d -> MathUtils.round(d, 0))
                                         .build()
                                 )
                                 .build()
                         )
-                        .ability(AbilityData.builder("dark_star")
-                                .maxLevel(5)
-                                .active(CastData.builder()
-                                        .container(RelicContainerRegistry.INVENTORY.get())
-                                        .type(CastType.INSTANTANEOUS)
-                                        .predicate("dark_star_predicate", PredicateType.VISIBILITY, (p, s) -> {
-                                            MaskState state = s.getOrDefault(ComponentRegistry.MASK_STATE, MaskState.NEUTRAL);
-                                            return p.getItemBySlot(EquipmentSlot.HEAD) == s && state == MaskState.NEUTRAL;
-                                        })
-                                        .build())
-                                .stat(StatData.builder("size")
+                        .ability(AbilityTemplate.builder("dark_star")
+                                .initialMaxLevel(5)
+                                .stat(AbilityStatTemplate.builder("size")
                                         .initialValue(0.3, 0.8)
-                                        .upgradeModifier(UpgradeOperation.MULTIPLY_TOTAL, 0.35)
+                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), 0.35)
                                         .thresholdValue(0.4, 3.4)
                                         .formatValue(d -> MathUtils.round(d, 1))
                                         .build()
                                 )
-                                .stat(StatData.builder("cooldown")
-                                        .initialValue(120, 80)
-                                        .upgradeModifier(UpgradeOperation.MULTIPLY_TOTAL, -0.15)
-                                        .thresholdValue(30, 120)
+                                .stat(AbilityStatTemplate.builder("recharge")
+                                        .initialValue(2400, 1600)
+                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), -0.15)
+                                        .thresholdValue(600, 2400)
                                         .formatValue(d -> MathUtils.round(d, 1))
                                         .build()
                                 )
                                 .build()
                         )
-                        .ability(AbilityData.builder("skint_genesis")
-                                .active(CastData.builder()
-                                        .container(RelicContainerRegistry.INVENTORY.get())
-                                        .type(CastType.INSTANTANEOUS)
-                                        .predicate("skint_genesis_predicate", PredicateType.VISIBILITY, (p, s) -> {
-                                            MaskState state = s.getOrDefault(ComponentRegistry.MASK_STATE, MaskState.NEUTRAL);
-                                            return p.getItemBySlot(EquipmentSlot.HEAD) == s && state != MaskState.NEUTRAL;
-                                        })
-                                        .build())
-                                .maxLevel(4)
-                                .stat(StatData.builder("damage")
+                        .ability(AbilityTemplate.builder("skint_genesis")
+                                .initialMaxLevel(4)
+                                .stat(AbilityStatTemplate.builder("damage")
                                         .initialValue(2, 4)
-                                        .upgradeModifier(UpgradeOperation.MULTIPLY_TOTAL, 0.27)
+                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), 0.27)
                                         .thresholdValue(2, 10)
                                         .formatValue(d -> MathUtils.round(d, 0))
                                         .build()
                                 )
-                                .stat(StatData.builder("clusters")
+                                .stat(AbilityStatTemplate.builder("clusters")
                                         .initialValue(3, 5)
-                                        .upgradeModifier(UpgradeOperation.MULTIPLY_TOTAL, 0.27)
+                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), 0.27)
                                         .thresholdValue(3, 13)
                                         .formatValue(Math::floor)
                                         .build()
                                 )
-                                .stat(StatData.builder("shard_count")
+                                .stat(AbilityStatTemplate.builder("shard_count")
                                         .initialValue(1, 1.5)
-                                        .upgradeModifier(UpgradeOperation.ADD, 0.5)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 0.5)
                                         .thresholdValue(1, 3)
                                         .formatValue(Math::floor)
                                         .build()
                                 )
-                                .stat(StatData.builder("cooldown")
-                                        .initialValue(150, 120)
-                                        .upgradeModifier(UpgradeOperation.MULTIPLY_TOTAL, -0.23)
-                                        .thresholdValue(40, 150)
+                                .stat(AbilityStatTemplate.builder("recharge")
+                                        .initialValue(3000, 2400)
+                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), -0.23)
+                                        .thresholdValue(800, 3000)
                                         .formatValue(d -> MathUtils.round(d, 1))
                                         .build()
                                 )
                                 .build()
                         )
-                        .ability(AbilityData.builder("reversal_aberration")
-                                .maxLevel(3)
+                        .ability(AbilityTemplate.builder("reversal_aberration")
+                                .initialMaxLevel(3)
                                 .requiredPoints(2)
                                 .requiredLevel(7)
-                                .active(CastData.builder()
-                                        .predicate("reversal_aberration_predicate", PredicateType.VISIBILITY, (p, s) -> {
-                                            MaskState state = s.getOrDefault(ComponentRegistry.MASK_STATE, MaskState.NEUTRAL);
-                                            return p.getItemBySlot(EquipmentSlot.HEAD) == s && state != MaskState.NEUTRAL;
-                                        })
-                                        .container(RelicContainerRegistry.INVENTORY.get())
-                                        .type(CastType.INSTANTANEOUS)
-                                        .build())
-                                .stat(StatData.builder("skint_bonus")
+                                .stat(AbilityStatTemplate.builder("skint_bonus")
                                         .initialValue(1, 2)
-                                        .upgradeModifier(UpgradeOperation.ADD, 1.4)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 1.4)
                                         .thresholdValue(1, 6)
                                         .formatValue(Math::floor)
                                         .build()
                                 )
-                                .stat(StatData.builder("cooldown")
-                                        .initialValue(120, 90)
-                                        .upgradeModifier(UpgradeOperation.ADD, -23)
-                                        .thresholdValue(20, 120)
+                                .stat(AbilityStatTemplate.builder("recharge")
+                                        .initialValue(2400, 1800)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), -460)
+                                        .thresholdValue(40, 2400)
                                         .formatValue(d -> MathUtils.round(d, 1))
                                         .build()
                                 )
@@ -296,13 +255,75 @@ public class ItemJodahMask extends ArmorItem implements IRelicItem, IRenderableA
                         )
                         .build()
                 )
-                .style(StyleData.builder()
-                        .beams(BeamsData.builder().startColor(-65281).endColor(255).build())
+                .leveling(LevelingTemplate.builder()
+                        .step(75)
+                        .maxRank(2)
+                        .initialCost(100)
                         .build())
-                .leveling(new LevelingData(100, 16, 75))
-                .loot(LootData.builder().entry(MASK_ENTRY).build())
+//                .style(StyleData.builder()
+//                        .beams(BeamsData.builder().startColor(-65281).endColor(255).build())
+//                        .build())
+                .loot(LootTemplate.builder().entry(MASK_ENTRY).build())
                 .build();
         
+    }
+
+    @Override
+    public SettingsContainer<IActivitySetting> constructActivitySettings() {
+        return SettingsContainer.<IActivitySetting>builder()
+                .setting(RelicActivitySetting.builderRelic("planeshift", "recharge")
+                        .callSettings(RelicsActivityCallSettings.builder("planeshift")
+                                .cast(ItemsRegistry.JODAH_MASK::castPlaneshift)
+                                .inventoryType(InventoryType.ARMOR)
+                                .visibility((p, s) -> p.getItemBySlot(EquipmentSlot.HEAD) == s)
+                                .build())
+                        .showBar((s, p) -> false)
+                        .build())
+                .setting(RelicActivitySetting.builderRelic("sparkslip", "recharge")
+                        .callSettings(RelicsActivityCallSettings.builder("sparkslip")
+                                .cast(ItemsRegistry.JODAH_MASK::castSparkslip)
+                                .visibility((p, s) -> {
+                                    MaskState state = s.getOrDefault(ComponentRegistry.MASK_STATE, MaskState.NEUTRAL);
+                                    return p.getItemBySlot(EquipmentSlot.HEAD) == s && state == MaskState.NEUTRAL;
+                                })
+                                .inventoryType(InventoryType.ARMOR)
+                                .build())
+                        .showBar((s, p) -> false)
+                        .build())
+                .setting(RelicActivitySetting.builderRelic("dark_star", "recharge")
+                        .callSettings(RelicsActivityCallSettings.builder("dark_star")
+                                .cast(ItemsRegistry.JODAH_MASK::castDarkStar)
+                                .visibility((p, s) -> {
+                                    MaskState state = s.getOrDefault(ComponentRegistry.MASK_STATE, MaskState.NEUTRAL);
+                                    return p.getItemBySlot(EquipmentSlot.HEAD) == s && state == MaskState.NEUTRAL;
+                                })
+                                .inventoryType(InventoryType.ARMOR)
+                                .build())
+                        .showBar((s, p) -> false)
+                        .build())
+                .setting(RelicActivitySetting.builderRelic("skint_genesis", "recharge")
+                        .callSettings(RelicsActivityCallSettings.builder("skint_genesis")
+                                .cast(ItemsRegistry.JODAH_MASK::castScintGenesis)
+                                .visibility((p, s) -> {
+                                    MaskState state = s.getOrDefault(ComponentRegistry.MASK_STATE, MaskState.NEUTRAL);
+                                    return p.getItemBySlot(EquipmentSlot.HEAD) == s && state != MaskState.NEUTRAL;
+                                })
+                                .inventoryType(InventoryType.ARMOR)
+                                .build())
+                        .showBar((s, p) -> false)
+                        .build())
+                .setting(RelicActivitySetting.builderRelic("reversal_aberration", "recharge")
+                        .callSettings(RelicsActivityCallSettings.builder("reversal_aberration")
+                                .cast(ItemsRegistry.JODAH_MASK::castReversalAberration)
+                                .visibility((p, s)-> {
+                                    MaskState state = s.getOrDefault(ComponentRegistry.MASK_STATE, MaskState.NEUTRAL);
+                                    return p.getItemBySlot(EquipmentSlot.HEAD) == s && state != MaskState.NEUTRAL;
+                                })
+                                .inventoryType(InventoryType.ARMOR)
+                                .build())
+                        .showBar((s, p) -> false)
+                        .build())
+                .build();
     }
     
     @Override
@@ -316,20 +337,9 @@ public class ItemJodahMask extends ArmorItem implements IRelicItem, IRenderableA
         return "relics";
     }
     
-    @Override
-    public void castActiveAbility(ItemStack stack, Player player, String ability, CastType type, CastStage stage) {
-        switch (ability) {
-            case "planeshift" -> castPlaneshift(stack, player);
-            case "sparkslip" -> castSparkslip(stack, player);
-            case "dark_star" -> castDarkStar(stack, player);
-            case "skint_genesis" -> castScintGenesis(stack, player);
-            case "reversal_aberration" -> castReversalAberration(stack, player);
-        }
-    }
-    
-    public void castPlaneshift(ItemStack stack, Player player) {
-        if (player.level().isClientSide)
-            return;
+    public ActivityResult castPlaneshift(LivingEntity living, ItemStack stack) {
+        if (living.level().isClientSide || !(living instanceof Player player))
+            return ActivityResult.SUCCESS;
         
         ParticleHelper.spawnParticleEntity(ParticleTypes.LARGE_SMOKE, player, 15, 0.1);
         ParticleHelper.spawnParticleEntity(ParticleHelper.constructSmoke(PURPLE_COLOR, 1f,
@@ -348,14 +358,14 @@ public class ItemJodahMask extends ArmorItem implements IRelicItem, IRenderableA
         MaskState state = stack.getOrDefault(ComponentRegistry.MASK_STATE, MaskState.NEUTRAL);
         switch (state) {
             case SPARKLING:
-                FlamesUtils.addSkint(stack, player, 1);
+                FlamesUtils.addSkint(stack, player, player, 1);
                 break;
             case DUSK:
                 player.level().getEntitiesOfClass(LivingEntity.class, player.getBoundingBox().inflate(10), e -> e != player)
                         .forEach(e -> {
                             DamageSource source = e.damageSources().playerAttack(player);
                             e.hurt(source, getPlayerDamage(player, player.level(), e, player.getMainHandItem(), source));
-                            FlamesUtils.addAntiskint(stack, e, 1);
+                            FlamesUtils.addAntiskint(stack, player, e, 1);
                         });
             default:
                 int scints = player.getData(AttachmentsRegistry.SKINT_DATA);
@@ -365,13 +375,15 @@ public class ItemJodahMask extends ArmorItem implements IRelicItem, IRenderableA
                 ParticleHelper.spawnParticleEntity(ParticleHelper.constructHeal(GOLD_COLOR, 0.9f,
                         70, 0.98f), player, 5 * scints, 0.24);
                 player.heal(scints * 2);
-                addRelicExperience(stack, scints);
+                addExperience(player, stack, scints);
                 
                 FlamesUtils.addSkint(player, -scints, 0);
         }
-        
-        addRelicExperience(stack, 2);
+
+        addExperience(player, stack, 2);
         stack.set(ComponentRegistry.MASK_STATE, MaskState.NEUTRAL);
+
+        return ActivityResult.SUCCESS;
     }
     
     public void onPlaneshiftEnd(LivingEntity living) {
@@ -395,13 +407,13 @@ public class ItemJodahMask extends ArmorItem implements IRelicItem, IRenderableA
                 50, 0.98f).withGravity(-0.1f), living, 30, 0.2);
     }
     
-    public void castSparkslip(ItemStack stack, Player player) {
-        Level level = player.level();
+    public ActivityResult castSparkslip(LivingEntity living, ItemStack stack) {
+        Level level = living.level();
         
-        if (!level.isClientSide)
-            return;
+        if (!level.isClientSide || !(living instanceof Player player))
+            return ActivityResult.FAILURE;
         
-        double distance = getStatValue(stack, "sparkslip", "range");
+        double distance = getStatValue(player, stack, "sparkslip", "range");
         HitResult result = getVisibleTarget(player, distance);
         Vec3 loc = result.getLocation();
         
@@ -440,15 +452,16 @@ public class ItemJodahMask extends ArmorItem implements IRelicItem, IRenderableA
         };
         
         if (target == null)
-            return;
+            return ActivityResult.FAILURE;
         
         Network.sendToServer(new MaskSparkslipPacket(livingTarget, target));
+        return ActivityResult.SUCCESS;
     }
     
-    public void castScintGenesis(ItemStack stack, Player player) {
+    public ActivityResult castScintGenesis(LivingEntity player, ItemStack stack) {
         int scints = player.getData(AttachmentsRegistry.SKINT_DATA);
         
-        stack.set(ComponentRegistry.SKINT_GENESIS_COUNT, (int) getStatValue(stack, "skint_genesis", "clusters") + scints * 2);
+        stack.set(ComponentRegistry.SKINT_GENESIS_COUNT, (int) getStatValue(player, stack, "skint_genesis", "clusters") + scints * 2);
         stack.set(ComponentRegistry.ACTIVE_TICK, 200);
         
         if (!player.level().isClientSide)
@@ -456,7 +469,9 @@ public class ItemJodahMask extends ArmorItem implements IRelicItem, IRenderableA
         
         stack.set(ComponentRegistry.CLUSTERS_MASK_STATE, stack.getOrDefault(ComponentRegistry.MASK_STATE, MaskState.SPARKLING));
         stack.set(ComponentRegistry.MASK_STATE, MaskState.NEUTRAL);
-        addAbilityCooldown(stack, "skint_genesis", (int) (getStatValue(stack, "skint_genesis", "cooldown") * 20));
+        setMaxCooldown(player, stack, "skint_genesis");
+
+        return ActivityResult.SUCCESS;
     }
     
     @Override
@@ -500,9 +515,9 @@ public class ItemJodahMask extends ArmorItem implements IRelicItem, IRenderableA
                 if (!c.isEmpty())
                     continue;
                 
-                int count = (int) getStatValue(stack, "skint_genesis", "shard_count");
-                float damage = (float) getStatValue(stack, "skint_genesis", "damage");
-                int limit = (int) getStatValue(stack, "reversal_aberration", "skint_bonus");
+                int count = (int) getStatValue(player, stack, "skint_genesis", "shard_count");
+                float damage = (float) getStatValue(player, stack, "skint_genesis", "damage");
+                int limit = (int) getStatValue(player, stack, "reversal_aberration", "skint_bonus");
                 SkintClusterEntity cluster = new SkintClusterEntity(EntityRegistry.SKINT_CLUSTER, level, stack.get(ComponentRegistry.CLUSTERS_MASK_STATE) == MaskState.SPARKLING ? SkintClusterEntity.Type.SKINT : SkintClusterEntity.Type.ANTISKINT, player, damage, count, limit);
                 cluster.setPos(position);
                 level.addFreshEntity(cluster);
@@ -528,9 +543,9 @@ public class ItemJodahMask extends ArmorItem implements IRelicItem, IRenderableA
                     if (!c.isEmpty())
                         continue;
                     
-                    int count = (int) getStatValue(stack, "skint_genesis", "shard_count");
-                    float damage = (float) getStatValue(stack, "skint_genesis", "damage");
-                    int limit = (int) getStatValue(stack, "reversal_aberration", "skint_bonus");
+                    int count = (int) getStatValue(player, stack, "skint_genesis", "shard_count");
+                    float damage = (float) getStatValue(player, stack, "skint_genesis", "damage");
+                    int limit = (int) getStatValue(player, stack, "reversal_aberration", "skint_bonus");
                     SkintClusterEntity cluster = new SkintClusterEntity(EntityRegistry.SKINT_CLUSTER, level, stack.get(ComponentRegistry.CLUSTERS_MASK_STATE) == MaskState.SPARKLING ? SkintClusterEntity.Type.SKINT : SkintClusterEntity.Type.ANTISKINT, player, damage, count, limit);
                     cluster.setPos(position);
                     level.addFreshEntity(cluster);
@@ -544,7 +559,7 @@ public class ItemJodahMask extends ArmorItem implements IRelicItem, IRenderableA
         stack.set(ComponentRegistry.SKINT_GENESIS_COUNT, clusters - 3 + i);
     }
     
-    public void castDarkStar(ItemStack stack, Player player) {
+    public ActivityResult castDarkStar(LivingEntity player, ItemStack stack) {
         EntityHitResult entityResult = ProjectileUtil.getEntityHitResult(
                 player.level(),
                 player,
@@ -556,14 +571,15 @@ public class ItemJodahMask extends ArmorItem implements IRelicItem, IRenderableA
         );
         
         Network.sendToServer(new MaskDarkStarPacket(entityResult == null ? null : entityResult.getEntity()));
+        return ActivityResult.SUCCESS;
     }
     
     public void onDarkStarPacket(ItemStack stack, Player player, @Nullable LivingEntity target) {
-        float size = (float) getStatValue(stack, "dark_star", "size");
+        float size = (float) getStatValue(player, stack, "dark_star", "size");
         MeteorEntity meteorEntity = new MeteorEntity(player.level(), player, target, size);
         player.level().addFreshEntity(meteorEntity);
         stack.set(ComponentRegistry.MASK_STATE, MaskState.SPARKLING);
-        addAbilityCooldown(stack, "dark_star", (int) (getStatValue(stack, "dark_star", "cooldown") * 20));
+        setMaxCooldown(player, stack, "dark_star");
     }
     
     @Override
@@ -571,11 +587,14 @@ public class ItemJodahMask extends ArmorItem implements IRelicItem, IRenderableA
         return slotChanged;
     }
     
-    public void castReversalAberration(ItemStack stack, Player player) {
+    public ActivityResult castReversalAberration(LivingEntity living, ItemStack stack) {
+        if (!(living instanceof Player player))
+            return ActivityResult.FAILURE;
+
         if (player.level().isClientSide)
-            return;
+            return ActivityResult.SUCCESS;
         
-        int limitBonus = (int) getStatValue(stack, "reversal_aberration", "skint_bonus");
+        int limitBonus = (int) getStatValue(player, stack, "reversal_aberration", "skint_bonus");
         MaskState state = stack.getOrDefault(ComponentRegistry.MASK_STATE, MaskState.NEUTRAL);
         
         List<LivingEntity> targets = player.level().getEntitiesOfClass(LivingEntity.class, player.getBoundingBox().inflate(20, 10, 20), e -> e != player && e.isAlive() && e.isPickable() && !e.isSpectator());
@@ -647,10 +666,12 @@ public class ItemJodahMask extends ArmorItem implements IRelicItem, IRenderableA
         
         if (!targets.isEmpty()) {
             FlamesUtils.addSkint(player, -scints, 0);
-            addAbilityCooldown(stack, "reversal_aberration", (int) (getStatValue(stack, "reversal_aberration", "cooldown") * 20));
+            setMaxCooldown(player, stack, "reversal_aberration");
         } else {
-            addAbilityCooldown(stack, "reversal_aberration", 60);
+            addCooldown(player, stack, "reversal_aberration", 60);
         }
+
+        return ActivityResult.SUCCESS;
     }
     
     public void onSparkslipPacket(ItemStack stack, Player player, Vec3 spawnPos, @Nullable LivingEntity target) {
@@ -659,7 +680,7 @@ public class ItemJodahMask extends ArmorItem implements IRelicItem, IRenderableA
         if (target != null) {
             if (isJodahTarget(target, player)) {
                 jodahTeleport = true;
-                FlamesUtils.addAntiskint(stack, target, 4);
+                FlamesUtils.addAntiskint(stack, player, target, 4);
             }
             target.addEffect(new MobEffectInstance(EffectsRegistry.DISABILITY_EFFECT, jodahTeleport ? 25 : 15));
         }
@@ -669,7 +690,7 @@ public class ItemJodahMask extends ArmorItem implements IRelicItem, IRenderableA
                 50, 0.96f).withLightning(!jodahTeleport), player, 45, 0.1);
         
         if (!jodahTeleport)
-            FlamesUtils.addSkint(stack, player, 2);
+            FlamesUtils.addSkint(stack, player, player, 2);
         else {
             ParticleHelper.spawnParticleEntity(ParticleHelper.constructSimpleSpark(PURPLE_COLOR, 0.4f,
                     50, 0.96f), player, 25, 0.1);
@@ -677,8 +698,8 @@ public class ItemJodahMask extends ArmorItem implements IRelicItem, IRenderableA
             player.swing(player.getMainHandItem().getItem() == ItemsRegistry.JODAH_STAFF ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND, true);
         }
         
-        addRelicExperience(stack, 2);
-        addAbilityCooldown(stack, "sparkslip", (int) (getStatValue(stack, "sparkslip", "cooldown") * 20));
+        addExperience(player, stack, 2);
+        setMaxCooldown(player, stack, "sparkslip");
     }
     
     private float getPlayerDamage(Player p, Level level, Entity entity, ItemStack stack, DamageSource source) {
@@ -704,7 +725,7 @@ public class ItemJodahMask extends ArmorItem implements IRelicItem, IRenderableA
     public boolean cancelDefaultRenderer(LivingEntity livingEntity, EquipmentSlot slot) {
         return true;
     }
-    
+
     @EventBusSubscriber
     public static class EventHandler {
         
@@ -751,7 +772,7 @@ public class ItemJodahMask extends ArmorItem implements IRelicItem, IRenderableA
                     ItemStack head = p.getItemBySlot(EquipmentSlot.HEAD);
                     
                     if (head.getItem() == ItemsRegistry.JODAH_MASK && !p.isShiftKeyDown())
-                        ItemsRegistry.JODAH_MASK.setAbilityCooldown(head, "planeshift", 20 * (int) ItemsRegistry.JODAH_MASK.getStatValue(head, "planeshift", "cooldown"));
+                        ItemsRegistry.JODAH_MASK.setMaxCooldown(p, head, "planeshift");
                     else
                         ItemsRegistry.JODAH_MASK.onPlaneshiftEnd(p);
                 }
@@ -851,5 +872,7 @@ public class ItemJodahMask extends ArmorItem implements IRelicItem, IRenderableA
         }
         
     }
+
+
     
 }

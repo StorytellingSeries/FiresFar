@@ -2,6 +2,7 @@ package com.qurenie.relics_thirteenflames.util;
 
 import com.qurenie.relics_thirteenflames.client.render.misc.JodahWingsLayer;
 import com.qurenie.relics_thirteenflames.init.AttachmentsRegistry;
+import com.qurenie.relics_thirteenflames.init.ComponentRegistry;
 import com.qurenie.relics_thirteenflames.init.EffectsRegistry;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
 import com.qurenie.relics_thirteenflames.net.AttachmentRemoveSyncPacket;
@@ -22,6 +23,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.attachment.AttachmentType;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.zeith.hammeranims.api.animation.interp.BlendMode;
 import org.zeith.hammeranims.api.animsys.AnimationSystem;
@@ -30,6 +32,7 @@ import org.zeith.hammeranims.api.animsys.layer.AnimationLayer;
 import org.zeith.hammerlib.net.Network;
 
 import java.awt.*;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -54,6 +57,20 @@ public class FlamesUtils {
         
         builder.addLayers(list.getLayers().toArray(AnimationLayer.Builder[]::new));
         builder.autoSync(true);
+    }
+
+    public static final UUID UUID_EMPTY = UUID.randomUUID();
+
+    @NotNull
+    public UUID getOrCreateUUID(ItemStack stack) {
+        if (!stack.has(ComponentRegistry.UNIQUE_UUID))
+            stack.set(ComponentRegistry.UNIQUE_UUID, UUID.randomUUID());
+
+        return stack.getOrDefault(ComponentRegistry.UNIQUE_UUID, UUID_EMPTY);
+    }
+
+    public boolean sameUUID(ItemStack stack1, ItemStack stack2) {
+        return getOrCreateUUID(stack1).equals(getOrCreateUUID(stack2));
     }
     
     public double getBlockHeightSafety(Level level, BlockPos pos) {
@@ -98,7 +115,7 @@ public class FlamesUtils {
     }
     
     public static void startPlaneShift(ItemStack stack, Player player, boolean sync) {
-        player.setData(AttachmentsRegistry.PLANESHIFT_TICK, 20 * (int) ItemsRegistry.JODAH_MASK.getStatValue(stack, "planeshift", "durability"));
+        player.setData(AttachmentsRegistry.PLANESHIFT_TICK, 20 * (int) ItemsRegistry.JODAH_MASK.getStatValue(player, stack, "planeshift", "durability"));
         
         if (sync)
             Net.startTrackingPlaneshift(player);
@@ -134,8 +151,8 @@ public class FlamesUtils {
             Net.startTrackingSkintAttachments(entity);
     }
     
-    public static void addAntiskint(@Nullable ItemStack stack, Entity entity, int count) {
-        addAntiskint(entity, count, stack == null || !ItemsRegistry.JODAH_MASK.isAbilityUnlocked(stack, "reversal_aberration") ? 0 : (int) ItemsRegistry.JODAH_MASK.getStatValue(stack, "reversal_aberration", "skint_bonus"));
+    public static void addAntiskint(@Nullable ItemStack stack, LivingEntity owner, Entity entity, int count) {
+        addAntiskint(entity, count, stack == null || !ItemsRegistry.JODAH_MASK.isAbilityUnlocked(owner, stack, "reversal_aberration") ? 0 : (int) ItemsRegistry.JODAH_MASK.getStatValue(owner, stack, "reversal_aberration", "skint_bonus"));
     }
     
     public static void addSkint(Entity entity, int count, int maxBonus) {
@@ -161,8 +178,8 @@ public class FlamesUtils {
             Net.startTrackingSkintAttachments(entity);
     }
     
-    public static void addSkint(@Nullable ItemStack stack, Entity entity, int count) {
-        addSkint(entity, count, stack == null ? 0 : (int) ItemsRegistry.JODAH_MASK.getStatValue(stack, "reversal_aberration", "skint_bonus"));
+    public static void addSkint(@Nullable ItemStack stack, LivingEntity owner, Entity entity, int count) {
+        addSkint(entity, count, stack == null ? 0 : (int) ItemsRegistry.JODAH_MASK.getStatValue(owner, stack, "reversal_aberration", "skint_bonus"));
     }
     
     public static void setAntikint(Entity entity, int count, boolean addEffect) {

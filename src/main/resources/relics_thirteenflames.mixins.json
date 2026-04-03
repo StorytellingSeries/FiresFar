@@ -19,6 +19,7 @@
     "ExplosionMixin",
     "HumanoidArmorLayerMixin",
     "ItemCombinerAccessor",
+    "ItemMixin",
     "ItemStackMixin",
     "LivingEntityMixin",
     "MeleeAttackMixin",
@@ -28,7 +29,6 @@
     "THISISSOBADMIXIN"
   ],
   "client": [
-    "HUDRenderHandlerMixin",
     "MenuScreenMixin",
     "client.BakedOverrideAccessor",
     "client.GameRendererMixin",

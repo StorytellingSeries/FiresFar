@@ -90,8 +90,9 @@ repositories {
 dependencies {
     implementation "net.neoforged:neoforge:${neoforge_version}"
     implementation 'org.jetbrains:annotations:20.1.0'
-    implementation "it.hurts.octostudios.octolib:octolib-neoforge:0.5.0.1+1.21"
-    implementation "curse.maven:relics-mod-445274:6389006"
+    implementation "curse.maven:octo-lib-916747:7724006"
+    implementation "curse.maven:relics-mod-445274:7833995"
+    implementation "dev.architectury:architectury-neoforge:13.0.6"
     implementation "curse.maven:hammer-lib-247401:5739162"
     implementation "curse.maven:hammer-animations-899883:5641254"
     compileOnly("mezz.jei:jei-1.21.1-neoforge-api:19.22.0.315")

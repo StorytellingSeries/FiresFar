@@ -1,15 +1,12 @@
 package com.qurenie.relics_thirteenflames.content.effects;
 
 
-import com.qurenie.api.MeleeAttackCheckEvent;
+import com.qurenie.api.event.MeleeAttackCheckEvent;
 import com.qurenie.relics_thirteenflames.init.EffectsRegistry;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Mob;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 

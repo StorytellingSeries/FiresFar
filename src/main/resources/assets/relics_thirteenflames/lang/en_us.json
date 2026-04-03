@@ -173,5 +173,7 @@
     "entity.thirteen_flames.skint_cluster": "Skint Cluster",
     "entity.thirteen_flames.seliaset_sun": "Seliaset Sun",
     "entity.thirteen_flames.living_flesh": "Living Flesh",
-    "entity.thirteen_flames.respawn_book": "Book of Rebirth"
+    "entity.thirteen_flames.respawn_book": "Book of Rebirth",
+    "key.relics_thirteenflames.acivity": "Active Ability",
+    "key.relics_thirteenflames.activity": "Activity Kebinds"
 }

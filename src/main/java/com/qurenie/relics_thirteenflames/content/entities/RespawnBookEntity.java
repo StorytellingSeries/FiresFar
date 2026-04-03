@@ -83,9 +83,9 @@ public class RespawnBookEntity extends Mob implements IAnimatedEntity {
         setPos(x, y, z);
         
         ItemHettFeather item = (ItemHettFeather) feather.getItem();
-        setRadius((int) item.getStatValue(feather, "savepoint", "radius"));
-        this.xpConsume = item.getStatValue(feather, "savepoint", "xp_consume") / 100d;
-        this.hpConsume = item.getStatValue(feather, "savepoint", "hp_consume") / 100d;
+        setRadius((int) item.getStatValue(owner, feather, "savepoint", "radius"));
+        this.xpConsume = item.getStatValue(owner, feather, "savepoint", "xp_consume") / 100d;
+        this.hpConsume = item.getStatValue(owner, feather, "savepoint", "hp_consume") / 100d;
         
         this.system.startAnimationAt(LAYER_ACTION, AnimationsRegistry.RESPAWN_BOOK_OPEN.configure().transitionTime(0));
         this.system.startAnimationAt("ANIMATION_1", AnimationsRegistry.RESPAWN_BOOK_IDLE.configure().transitionTime(0));

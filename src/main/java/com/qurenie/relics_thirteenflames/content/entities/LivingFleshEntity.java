@@ -4,7 +4,7 @@ import com.qurenie.relics_thirteenflames.client.AnimationsRegistry;
 import com.qurenie.relics_thirteenflames.content.items.ItemKnefRose;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
-import it.hurts.sskirillss.relics.items.relics.base.IRelicItem;
+import it.hurts.sskirillss.relics.api.relics.IRelicItem;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -133,8 +133,8 @@ public class LivingFleshEntity
 				{
 					attackCd = 20;
 					target.hurt(this.level().damageSources().mobAttack(this), getDamage());
-					if(getStats().rose.getItem() instanceof IRelicItem relic) {
-						relic.spreadRelicExperience(this.level().getPlayerByUUID(UUID.fromString(getOwnerUUID())), getStats().rose, 1);
+					if(getStats().rose.getItem() instanceof ItemKnefRose relic) {
+						relic.addExperience(this.level().getPlayerByUUID(UUID.fromString(getOwnerUUID())), getStats().rose, 1);
 					}
 				}
 			}
@@ -172,8 +172,8 @@ public class LivingFleshEntity
 				random.nextGaussian() - random.nextGaussian()
 		).normalize().scale(0.01));
 		ent.setOwnerUUID(this.getOwnerUUID());
-		if(getStats().rose.getItem() instanceof IRelicItem relic) {
-			relic.spreadRelicExperience(this.level().getPlayerByUUID(UUID.fromString(getOwnerUUID())), getStats().rose, 1);
+		if(getStats().rose.getItem() instanceof ItemKnefRose relic) {
+			relic.addExperience(this.level().getPlayerByUUID(UUID.fromString(getOwnerUUID())), getStats().rose, 1);
 		}
 		return ent;
 	}
@@ -265,7 +265,7 @@ public class LivingFleshEntity
 		super.defineSynchedData(builder);
 		
 		builder.define(DATA_SCALE, 1F);
-		builder.define(DATA_STATS, new ItemKnefRose.RoseStats(ItemStack.EMPTY));
+		builder.define(DATA_STATS, new ItemKnefRose.RoseStats(null, ItemStack.EMPTY));
 		builder.define(OWNER_UUID, "");
 	}
 	

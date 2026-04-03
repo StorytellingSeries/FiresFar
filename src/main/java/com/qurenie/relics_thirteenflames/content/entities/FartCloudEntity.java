@@ -1,9 +1,10 @@
 package com.qurenie.relics_thirteenflames.content.entities;
 
 import com.qurenie.relics_thirteenflames.content.effects.PoisonEffectInstance;
+import com.qurenie.relics_thirteenflames.content.items.ItemRonasSword;
 import com.qurenie.relics_thirteenflames.init.EffectsRegistry;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
-import it.hurts.sskirillss.relics.items.relics.base.IRelicItem;
+import it.hurts.sskirillss.relics.api.relics.IRelicItem;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -112,18 +113,18 @@ public class FartCloudEntity extends Projectile {
                     e.invulnerableTime = invulTime;
                     int maxAmp = getMaxAmp();
                     int duration = getDuration();
-                    if(getSword().getItem() instanceof IRelicItem relic) {
+                    if(getSword().getItem() instanceof ItemRonasSword relic) {
                         if (e.hasEffect(EffectsRegistry.POISSON)) {
                             int appliedAmplifier = e.getEffect(EffectsRegistry.POISSON).getAmplifier() + 1;
                             if (appliedAmplifier <= maxAmp) {
                                 e.addEffect(new PoisonEffectInstance(EffectsRegistry.POISSON, duration + appliedAmplifier * 20, appliedAmplifier, false, true, true, getSword()));
-                                if (rng.nextFloat() < 0.25f && this.getOwner() instanceof LivingEntity livin) relic.spreadRelicExperience(livin, getSword(), 1);
+                                if (rng.nextFloat() < 0.25f && this.getOwner() instanceof LivingEntity livin) relic.addExperience(livin, getSword(), 1);
                             } else {
                                 e.addEffect(new PoisonEffectInstance(EffectsRegistry.POISSON, duration + maxAmp * 20, maxAmp, false, true, true, getSword()));
                             }
                         } else {
                             e.addEffect(new PoisonEffectInstance(EffectsRegistry.POISSON, duration, 0, false, true, true, getSword()));
-                            if (rng.nextFloat() < 0.25f && this.getOwner() instanceof LivingEntity livin) relic.spreadRelicExperience(livin, getSword(), 1);
+                            if (rng.nextFloat() < 0.25f && this.getOwner() instanceof LivingEntity livin) relic.addExperience(livin, getSword(), 1);
                         }
                     }
                 }

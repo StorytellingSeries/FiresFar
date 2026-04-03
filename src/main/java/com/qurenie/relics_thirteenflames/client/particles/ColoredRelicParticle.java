@@ -9,7 +9,6 @@ import com.qurenie.relics_thirteenflames.client.particles.misc.RotationType;
 import com.qurenie.relics_thirteenflames.init.ParticlesRegistry;
 import io.netty.buffer.ByteBuf;
 import it.hurts.sskirillss.relics.client.particles.BasicColoredParticle;
-import it.hurts.sskirillss.relics.items.relics.belt.HunterBeltItem;
 import lombok.Getter;
 import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
