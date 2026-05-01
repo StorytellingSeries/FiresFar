@@ -1,12 +1,11 @@
 package com.qurenie.relics_thirteenflames.content.container;
 
-import com.qurenie.relics_thirteenflames.client.screen.gloves.MontuCompositeScreen;
 import com.qurenie.relics_thirteenflames.client.screen.gloves.MontuGlovesScreen;
 import com.qurenie.relics_thirteenflames.content.recipes.MontuRecipeInput;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
 import com.qurenie.relics_thirteenflames.init.MenuRegistry;
 import com.qurenie.relics_thirteenflames.init.RecipeTypesRegistry;
-import com.qurenie.relics_thirteenflames.util.FlamesUtils;
+import it.hurts.sskirillss.relics.api.relics.IRelicItem;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -17,6 +16,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeInput;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.items.SlotItemHandler;
@@ -31,10 +31,10 @@ public class MontuGlovesContainer extends AbstractContainerMenu {
     private final Level level;
     private final Player player;
     @Getter
-    private MontuItemHandler handler;
+    private final MontuItemHandler handler;
     @Getter
     private final ItemStack gloves;
-    
+
     public MontuGlovesContainer(int containerId, Inventory playerInv, RegistryFriendlyByteBuf buf) {
         this(containerId, playerInv, ItemStack.STREAM_CODEC.decode(buf));
     }
@@ -112,12 +112,30 @@ public class MontuGlovesContainer extends AbstractContainerMenu {
     }
     
     public void omSmith() {
-        var recipeHolder = level.getRecipeManager().getRecipeFor(RecipeTypesRegistry.MONTU_SMITH_TYPE.get(), createRecipeInput(handler), level);
+        MontuRecipeInput recipeInput = createRecipeInput(handler);
+        var recipeHolder = level.getRecipeManager().getRecipeFor(RecipeTypesRegistry.MONTU_SMITH_TYPE.get(), recipeInput, level);
         if (recipeHolder.isPresent()) {
             handler.setStackInSlot(0, ItemStack.EMPTY, true);
             handler.setStackInSlot(1, recipeHolder.get().value().result(), true);
             handler.setStackInSlot(2, ItemStack.EMPTY, true);
             
+            player.giveExperiencePoints(recipeHolder.get().value().experience());
+        }
+
+        if (!ItemsRegistry.MONTU_GLOVES.hasRangModifier(player, gloves, "smelting", "upgrade"))
+            return;
+
+        var recipeHolder1 = level.getRecipeManager().getRecipeFor(RecipeTypesRegistry.MONTU_SMITH_LEVEL_UP_TYPE.get(), recipeInput, level);
+        ItemStack center = handler.getStackInSlot(1);
+        if (center.getItem() instanceof IRelicItem relic && recipeHolder1.isPresent()) {
+            relic.getRelicData(player, center).getLevelingData().addExperience(
+                    ItemsRegistry.MONTU_GLOVES.getStatValue(player, gloves, "smelting", "addLevel")
+            );
+
+            handler.setStackInSlot(0, ItemStack.EMPTY, true);
+            handler.setStackInSlot(1, center, true);
+            handler.setStackInSlot(2, ItemStack.EMPTY, true);
+
             player.giveExperiencePoints(recipeHolder.get().value().experience());
         }
     }
@@ -143,8 +161,7 @@ public class MontuGlovesContainer extends AbstractContainerMenu {
             super.setStackInSlot(slot, stack);
             
             if (!smith && !previous.is(stack.getItem())) {
-                var recipeHolder = level.getRecipeManager().getRecipeFor(RecipeTypesRegistry.MONTU_SMITH_TYPE.get(), createRecipeInput(this), level);
-                if (recipeHolder.isPresent())
+                if (hasRecipe(createRecipeInput(this)))
                     Network.sendTo(player, new IPacket() {
                         @Override
                         public void clientExecute(PacketContext ctx) {
@@ -155,6 +172,18 @@ public class MontuGlovesContainer extends AbstractContainerMenu {
                     });
                 
             }
+        }
+
+        private boolean hasRecipe(MontuRecipeInput recipeInput) {
+            var recipeHolder = level.getRecipeManager().getRecipeFor(RecipeTypesRegistry.MONTU_SMITH_TYPE.get(), recipeInput, level);
+            if (recipeHolder.isPresent())
+                return true;
+
+            if (!ItemsRegistry.MONTU_GLOVES.hasRangModifier(player, gloves, "smelting", "upgrade"))
+                return false;
+
+            var recipeHolder1 = level.getRecipeManager().getRecipeFor(RecipeTypesRegistry.MONTU_SMITH_LEVEL_UP_TYPE.get(), recipeInput, level);
+            return recipeHolder1.isPresent();
         }
         
         public ItemStack center() {

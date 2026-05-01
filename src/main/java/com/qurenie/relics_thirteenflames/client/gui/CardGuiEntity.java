@@ -1,5 +1,6 @@
 package com.qurenie.relics_thirteenflames.client.gui;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.qurenie.relics_thirteenflames.ThirteenFlames;
 import it.hurts.octostudios.octolib.util.OctoColor;
 import lombok.Getter;
@@ -128,6 +129,37 @@ public class CardGuiEntity {
         return position.x() - 10 < mx && mx < position.x() + 10 && position.y() - 15 < my && my < position.y() + 14;
     }
 
+    public void preRender(GuiGraphics gui, int cx, int cy, float partialTicks) {
+        float x = cx + prevPos.x() + (position.x() - prevPos.x()) * partialTicks;
+        float y = cy + prevPos.y() + (position.y() - prevPos.y()) * partialTicks;
+
+        Minecraft mc = Minecraft.getInstance();
+
+        double rawX = mc.mouseHandler.xpos();
+        double rawY = mc.mouseHandler.ypos();
+
+        var pose = gui.pose();
+        pose.pushPose();
+
+        pose.translate(x, y, 0);
+        pose.scale(size, size, 1);
+        RenderSystem.enableBlend();
+        boolean selected = mouseSelectedAbsolute(rawX, rawY, true) && cooldown <= 0;
+
+        if (selected)
+            pose.scale(1.2f, 1.2f, 1);
+        //frame_ambient
+
+        pose.pushPose();
+        pose.scale(0.9f, 0.9f, 0.9f);
+        gui.blit(ThirteenFlames.rl("textures/gui/ability/frame_ambient.png"), -16, -21, 32, 41, 32, 41, 32, 41);
+        pose.popPose();
+
+        gui.setColor(1, 1, 1, 1);
+        RenderSystem.disableBlend();
+        pose.popPose();
+    }
+
     public void render(GuiGraphics gui, int cx, int cy, float partialTicks) {
         float x = cx + prevPos.x() + (position.x() - prevPos.x()) * partialTicks;
         float y = cy + prevPos.y() + (position.y() - prevPos.y()) * partialTicks;
@@ -152,8 +184,15 @@ public class CardGuiEntity {
         gui.blit(loc, -10, -15, 20, 29, 20, 29, 20, 29);
 
         if (selected) {
-            gui.blit(ThirteenFlames.rl("textures/gui/ability/ability_frame.png"),
-                    -11, -16, 22, 31, 22, 31, 22, 31);
+            float time = (mc.player.tickCount) / 5f;
+            pose.pushPose();
+
+            double v = (1 / 1.1f) + (Mth.sin(time) + 1) / 2 * 0.1;
+            pose.scale((float) v, (float) v, 1);
+            gui.blit(ThirteenFlames.rl("textures/gui/ability/frame_selection.png"),
+                    -12, -17, 24, 33, 24, 33, 24, 33);
+
+            pose.popPose();
         }
 
         gui.setColor(1, 1, 1, 1);
@@ -163,6 +202,8 @@ public class CardGuiEntity {
             gui.drawCenteredString(Minecraft.getInstance().font, Component.literal(String.format("%.1f", cooldown / 20f)), 0, -1, 0xFFFFFFFF);
             pose.popPose();
         }
+
+        behaviour.postRender(this, gui, partialTicks);
 
         pose.popPose();
     }

@@ -15,6 +15,12 @@
         "relics_thirteenflames:mask_state": 2
       },
       "model": "relics_thirteenflames:item/jodah_mask_scintonit"
+    },
+    {
+      "predicate": {
+        "relics:flawless": 1
+      },
+      "model": "relics_thirteenflames:item/jodah_mask_flawless"
     }
   ]
 }

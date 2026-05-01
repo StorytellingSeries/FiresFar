@@ -4,6 +4,7 @@ import com.qurenie.relics_thirteenflames.content.blocks.AurithecBeaconBlock;
 import com.qurenie.relics_thirteenflames.content.container.AuritekhBeaconMenu;
 import com.qurenie.relics_thirteenflames.init.BlocksRegistry;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
+import com.qurenie.relics_thirteenflames.util.FlamesUtils;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.Container;
@@ -58,9 +59,9 @@ public class BeaconMenuMixin {
                     access.execute(((level, pos) -> {
                         level.explode(null, null, null, pos.getBottomCenter(),
                                 3, false, Level.ExplosionInteraction.NONE);
-                        ParticleHelper.spawnParticles(level, ParticleHelper.constructSimpleSpark(new Color(239, 215, 182), 0.25f, 50, 0.95f).withGravity(1.5f),
+                        ParticleHelper.spawnParticles(level, ParticleHelper.constructSimpleSpark(FlamesUtils.fromRGBI(239, 215, 182), 0.25f, 50, 0.95f).withGravity(1.5f),
                                 pos.getBottomCenter(), 50, 0.15, 0.15, 0.15, 0.15);
-                        ParticleHelper.spawnParticles(level, ParticleHelper.constructSmoke(new Color(239, 215, 182), 0.8f, 70, 0f).withGravity(0.5f),
+                        ParticleHelper.spawnParticles(level, ParticleHelper.constructSmoke(FlamesUtils.fromRGBI(239, 215, 182), 0.8f, 70, 0f).withGravity(0.5f),
                                 pos.getBottomCenter(), 25, 0.4, 0.4, 0.4, 0.04);
                         level.setBlock(pos, BlocksRegistry.BEACON.defaultBlockState(), 3);
                     }));

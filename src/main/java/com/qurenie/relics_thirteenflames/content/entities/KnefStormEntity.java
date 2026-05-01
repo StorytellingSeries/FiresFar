@@ -3,7 +3,9 @@ package com.qurenie.relics_thirteenflames.content.entities;
 import com.qurenie.relics_thirteenflames.client.particles.CircleTintParticle;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
 import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
+import com.qurenie.relics_thirteenflames.util.FlamesUtils;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
+import it.hurts.octostudios.octolib.util.OctoColor;
 import it.hurts.sskirillss.relics.utils.MathUtils;
 import lombok.Getter;
 import lombok.Setter;
@@ -31,18 +33,18 @@ import java.util.List;
 
 public class KnefStormEntity extends Projectile {
     
-    private final static Color[] COLORS = {
-            new Color(0, 9, 8),
-            new Color(4, 0, 16),
-            new Color(4, 0, 10),
-            new Color(2, 7, 5)
+    private final static OctoColor[] COLORS = {
+            FlamesUtils.fromRGBI(0, 9, 8),
+            FlamesUtils.fromRGBI(4, 0, 16),
+            FlamesUtils.fromRGBI(4, 0, 10),
+            FlamesUtils.fromRGBI(2, 7, 5)
     };
     
-    private final static Color[] LIGHTNING_COLORS = {
-            new Color(145, 255, 213),
-            new Color(117, 223, 255),
-            new Color(96, 255, 194),
-            new Color(86, 224, 255)
+    private final static OctoColor[] LIGHTNING_COLORS = {
+            FlamesUtils.fromRGBI(145, 255, 213),
+            FlamesUtils.fromRGBI(117, 223, 255),
+            FlamesUtils.fromRGBI(96, 255, 194),
+            FlamesUtils.fromRGBI(86, 224, 255)
     };
 
     private static final EntityDataAccessor<Integer> LIFETIME = SynchedEntityData.defineId(KnefStormEntity.class, EntityDataSerializers.INT);
@@ -183,9 +185,9 @@ public class KnefStormEntity extends Projectile {
                 drop.setHeal(getHeal());
                 drop.setDmg(getDmg());
                 this.level().addFreshEntity(drop);
-                ParticleHelper.spawnParticleEntity(ParticleHelper.constructSimpleSpark(new Color(0, 89, 255), 0.2f, 15, 0.83f), //new Color(0, 128, 255)
+                ParticleHelper.spawnParticleEntity(ParticleHelper.constructSimpleSpark(FlamesUtils.fromRGBI(0, 89, 255), 0.2f, 15, 0.83f), //FlamesUtils.fromRGBI(0, 128, 255)
                         drop, 8, 0.1);
-                ParticleHelper.spawnParticleEntity(ParticleHelper.constructSimpleSpark(new Color(55, 0, 255), 0.2f, 15, 0.83f), //new Color(0, 128, 255)
+                ParticleHelper.spawnParticleEntity(ParticleHelper.constructSimpleSpark(FlamesUtils.fromRGBI(55, 0, 255), 0.2f, 15, 0.83f), //FlamesUtils.fromRGBI(0, 128, 255)
                         drop, 7, 0.1);
 
                 Vec3 endpos;
@@ -246,7 +248,7 @@ public class KnefStormEntity extends Projectile {
 
     }
 
-    public void drawThinLightning(Level level, Vec3 start, Vec3 end, int segments, double jag, float d, Color color, int particleCount){
+    public void drawThinLightning(Level level, Vec3 start, Vec3 end, int segments, double jag, float d, OctoColor color, int particleCount){
         Vec3 pos;
         Vec3 straightPos = start;
         Vec3 prevPos = start;
@@ -277,14 +279,14 @@ public class KnefStormEntity extends Projectile {
 
     public void drawFrame(){
         a = 150;
-        Color color = new Color(0, 208, 166);
+        OctoColor color = FlamesUtils.fromRGBI(0, 208, 166);
         for(int i = 0; i < 80; i++){
             if(i + 40 <= this.tickCount) {
                 Vec3 pos = this.getPosition(1F).subtract(new Vec3(0,0,-2)).add(new Vec3(radius + 7, 0, 0).yRot((float) Math.toRadians(a)));
                 level().addParticle(new CircleTintParticle.Options(color, (float) (radius / 20.0) * (1 - (float) ((i - 40) * (i - 40)) / 1600) + 0.1f, 0, 1, 1, false),
                         true,
                         pos.x(), pos.y() - 2 - radius / 6, pos.z(), 0, 0, 0);
-//new Color(0, 21, 255)
+//FlamesUtils.fromRGBI(0, 21, 255)
                 pos = this.getPosition(1F).subtract(new Vec3(0,0,2)).add(new Vec3(radius + 7, 0, 0).yRot((float) Math.toRadians(-a)));
                 level().addParticle(new CircleTintParticle.Options(color, (float) (radius / 20.0) * (1 - (float) ((i - 40) * (i - 40)) / 1600) + 0.1f, 0, 1, 1, false),
                         true,
@@ -299,9 +301,9 @@ public class KnefStormEntity extends Projectile {
         for(int i = 0; i < 90; i++){
             if(i + 120 <= this.tickCount * 2) {
                 Vec3 pos = this.getPosition(1F).add(new Vec3(radius * 1.6 - a, 0, 0));
-                level().addParticle(new CircleTintParticle.Options(new Color(0, 255, 157), (float) (radius / 20.0) * (1 - (float) ((i - 45) * (i - 45)) / 2025) + 0.1f, 0, 1, 1f, false), true,
+                level().addParticle(new CircleTintParticle.Options(FlamesUtils.fromRGBI(0, 255, 157), (float) (radius / 20.0) * (1 - (float) ((i - 45) * (i - 45)) / 2025) + 0.1f, 0, 1, 1f, false), true,
                         pos.x(), pos.y() - 1 - radius / 6, pos.z(), 0, 0, 0);
-//new Color(0, 81, 255)
+//FlamesUtils.fromRGBI(0, 81, 255)
                 a += (radius * 1.6) / 45;
             }
         }
@@ -309,13 +311,13 @@ public class KnefStormEntity extends Projectile {
 
     public void drawInnerCircles(){
         a = 0;
-        Color color = new Color(19, 255, 165);
+        OctoColor color = FlamesUtils.fromRGBI(19, 255, 165);
         for(int i = 0; i < 40; i++){
             if(i + 70 <= this.tickCount) {
                 Vec3 pos = this.getPosition(1F).add(new Vec3(0.2,0,0)).add(new Vec3(radius / 2, 0, 0).yRot((float) Math.toRadians(a))).add(radius / 30, 0, 0);
                 level().addParticle(new CircleTintParticle.Options(color, (float) (radius / 20.0) * ((float) ((i - 80) * (i - 80) - 1) / 6400) + 0.05f, 0, 1, 1, false), true,
                         pos.x(), pos.y() - 1 - radius / 6, pos.z(), 0, 0, 0);
-//new Color(0, 172, 201)
+//FlamesUtils.fromRGBI(0, 172, 201)
                 pos = this.getPosition(1F).add(new Vec3(0.2,0,0)).add(new Vec3(radius / 2, 0, 0).yRot((float) Math.toRadians(-a))).add(radius / 30, 0, 0);
                 level().addParticle(new CircleTintParticle.Options(color, (float) (radius / 20.0) * ((float) ((i - 80) * (i - 80) - 1) / 6400) + 0.05f, 0, 1, 1, false), true,
                         pos.x(), pos.y() - 1 - radius / 6, pos.z(), 0, 0, 0);
@@ -346,7 +348,7 @@ public class KnefStormEntity extends Projectile {
     }
 
     public void drawDiamond(){
-        Color color = new Color(37, 255, 179);
+        OctoColor color = FlamesUtils.fromRGBI(37, 255, 179);
         a = 0;
         b = 0;
         for(int i = 0; i < 20; i++){
@@ -374,7 +376,7 @@ public class KnefStormEntity extends Projectile {
     }
 
     public void drawCross(){
-        Color color = new Color(255, 168, 79);
+        OctoColor color = FlamesUtils.fromRGBI(255, 168, 79);
         a = 0;
         b = 0;
         for(int i = 0; i < 40; i++){

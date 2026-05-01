@@ -1,6 +1,8 @@
 package com.qurenie.relics_thirteenflames.client.render.item;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
+import com.qurenie.relics_thirteenflames.mixins.client.BakedOverrideAccessor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -30,6 +32,11 @@ public class KnefBowItemRenderer
 
         int lightmap = 16711935;
         float pull = stack.getOrDefault(PULL, 0f);
+
+
+        if (ItemsRegistry.KNEF_BOW.getRelicData(mc.player, stack).isFlawless()) {
+            overrides = ((BakedOverrideAccessor) overrides.getLast()).getModel().getOverrides().getOverrides();
+        }
 
         if (transformType == ItemDisplayContext.GUI || transformType == ItemDisplayContext.GROUND || transformType == ItemDisplayContext.FIXED) {
             if (pull < 0.1) {

@@ -3,6 +3,7 @@ package com.qurenie.relics_thirteenflames.content.entities;
 import com.qurenie.relics_thirteenflames.content.items.ItemKnefBow;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
 import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
+import com.qurenie.relics_thirteenflames.util.FlamesUtils;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import it.hurts.sskirillss.relics.api.relics.IRelicItem;
 import it.hurts.sskirillss.relics.utils.MathUtils;
@@ -137,7 +138,7 @@ public class KnefStormcaller extends ThrowableProjectile
 
         if(!this.level().isClientSide()) {
             double distance = this.position().subtract(prevPos == null ? this.position() : prevPos).length();
-            ParticleHelper.spawnParticleLine(this.level(), ParticleHelper.constructSimpleSpark(new Color(0, 34, 255), 0.3f, 80, 0.85f),
+            ParticleHelper.spawnParticleLine(this.level(), ParticleHelper.constructSimpleSpark(FlamesUtils.fromRGBI(0, 34, 255), 0.3f, 80, 0.85f),
                     prevPos, this.position(), (int) Math.round(distance * 8), 0);
 
 
@@ -152,10 +153,10 @@ public class KnefStormcaller extends ThrowableProjectile
                 for (int i = 0; i < 120; i++) {
                     Vec3 direction = new Vec3(1,0,0);
                     direction = direction.yRot((float) Math.toRadians(random.nextFloat() * 360f)).scale(random.nextFloat() * 0.8f);
-                    ParticleHelper.spawnDirectedParticle(this.level(), ParticleHelper.constructSimpleSpark(new Color(0, 49, 32), 6.2f, 80, 0.92f),
+                    ParticleHelper.spawnDirectedParticle(this.level(), ParticleHelper.constructSimpleSpark(FlamesUtils.fromRGBI(0, 49, 32), 6.2f, 80, 0.92f),
                             this.getX(), this.getY(), this.getZ(), direction.x, MathUtils.randomFloat(random) * 0.1, direction.z);
                     direction = direction.yRot((float) Math.toRadians(random.nextFloat() * 360f)).normalize().scale(random.nextFloat() * 0.8f);
-                    ParticleHelper.spawnDirectedParticle(this.level(), ParticleHelper.constructSimpleSpark(new Color(8, 0, 28), 6.2f, 80, 0.92f),
+                    ParticleHelper.spawnDirectedParticle(this.level(), ParticleHelper.constructSimpleSpark(FlamesUtils.fromRGBI(8, 0, 28), 6.2f, 80, 0.92f),
                             this.getX(), this.getY(), this.getZ(), direction.x, MathUtils.randomFloat(random) * 0.1, direction.z);
                 }
             }

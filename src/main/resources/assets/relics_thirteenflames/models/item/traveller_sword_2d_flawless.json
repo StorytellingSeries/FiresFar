@@ -1,0 +1,7 @@
+{
+  "parent": "item/generated",
+  "render_type": "solid",
+  "textures": {
+    "layer0": "relics_thirteenflames:item/traveller_sword_flawless"
+  }
+}

@@ -3,6 +3,7 @@ package com.qurenie.relics_thirteenflames.content.entities;
 import com.qurenie.relics_thirteenflames.content.effects.PoisonEffectInstance;
 import com.qurenie.relics_thirteenflames.content.items.ItemRonasSword;
 import com.qurenie.relics_thirteenflames.init.EffectsRegistry;
+import com.qurenie.relics_thirteenflames.util.FlamesUtils;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import it.hurts.sskirillss.relics.api.relics.IRelicItem;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
@@ -112,11 +113,11 @@ public class PoisonWaveProjectile extends ThrowableProjectile
 
 
                 double randomSpread = 0.01 * this.tickCount;
-                ParticleHelper.spawnParticles(level(), ParticleHelper.constructSimpleSpark(new Color(85 + rng.nextInt(80), 255 - rng.nextInt(100), 0),
+                ParticleHelper.spawnParticles(level(), ParticleHelper.constructSimpleSpark(FlamesUtils.fromRGBI(85 + rng.nextInt(80), 255 - rng.nextInt(100), 0),
                                 0.4F + 0.03f * this.tickCount, 20, 0.83F),
                         vec.x, vec.y, vec.z, 1, randomSpread, randomSpread, randomSpread, 0.002 + this.tickCount * 0.008);
                 if (rng.nextFloat() < 0.3f)
-                    ParticleHelper.spawnParticles(level(), ParticleHelper.constructSimpleSpark(new Color(85 - rng.nextInt(80), 255 - rng.nextInt(100), 0),
+                    ParticleHelper.spawnParticles(level(), ParticleHelper.constructSimpleSpark(FlamesUtils.fromRGBI(85 - rng.nextInt(80), 255 - rng.nextInt(100), 0),
                                     0.25F + 0.0125f * this.tickCount, 20, 0.8f),
                             vec.x, vec.y, vec.z, 1, randomSpread, randomSpread, randomSpread, 0.002 + this.tickCount * 0.008);
             }

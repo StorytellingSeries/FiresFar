@@ -3,6 +3,7 @@ package com.qurenie.relics_thirteenflames.content.entities;
 import com.qurenie.api.event.EntityIgnoreExplosionEvent;
 import com.qurenie.relics_thirteenflames.client.AnimationsRegistry;
 import com.qurenie.relics_thirteenflames.content.entities.base.NonLivingEntity;
+import com.qurenie.relics_thirteenflames.content.items.misc.ScintType;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
 import com.qurenie.relics_thirteenflames.mixins.EntityAccessor;
 import com.qurenie.relics_thirteenflames.util.FlamesUtils;
@@ -38,8 +39,6 @@ import java.util.List;
 import java.util.UUID;
 
 import static com.qurenie.relics_thirteenflames.content.entities.AnimatedEntity.LAYER_ACTION;
-import static com.qurenie.relics_thirteenflames.content.items.ItemJodahMask.GOLD_COLOR;
-import static com.qurenie.relics_thirteenflames.content.items.ItemJodahMask.GRAY_COLOR;
 import static net.neoforged.neoforge.common.NeoForge.EVENT_BUS;
 
 public class SkintClusterEntity extends NonLivingEntity implements IAnimatedEntity {
@@ -49,8 +48,10 @@ public class SkintClusterEntity extends NonLivingEntity implements IAnimatedEnti
     public static final String DAMAGE = "damage";
     public static final String SKINT_BONUS = "bonus";
     public static final String SKINT_COUNT = "skints";
-    public static final int MAX_AGE = 70;
-    
+    public static final int MAX_AGE = 40;
+
+    public static final int CLUSTER_BORN_TICK = 19;
+
     private static final EntityDataAccessor<Integer> TYPE = SynchedEntityData.defineId(SkintClusterEntity.class, EntityDataSerializers.INT);
     AnimationSystem system = AnimationSystem.create(this);
     float damage;
@@ -65,7 +66,7 @@ public class SkintClusterEntity extends NonLivingEntity implements IAnimatedEnti
         super(entityType, level);
     }
     
-    public SkintClusterEntity(EntityType<? extends LivingEntity> entityType, Level level, Type type, Player owner, float damage, int skintCount, int skintLimitBonus) {
+    public SkintClusterEntity(EntityType<? extends LivingEntity> entityType, Level level, ScintType type, Player owner, float damage, int skintCount, int skintLimitBonus) {
         super(entityType, level);
         this.damage = damage;
         this.ownerID = owner.getUUID();
@@ -75,7 +76,36 @@ public class SkintClusterEntity extends NonLivingEntity implements IAnimatedEnti
         this.setYBodyRot(yBodyRot);
         this.setNoGravity(true);
         setSkintType(type);
-        system.startAnimationAt(LAYER_ACTION, AnimationsRegistry.SCINT_CLUSTER_APPEAR.configure().speed(0.7f).transitionTime(0));
+    }
+
+    @Override
+    public boolean shouldRender(double x, double y, double z) {
+        return tickCount >= CLUSTER_BORN_TICK;
+    }
+
+    private void startAnimation(boolean reversed) {
+        system.startAnimationAt(LAYER_ACTION, AnimationsRegistry.SCINT_CLUSTER_APPEAR.configure()
+                .speed(1f).transitionTime(0).reversed(reversed));
+    }
+
+    private double getAnimCompletion() {
+        var layer = system.getLayer(LAYER_ACTION);
+        if (layer == null || layer.getCurrentAnimation() == null)
+            return -1;
+
+        double time = system.getTime(0);
+        return ((time - layer.getCurrentAnimation().activationTime) * (double)layer.getCurrentAnimation().config.speed) / layer.getCurrentAnimation().getLengthSeconds();
+
+    }
+
+    private boolean hasAnimation() {
+        var layer = system.getLayer(LAYER_ACTION);
+        if (layer == null)
+            return false;
+
+        double time = system.getTime(1);
+        return layer.getCurrentAnimation() != null &&
+                (time - layer.getCurrentAnimation().activationTime) * (double)layer.getCurrentAnimation().config.speed < layer.getCurrentAnimation().getLengthSeconds();
     }
     
     @Override
@@ -97,17 +127,30 @@ public class SkintClusterEntity extends NonLivingEntity implements IAnimatedEnti
     @Override
     public void onAddedToLevel() {
         super.onAddedToLevel();
-        
-        AABB aabb = getBoundingBox().contract(0, getBoundingBox().getYsize(), 0);
-        BlockPos pos = blockPosition();
-        BlockState state = level().getBlockState(pos);
-        if (state.isAir())
-            state = level().getBlockState(pos.below());
-        
+
         this.setYBodyRot((float) (Math.random() * Math.PI * 2));
-        if (!state.isAir() && !level().isClientSide)
-            ParticleHelper.spawnParticleAABB(level(), new BlockParticleOption(ParticleTypes.BLOCK, state), aabb, 80, 0.3);
         EVENT_BUS.register(this);
+    }
+
+    private void spawnBlockParticles(int count, double maxSpeed) {
+        AABB aabb = getBoundingBox().contract(0, getBoundingBox().getYsize(), 0);
+        BlockPos.MutableBlockPos pos = blockPosition().mutable();
+        BlockState state = level().getBlockState(pos);
+        if (!state.isAir())
+            ParticleHelper.spawnParticleAABB(level(), new BlockParticleOption(ParticleTypes.BLOCK, state), aabb, count, maxSpeed);
+
+        state = level().getBlockState(pos.below());
+        if (!state.isAir())
+            ParticleHelper.spawnParticleAABB(level(), new BlockParticleOption(ParticleTypes.BLOCK, state), aabb, count, maxSpeed);
+
+    }
+
+    private int getMaxAge() {
+        return MAX_AGE + CLUSTER_BORN_TICK;
+    }
+
+    private int activeTickCount() {
+        return Math.max(0, tickCount - CLUSTER_BORN_TICK);
     }
     
     @Override
@@ -116,19 +159,34 @@ public class SkintClusterEntity extends NonLivingEntity implements IAnimatedEnti
         super.tick();
         
         setYBodyRot(yBodyRot);
-        
-        if (tickCount >= MAX_AGE && !level().isClientSide) {
-            this.discard();
+
+        if (level().isClientSide)
+            return;
+
+        if (tickCount < CLUSTER_BORN_TICK) {
+                spawnBlockParticles(20, 0.1);
+            return;
+        } else if (tickCount == CLUSTER_BORN_TICK) {
+            startAnimation(false);
+            spawnBlockParticles(100, 0.3);
+        } else if (tickCount == getMaxAge()) {
+            startAnimation(true);
+        } else if (tickCount >= getMaxAge() && !level().isClientSide) {
+            if (getAnimCompletion() > 0.7)
+                ParticleHelper.spawnParticleAABB(level(), ParticleHelper.constructSmoke(getSkintType().color, 1.1f,
+                        20).withLightning(getSkintType().lightning), this.getBoundingBox().contract(0, 2, 0), 10, 0.04);
+            if (!hasAnimation())
+                discard();
             return;
         }
         
-        double height = this.getBbHeight() / 6 * Math.min(tickCount, 6);
+        double height = this.getBbHeight() / 6 * Math.min(activeTickCount(), 5);
         AABB aabb = getBoundingBox().contract(0, getBoundingBox().getYsize(), 0).expandTowards(0, height, 0);
         
         List<LivingEntity> entities = level().getEntitiesOfClass(LivingEntity.class, aabb, e -> !(e instanceof SkintClusterEntity) && e.isAlive() && e.isPickable());
         
         for (var living : entities) {
-            if (!level().isClientSide && tickCount % 10 == 0) {
+            if (!level().isClientSide && activeTickCount() % 10 == 0) {
                 if (living.getUUID() != ownerID)
                     hurtEntity(living, damage);
                 else
@@ -149,17 +207,17 @@ public class SkintClusterEntity extends NonLivingEntity implements IAnimatedEnti
                 switch (getSkintType()) {
                     case SKINT -> {
                         for (int i = 0; i < skintCount; i++) {
-                            SkintOrbEntity entity = new SkintOrbEntity(level(), SkintOrbEntity.Type.SKINT, owner, living, skintBonus);
+                            SkintOrbEntity entity = new SkintOrbEntity(level(), ScintType.SKINT, owner, living, skintBonus);
                             level().addFreshEntity(entity);
                         }
                     }
                     case ANTISKINT -> {
                         List<LivingEntity> entities = level().getEntitiesOfClass(LivingEntity.class, getBoundingBox().inflate(3.4),
                                 e -> e.getUUID() != ownerID && !(e instanceof SkintClusterEntity) && e.isAlive() && e.isPickable());
+                        level().explode(living, level().damageSources().playerAttack(owner), null, living.position(), 0.4f, false, Level.ExplosionInteraction.MOB);
                         for (var l : entities) {
                             for (int i = 0; i < skintCount; i++) {
-                                level().explode(living, level().damageSources().playerAttack(owner), null, living.position(), 0.4f, false, Level.ExplosionInteraction.MOB);
-                                SkintOrbEntity entity = new SkintOrbEntity(level(), SkintOrbEntity.Type.ANTISKINT, l, living, skintBonus);
+                                SkintOrbEntity entity = new SkintOrbEntity(level(), ScintType.ANTISKINT, l, living, skintBonus);
                                 level().addFreshEntity(entity);
                             }
                         }
@@ -210,8 +268,10 @@ public class SkintClusterEntity extends NonLivingEntity implements IAnimatedEnti
     
     @Override
     public void remove(@NotNull RemovalReason reason) {
-        ParticleHelper.spawnParticleEntity(ParticleHelper.constructSimpleSpark(getSkintType().color, 0.64f,
-                40, 0.9f).withLightning(getSkintType().lightning).withGravity(2f), this, 25, 0.08);
+        ParticleHelper.spawnParticleAABB(level(), ParticleHelper.constructSimpleSpark(getSkintType().color, 1f,
+                40, 0.93f).withLightning(getSkintType().lightning).withGravity(2f), this.getBoundingBox().contract(0, 2, 0), 15, 0.1);
+        ParticleHelper.spawnParticleAABB(level(), ParticleHelper.constructSmoke(getSkintType().color, 0.8f,
+                40).withLightning(getSkintType().lightning), this.getBoundingBox().contract(0, 2, 0), 15, 0.05);
         super.remove(reason);
     }
     
@@ -231,18 +291,18 @@ public class SkintClusterEntity extends NonLivingEntity implements IAnimatedEnti
         builder.define(TYPE, 0);
     }
     
-    public @NotNull SkintOrbEntity.Type getSkintType() {
-        return SkintOrbEntity.Type.values()[entityData.get(TYPE)];
+    public @NotNull ScintType getSkintType() {
+        return ScintType.values()[entityData.get(TYPE)];
     }
     
-    public void setSkintType(SkintClusterEntity.Type type) {
+    public void setSkintType(ScintType type) {
         entityData.set(TYPE, type.ordinal());
     }
     
     @Override
     public void readAdditionalSaveData(@NotNull CompoundTag compound) {
         super.readAdditionalSaveData(compound);
-        setSkintType(SkintClusterEntity.Type.values()[compound.getInt(TYPE_TAG)]);
+        setSkintType(ScintType.values()[compound.getInt(TYPE_TAG)]);
         this.damage = compound.getInt(DAMAGE);
         this.ownerID = compound.getUUID(OWNER_TAG);
         this.skintBonus = compound.getInt(SKINT_BONUS);
@@ -258,19 +318,6 @@ public class SkintClusterEntity extends NonLivingEntity implements IAnimatedEnti
         compound.putFloat(DAMAGE, damage);
         compound.putUUID(OWNER_TAG, ownerID);
         compound.putInt(SKINT_COUNT, skintCount);
-    }
-    
-    public enum Type {
-        SKINT(GOLD_COLOR, true),
-        ANTISKINT(GRAY_COLOR, false);
-        
-        final Color color;
-        final boolean lightning;
-        
-        Type(Color color, boolean lightning) {
-            this.color = color;
-            this.lightning = lightning;
-        }
     }
     
 }

@@ -6,9 +6,12 @@ import com.qurenie.relics_thirteenflames.ThirteenFlames;
 import com.qurenie.relics_thirteenflames.client.screen.DefaultMenuScreen;
 import com.qurenie.relics_thirteenflames.content.container.MontuCompositeContainer;
 import com.qurenie.relics_thirteenflames.net.MontuMenuTypePacket;
+import mezz.jei.api.gui.handlers.IGuiContainerHandler;
+import net.minecraft.BlockUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
@@ -20,13 +23,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.zeith.hammerlib.net.Network;
 
-public class MontuCompositeScreen extends DefaultMenuScreen<MontuCompositeContainer> {
+import java.util.List;
+
+public class MontuCompositeScreen extends DefaultMenuScreen<MontuCompositeContainer>
+implements IGuiContainerHandler<MontuCompositeScreen> {
     
     public static final ResourceLocation GLOVES_GUI = ThirteenFlames.rl("textures/gui/gloves/montu_gloves.png");
     private static final int GLOVES_HEIGHT = 184;
     private static final int BUTTON_HEIGHT = 16;
     private static final int BUTTON_WIDTH = 10;
-    private static final int BUTTON_OFFSET = 50;
+    private static final int BUTTON_OFFSET = 80;
     private final Inventory inventory;
     public MontuCompositeContainer.MontuMenuType type;
     public Screen prevActiveScreen;
@@ -55,15 +61,18 @@ public class MontuCompositeScreen extends DefaultMenuScreen<MontuCompositeContai
     @Override
     protected void init() {
         super.init();
-        
+
         Window window = Minecraft.getInstance().getWindow();
         int w = window.getGuiScaledWidth();
         int h = window.getGuiScaledHeight();
-        
+
+        float r = window.getGuiScaledWidth() / (float) window.getWidth();
+
         int dy = h / 2 - BUTTON_HEIGHT / 2;
+        int dx = (int) (r * BUTTON_OFFSET);
         
         if (menu.getLevel() > 1) {
-            this.addRenderableWidget(new MontuButton(BUTTON_OFFSET, dy, BUTTON_WIDTH, BUTTON_HEIGHT, MontuButton.Direction.LEFT,
+            this.addRenderableWidget(new MontuButton(this.leftPos - 30, dy, BUTTON_WIDTH, BUTTON_HEIGHT, MontuButton.Direction.LEFT,
                     b -> {
                         if (animationOffset == 0)
                             Network.sendToServer(new MontuMenuTypePacket(this.type.previous(menu.getLevel()), MontuButton.Direction.LEFT));
@@ -74,7 +83,7 @@ public class MontuCompositeScreen extends DefaultMenuScreen<MontuCompositeContai
                         super.renderWidget(guiGraphics, mouseX, mouseY, partialTick);
                 }
             });
-            this.addRenderableWidget(new MontuButton(w - BUTTON_WIDTH - BUTTON_OFFSET, dy, BUTTON_WIDTH, BUTTON_HEIGHT, MontuButton.Direction.RIGHT,
+            this.addRenderableWidget(new MontuButton(this.leftPos + imageWidth - BUTTON_WIDTH + 30, dy, BUTTON_WIDTH, BUTTON_HEIGHT, MontuButton.Direction.RIGHT,
                     b -> {
                         if (animationOffset == 0)
                             Network.sendToServer(new MontuMenuTypePacket(this.type.next(menu.getLevel()), MontuButton.Direction.RIGHT));

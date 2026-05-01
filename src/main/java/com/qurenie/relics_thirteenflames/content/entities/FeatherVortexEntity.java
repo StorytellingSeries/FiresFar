@@ -28,6 +28,7 @@ import org.zeith.hammeranims.api.tile.IAnimatedEntity;
 import java.awt.*;
 
 import static com.qurenie.relics_thirteenflames.content.entities.AnimatedEntity.LAYER_ACTION;
+import static com.qurenie.relics_thirteenflames.style.ColorScheme.HETT_COLOR;
 import static com.qurenie.relics_thirteenflames.util.FlamesUtils.setupAnimationSystem;
 
 @Getter
@@ -81,7 +82,7 @@ public class FeatherVortexEntity extends NonLivingEntity implements IAnimatedEnt
                     
                     Vec3 radius = spawn.subtract(center);
                     Vec3 move = radius.normalize().yRot((float) (230f * Math.PI / 180f)).add(0, 0.02f, 0);
-                    ParticleHelper.spawnDirectedParticle(level(), ParticleHelper.constructSimpleSpark(new Color(239, 215, 182), 0.13f, 20, 0.91f),
+                    ParticleHelper.spawnDirectedParticle(level(), ParticleHelper.constructSimpleSpark(HETT_COLOR, 0.13f, 20, 0.91f),
                             spawn, move.normalize().scale(0.03 * y));
                 }
             }
@@ -94,7 +95,7 @@ public class FeatherVortexEntity extends NonLivingEntity implements IAnimatedEnt
                 e.level().addFreshEntity(item);
                 ParticleHelper.spawnParticleEntity(ParticleTypes.CAMPFIRE_COSY_SMOKE, e, 20, 0.05);
 //                ParticleHelper.spawnParticleEntity(ParticleHelper.constructSimpleSpark(new Color(239, 215, 182), 0.2f, 60, 0.97f), e, 20, 0.05);
-                ParticleHelper.spawnParticleEntity(ParticleHelper.constructSmoke(new Color(239, 215, 182), (e.getBbHeight() + e.getBbWidth()) / 2, 60, 0).withLightning(false), e, 20, 0.03);
+                ParticleHelper.spawnParticleEntity(ParticleHelper.constructSmoke(HETT_COLOR, (e.getBbHeight() + e.getBbWidth()) / 2, 60, 0).withLightning(false), e, 20, 0.03);
                 
                 e.discard();
             }

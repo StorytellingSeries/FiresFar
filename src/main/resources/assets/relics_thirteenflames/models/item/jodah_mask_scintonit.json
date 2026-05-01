@@ -2,5 +2,13 @@
   "parent": "item/generated",
   "textures": {
     "layer0": "relics_thirteenflames:item/jodah_mask_scintonit"
-  }
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "relics:flawless": 1
+      },
+      "model": "relics_thirteenflames:item/jodah_mask_scintonit_flawless"
+    }
+  ]
 }

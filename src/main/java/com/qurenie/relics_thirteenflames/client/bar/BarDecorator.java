@@ -32,8 +32,7 @@ public class BarDecorator implements IItemDecorator {
 
             int l = getBarWidth(stack, Minecraft.getInstance().player, setting);
 
-            if (isLast)
-                guiGraphics.fill(RenderType.guiOverlay(), j, k, j + 13, k + 2, -16777216);
+            guiGraphics.fill(RenderType.guiOverlay(), j, k, j + 13, k + (isLast ? 2 : 1), -16777216);
             guiGraphics.fill(RenderType.guiOverlay(), j, k, j + l, k + 1, color.getARGB() | 0xFF000000);
 
             k -= 1;
@@ -46,6 +45,9 @@ public class BarDecorator implements IItemDecorator {
     private int getBarWidth(ItemStack stack, Player player, IBarSetting setting) {
         double maxValue = setting.getMaxValue(stack, player);
         double value = setting.getValue(stack, player);
+
+        if (setting.inverse())
+            value = maxValue - value;
 
         return (int) (13 * value / maxValue);
     }

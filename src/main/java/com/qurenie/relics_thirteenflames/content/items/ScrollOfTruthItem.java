@@ -6,6 +6,8 @@ import com.qurenie.relics_thirteenflames.content.items.misc.ScrollColorMode;
 import com.qurenie.relics_thirteenflames.net.ScrollChangeModePacket;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
 import it.hurts.sskirillss.relics.api.relics.IRelicItem;
+import it.hurts.sskirillss.relics.api.relics.abilities.ExperienceSourcesTemplate;
+import it.hurts.sskirillss.relics.items.misc.CreativeContentConstructor;
 import it.hurts.sskirillss.relics.items.relics.base.RelicItem;
 import it.hurts.sskirillss.relics.api.relics.RelicTemplate;
 import it.hurts.sskirillss.relics.api.relics.abilities.AbilitiesTemplate;
@@ -15,6 +17,7 @@ import it.hurts.sskirillss.relics.init.RelicsScalingModels;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.LevelingTemplate;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootTemplate;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.misc.LootEntries;
+import it.hurts.sskirillss.relics.items.relics.base.data.research.ResearchTemplate;
 import it.hurts.sskirillss.relics.utils.MathUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -98,7 +101,11 @@ public class ScrollOfTruthItem extends RelicItem implements IExtRelicItem {
             }
         }
     }
-    
+
+    @Override
+    public void gatherCreativeTabContent(CreativeContentConstructor constructor) {
+    }
+
     @Override
     public InteractionResultHolder<ItemStack> use(@NotNull Level level, @NotNull Player player, @NotNull InteractionHand hand) {
         if (player instanceof ServerPlayer splayer && hand == InteractionHand.MAIN_HAND) {
@@ -113,13 +120,7 @@ public class ScrollOfTruthItem extends RelicItem implements IExtRelicItem {
         }
         return super.use(level, player, hand);
     }
-    
-    @Override
-    public void appendHoverText(ItemStack stack, TooltipContext tooltip, List<Component> components, TooltipFlag flag) {
-        components.add(Component.translatable("tooltip.relics_thirteenflames.scroll_of_truth.lore").withStyle(ChatFormatting.GOLD).withStyle(ChatFormatting.ITALIC));
-        super.appendHoverText(stack, tooltip, components, flag);
-    }
-    
+
     @Override
     public RelicTemplate constructDefaultRelicTemplate() {
         return RelicTemplate.builder()
@@ -138,9 +139,19 @@ public class ScrollOfTruthItem extends RelicItem implements IExtRelicItem {
                                         .thresholdValue(1, 9)
                                         .formatValue(Math::floor)
                                         .build())
+                                .experienceSources(ExperienceSourcesTemplate.builder()
+                                        .source("source_1")
+                                        .build())
+                                .experienceSources(ExperienceSourcesTemplate.builder()
+                                        .source("source_2")
+                                        .build())
                                 .build())
                         .ability(AbilityTemplate.builder("passive_effect")
                                 .initialMaxLevel(1)
+                                .research(ResearchTemplate.builder()
+                                        .star(0, 8, 8).star(1, 12, 7).star(2, 13, 11).star(3, 9, 12).star(4, 10, 21).star(5, 8, 18).star(6, 13, 18).star(7, 11, 16).star(8, 19, 14).star(9, 16, 19).star(10, 2, 15).star(11, 4, 18).star(12, 12, 23).star(13, 9, 26)
+                                        .link(0, 3).link(3, 2).link(2, 1).link(1, 0).link(7, 5).link(7, 6).link(6, 4).link(4, 5).link(9, 8).link(11, 10).link(12, 13)
+                                        .build())
                                 .stat(AbilityStatTemplate.builder("effectLevel")
                                         .initialValue(0, 0)
                                         .thresholdValue(0, 2)

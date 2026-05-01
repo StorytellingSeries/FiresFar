@@ -11,11 +11,13 @@ import com.qurenie.relics_thirteenflames.init.EntityModels;
 import com.qurenie.relics_thirteenflames.init.register.RendererFactory;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.block.model.ItemOverrides;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class JodahStaffItemRenderer extends ZeithTechISTER {
     
@@ -32,7 +34,7 @@ public class JodahStaffItemRenderer extends ZeithTechISTER {
     public void renderByItem(@NotNull ItemStack stack, @NotNull ItemDisplayContext transformType, @NotNull PoseStack pose, @NotNull MultiBufferSource bufferSource, int i, int j) {
         if (!(stack.getItem() instanceof ItemJodahStaff staff))
             return;
-       
+
         JodahTier tier = stack.getOrDefault(ComponentRegistry.JODAH_TIER, JodahTier.D);
         boolean active = stack.getOrDefault(ComponentRegistry.ACTIVE_TICK, 0) > 0;
         
@@ -52,7 +54,12 @@ public class JodahStaffItemRenderer extends ZeithTechISTER {
         VertexConsumer emissive = bufferSource.getBuffer(RenderType.entityTranslucentEmissive(textureEmissive));
         model.renderToBuffer(pose, emissive, i, j);
     }
-    
+
+    @Override
+    public void renderOverrride(ItemOverrides.BakedOverride override, @NotNull ItemDisplayContext transformType, @NotNull PoseStack pose, @NotNull ItemStack stack, @NotNull MultiBufferSource bufferSource, @Nullable RenderType overrideType, int uv2, int overlay) {
+
+    }
+
     protected void applyTrasforms(PoseStack poseStack, @NotNull ItemDisplayContext transformType) {
         poseStack.translate(0.5F, 0F, 0.5F);
         switch (transformType) {
@@ -62,8 +69,8 @@ public class JodahStaffItemRenderer extends ZeithTechISTER {
                 poseStack.scale(1.51F, 1.51F, 1.51F);
                 poseStack.popPose();
             }
-            case FIRST_PERSON_LEFT_HAND -> poseStack.translate(5.5F / 16.0F, 0.0F, 0.0F);
-            case FIRST_PERSON_RIGHT_HAND -> poseStack.translate(-5.5F / 16.0F, 0.0F, 0.0F);
+            case FIRST_PERSON_LEFT_HAND -> poseStack.translate(5.5F / 16.0F, -4.0F / 16F, 0.0F);
+            case FIRST_PERSON_RIGHT_HAND -> poseStack.translate(-5.5F / 16.0F, -4.0F / 16F, 0.0F);
         }
     }
     

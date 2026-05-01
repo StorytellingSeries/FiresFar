@@ -1,0 +1,9 @@
+{
+  "type": "relics_thirteenflames:montu_smith_level_up",
+  "left": {
+    "item": "minecraft:experience_bottle"
+  },
+  "right": {
+    "item": "relics_thirteenflames:auritekh_ingot"
+  }
+}

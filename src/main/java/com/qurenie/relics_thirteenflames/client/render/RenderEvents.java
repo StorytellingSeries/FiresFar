@@ -33,7 +33,7 @@ public class RenderEvents {
                     if (curioHandler.getRenders().get(i)) {
                         ItemStack stack = stackHandler.getStackInSlot(i);
                         if (stack.getItem() instanceof IRenderableCurioHand renderable) {
-                            HumanoidModel<?> model = renderable.getModel(stack, arm);
+                            HumanoidModel<?> model = renderable.getModel(event.getPlayer(), stack, arm);
 
                             poseStack.pushPose();
                             float scale = 1F;
@@ -48,7 +48,7 @@ public class RenderEvents {
                                 poseStack.translate(0.2, -0.1, 0.0);
                             }
 
-                            model.renderToBuffer(poseStack, ItemRenderer.getArmorFoilBuffer(event.getMultiBufferSource(), RenderType.armorCutoutNoCull(renderable.getTexture(stack, arm)), stack.hasFoil()), event.getPackedLight(), OverlayTexture.NO_OVERLAY);
+                            model.renderToBuffer(poseStack, ItemRenderer.getArmorFoilBuffer(event.getMultiBufferSource(), RenderType.armorCutoutNoCull(renderable.getTexture(event.getPlayer(), stack, arm)), stack.hasFoil()), event.getPackedLight(), OverlayTexture.NO_OVERLAY);
                             poseStack.popPose();
                         }
                     }

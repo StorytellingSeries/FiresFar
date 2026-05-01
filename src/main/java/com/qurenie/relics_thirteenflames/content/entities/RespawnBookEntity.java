@@ -51,6 +51,8 @@ import java.util.Objects;
 import java.util.UUID;
 
 import static com.qurenie.relics_thirteenflames.content.entities.AnimatedEntity.LAYER_ACTION;
+import static com.qurenie.relics_thirteenflames.style.ColorScheme.BURN_COLOR;
+import static com.qurenie.relics_thirteenflames.style.ColorScheme.HETT_COLOR;
 import static net.neoforged.neoforge.common.NeoForge.EVENT_BUS;
 
 @Getter
@@ -58,9 +60,6 @@ public class RespawnBookEntity extends Mob implements IAnimatedEntity {
     
     private static final EntityDataAccessor<Integer> RADIUS = SynchedEntityData.defineId(RespawnBookEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> START_DEATH_TICK = SynchedEntityData.defineId(RespawnBookEntity.class, EntityDataSerializers.INT);
-    
-    private static final Color BURN_COLOR = new Color(230, 90, 20);
-    private static final Color FEATHER_COLOR = new Color(239, 215, 182);
     
     private static final int DEATH_ANIM_LENGTH = 60;
     
@@ -151,7 +150,7 @@ public class RespawnBookEntity extends Mob implements IAnimatedEntity {
                 Vec3 spawn = position().add(x, 0.1, z);
                 
                 if (!isOnFire() || random.nextBoolean()) {
-                    ParticleHelper.spawnDirectedParticle(level(), ParticleHelper.constructSimpleSpark(FEATHER_COLOR, 0.2f, 30, 0.93f).withGravity(-0.25f),
+                    ParticleHelper.spawnDirectedParticle(level(), ParticleHelper.constructSimpleSpark(HETT_COLOR, 0.2f, 30, 0.93f).withGravity(-0.25f),
                             spawn, new Vec3(0, 0, 0));
                 } else
                     for (int i = 0; i < 2; i++) {
@@ -179,7 +178,7 @@ public class RespawnBookEntity extends Mob implements IAnimatedEntity {
                         Vec3 move = radius.normalize().yRot((float) (230f * Math.PI / 180f)).add(0, 0.02f, 0);
                         
                         if (!isOnFire() || random.nextBoolean())
-                            ParticleHelper.spawnDirectedParticle(level(), ParticleHelper.constructSimpleSpark(FEATHER_COLOR, 0.13f, 20, 0.91f),
+                            ParticleHelper.spawnDirectedParticle(level(), ParticleHelper.constructSimpleSpark(HETT_COLOR, 0.13f, 20, 0.91f),
                                     spawn, move.normalize().scale(0.03 * y));
                         else
                             ParticleHelper.spawnDirectedParticle(level(), ParticleHelper.constructSimpleSpark(BURN_COLOR, 0.13f, 20, 0.91f),
@@ -187,7 +186,7 @@ public class RespawnBookEntity extends Mob implements IAnimatedEntity {
                         
                         
                         if (random.nextBoolean() && tickCount % 3 == 0)
-                            ParticleHelper.spawnDirectedParticle(level(), ParticleHelper.constructHeal(FEATHER_COLOR, 0.3f, 20, 0.91f),
+                            ParticleHelper.spawnDirectedParticle(level(), ParticleHelper.constructHeal(HETT_COLOR, 0.3f, 20, 0.91f),
                                     spawn, move.normalize().scale(0.03 * y));
                     }
                 }
@@ -229,7 +228,7 @@ public class RespawnBookEntity extends Mob implements IAnimatedEntity {
                     Network.sendTo(p, new PacketPlaySound(p.position(), SoundEvents.WITHER_HURT, SoundSource.MASTER, 1, 1));
                 }
                 
-                ParticleHelper.spawnParticleLine(level(), ParticleHelper.constructSimpleSpark(FEATHER_COLOR, 1f, 20, 0.95f),
+                ParticleHelper.spawnParticleLine(level(), ParticleHelper.constructSimpleSpark(HETT_COLOR, 1f, 20, 0.95f),
                         this.position(), living.position().add(0, 1, 0), (int) (this.position().distanceTo(living.position()) * 4), 0.02f);
             }
         }
@@ -246,7 +245,7 @@ public class RespawnBookEntity extends Mob implements IAnimatedEntity {
                 event.getEntity().startRiding(this);
                 event.setCanceled(true);
                 event.getEntity().setHealth(1);
-                ParticleHelper.spawnParticleEntity(ParticleHelper.constructSimpleSpark(FEATHER_COLOR, 0.8f, 60, 0.97f), event.getEntity(), 200, 0.7);
+                ParticleHelper.spawnParticleEntity(ParticleHelper.constructSimpleSpark(HETT_COLOR, 0.8f, 60, 0.97f), event.getEntity(), 200, 0.7);
                 ParticleHelper.spawnParticleEntity(ParticleTypes.CAMPFIRE_COSY_SMOKE, event.getEntity(), 30, 0.1);
                 startDeath();
                 system.startAnimationAt("ANIMATION_2", AnimationsRegistry.RESPAWN_BOOK_RESPAWN_LAYER);

@@ -6,9 +6,15 @@ import com.qurenie.api.SettingsContainer;
 import com.qurenie.relics_thirteenflames.activity.IActivitySetting;
 import com.qurenie.relics_thirteenflames.activity.RelicActivitySetting;
 import com.qurenie.relics_thirteenflames.content.entities.EntitySeliasetSun;
+import com.qurenie.relics_thirteenflames.content.entities.WaveEntity;
 import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
+import com.qurenie.relics_thirteenflames.net.EntityPacket;
 import com.qurenie.relics_thirteenflames.net.PacketHornSounds;
+import com.qurenie.relics_thirteenflames.util.FlamesUtils;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
+import it.hurts.octostudios.octolib.util.OctoColor;
+import it.hurts.sskirillss.relics.api.relics.abilities.ExperienceSourcesTemplate;
+import it.hurts.sskirillss.relics.items.misc.CreativeContentConstructor;
 import it.hurts.sskirillss.relics.items.relics.base.RelicItem;
 import it.hurts.sskirillss.relics.api.relics.RelicTemplate;
 import it.hurts.sskirillss.relics.api.relics.abilities.AbilitiesTemplate;
@@ -18,6 +24,7 @@ import it.hurts.sskirillss.relics.init.RelicsScalingModels;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.LevelingTemplate;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootTemplate;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootEntry;
+import it.hurts.sskirillss.relics.items.relics.base.data.research.ResearchTemplate;
 import it.hurts.sskirillss.relics.utils.MathUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -51,9 +58,15 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import org.jetbrains.annotations.NotNull;
 import org.zeith.hammerlib.api.items.IColoredFoilItem;
 import org.zeith.hammerlib.net.Network;
+import org.zeith.hammerlib.net.PacketContext;
 
 import java.awt.*;
 import java.util.*;
@@ -63,83 +76,73 @@ import static com.qurenie.relics_thirteenflames.ThirteenFlames.SCHEDULER;
 import static com.qurenie.relics_thirteenflames.init.ComponentRegistry.ACTIVE_TICK;
 
 public class ItemSeliasetHorn extends RelicItem implements IExtRelicItem, IColoredFoilItem, IActivityContainer {
-    
+
     public static final LootEntry PILLAGE = LootEntry.builder()
             .dimension(".*")
             .biome(".*")
             .table("[\\w]+:chests\\/[\\w_\\/]*(pillage)[\\w_\\/]*").weight(500).build();
     Random rng = new Random();
-    
+
     public ItemSeliasetHorn(Properties props) {
         super(props);
     }
-    
-    @Override
-    public void appendHoverText(@NotNull ItemStack stack, @NotNull TooltipContext context, List<net.minecraft.network.chat.Component> tooltip, @NotNull TooltipFlag isAdvanced) {
-        tooltip.add(Component.translatable("tooltip.relics_thirteenflames.seliaset_horn.lore").withStyle(ChatFormatting.GOLD).withStyle(ChatFormatting.ITALIC));
-        super.appendHoverText(stack, context, tooltip, isAdvanced);
-    }
-    
+
+
     @Override
     public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level pLevel, Player pPlayer, @NotNull InteractionHand pUsedHand) {
         ItemStack horn = pPlayer.getItemInHand(pUsedHand);
-
-        if (pPlayer.isShiftKeyDown()) {
-            int duration = (int) (this.getStatValue(pPlayer, horn, "block", "wavesCount") * 60);
-            horn.set(ACTIVE_TICK, duration);
-            setMaxCooldown(pPlayer, horn, "block");
-        }
-
         pPlayer.startUsingItem(pUsedHand);
-        return InteractionResultHolder.success(horn);
+        return InteractionResultHolder.pass(horn);
     }
-    
-    
+
     @Override
     public void releaseUsing(@NotNull ItemStack pStack, @NotNull Level pLevel, @NotNull LivingEntity pLivingEntity, int pTimeCharged) {
         super.releaseUsing(pStack, pLevel, pLivingEntity, pTimeCharged);
-        
+
         if (!pLevel.isClientSide() && pStack.is(this) && pLivingEntity instanceof ServerPlayer sPlayer) {
             List<ServerPlayer> players = pLevel.getEntitiesOfClass(ServerPlayer.class, new AABB(pLivingEntity.blockPosition()).inflate(20));
             for (ServerPlayer sp : players) {
                 Network.sendTo(sp, new PacketHornSounds(sPlayer.getStringUUID(), sPlayer.position(), true));
             }
-            
+
         }
-        
+
     }
-    
+
     @Override
     public boolean isPrimaryItemFor(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
         return enchantment.is(Enchantments.FIRE_ASPECT);
     }
-    
+
     @Override
     public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
         return enchantment.is(Enchantments.FIRE_ASPECT);
     }
-    
+
     @Override
     public int getEnchantmentValue(@NotNull ItemStack stack) {
         return 20;
     }
-    
+
     @Override
     public boolean isEnchantable(@NotNull ItemStack pStack) {
         return true;
     }
-    
+
+    @Override
+    public void gatherCreativeTabContent(CreativeContentConstructor constructor) {
+    }
+
     @Override
     public void onUseTick(@NotNull Level level, @NotNull LivingEntity living, @NotNull ItemStack horn, int count) {
         if (living instanceof Player player) {
             this.releaseRay(player, horn);
         }
-        
-        
+
         if (level.isClientSide()) {
             int tick = this.getUseDuration(horn, living) - count;
             int segments = (int) Math.round(this.getStatValue(living, horn, "air_ray", "distance"));
-            
+
             Vec3 iniPos = living.getEyePosition(1).add(0, -0.45, 0);
             if (living.isShiftKeyDown()) {
                 for (int i = 1; i < segments * 2; i++) {
@@ -148,49 +151,49 @@ public class ItemSeliasetHorn extends RelicItem implements IExtRelicItem, IColor
                         double radius = 0.2 + (i / 6.0);
                         Vec3 luk = living.getLookAngle();
                         Vec3 iStep = luk.scale(i);
-                        
+
                         Vec3 x = !(luk.normalize().x < 0.001 && luk.normalize().z < 0.001) ? luk.normalize().cross(new Vec3(0, 1, 0)).normalize().scale(radius) : luk.normalize().cross(new Vec3(1, 0, 0)).normalize().scale(radius);
                         Vec3 z = luk.normalize().cross(x).normalize().scale(radius);
-                        
+
                         Vec3 pos = iniPos
                                 .add(x.scale(Math.cos(Math.toRadians(a))).scale(rng.nextFloat()))
                                 .add(z.scale(Math.sin(Math.toRadians(a))).scale(rng.nextFloat()))
                                 .add(iStep);
                         Vec3 move = iniPos.subtract(pos).normalize().scale(0.5 + (double) i / segments * rng.nextFloat());
-                        
+
                         int fire = horn.getEnchantmentLevel(level.holderOrThrow(Enchantments.FIRE_ASPECT));
                         if (fire > 0 && rng.nextFloat() < 0.2) {
                             ParticleHelper.spawnEnginedParticle(level,
-                                    ParticleTypes.FLAME, pos, move.x, move.y, move.z, 0.2f, 40, Color.WHITE, 0.5f);
+                                    ParticleTypes.FLAME, pos, move.x, move.y, move.z, 0.2f, 40, OctoColor.WHITE, 0.5f);
                         } else if (rng.nextFloat() < 0.8f) {
                             ParticleHelper.spawnDirectedParticle(level,
-                                    ParticleHelper.constructSimpleSpark(new Color(37, 36, 30), 0.08f + (float) i / segments * 0.04f, (int) Math.round(iniPos.subtract(pos).length() / move.length()), 1)
+                                    ParticleHelper.constructSimpleSpark(FlamesUtils.fromRGBI(37, 36, 30), 0.08f + (float) i / segments * 0.04f, (int) Math.round(iniPos.subtract(pos).length() / move.length()), 1)
                                     , pos.x(), pos.y(), pos.z(), move.x, move.y, move.z);
                         } else {
                             ParticleHelper.spawnEnginedParticle(level,
-                                    ParticleTypes.CLOUD, pos, move.x, move.y, move.z, 0.2f, (int) Math.round(iniPos.subtract(pos).length() / move.length()), Color.WHITE, 0.5f);
+                                    ParticleTypes.CLOUD, pos, move.x, move.y, move.z, 0.2f, (int) Math.round(iniPos.subtract(pos).length() / move.length()), OctoColor.WHITE, 0.5f);
                         }
                     }
                 }
             } else {
                 for (int i = 0; i < 5; i++) {
-                    
+
                     double a = 360.0 / 5 * i + count * 7;
                     double radius = 0.1 * rng.nextFloat();
                     Vec3 luk = living.getLookAngle();
                     Vec3 x = !(luk.normalize().x < 0.001 && luk.normalize().z < 0.001) ? luk.normalize().cross(new Vec3(0, 1, 0)).normalize().scale(radius) : luk.normalize().cross(new Vec3(1, 0, 0)).normalize().scale(radius);
                     Vec3 z = luk.normalize().cross(x).normalize().scale(radius);
-                    
+
                     Vec3 pos = iniPos
                             .add(x.scale(Math.cos(Math.toRadians(a))).scale(rng.nextFloat()))
                             .add(z.scale(Math.sin(Math.toRadians(a))).scale(rng.nextFloat()));
-                    
+
                     Vec3 move = luk.scale(0.5).add(pos.subtract(iniPos).normalize().scale(0.05 * rng.nextFloat()));
-                    ParticleHelper.spawnDirectedParticle(level, ParticleHelper.constructSimpleSpark(new Color(37, 36, 30), 0.06f, 40 + rng.nextInt(40), 1
+                    ParticleHelper.spawnDirectedParticle(level, ParticleHelper.constructSimpleSpark(FlamesUtils.fromRGBI(37, 36, 30), 0.06f, 40 + rng.nextInt(40), 1
                             )
                             , pos.x(), pos.y(), pos.z(), move.x, move.y, move.z);
                     if (i % 5 == 0 && rng.nextBoolean()) {
-                        
+
                         Particle particle = Minecraft.getInstance().particleEngine
                                 .createParticle(ParticleTypes.CLOUD, iniPos.add(luk.scale(0.1)).x(), iniPos.add(luk.scale(0.1)).y() + 0.01, iniPos.add(luk.scale(0.1)).z(),
                                         luk.scale(0.8).x + rng.nextFloat(-0.1f, 0.1f),
@@ -199,7 +202,7 @@ public class ItemSeliasetHorn extends RelicItem implements IExtRelicItem, IColor
                         particle.scale(0.3f);
                         particle.setLifetime(20);
                     }
-                    
+
                 }
                 for (int i = 0; i < segments * 0.6; i++) {
                     if (i * 1.5 < tick) {
@@ -209,25 +212,25 @@ public class ItemSeliasetHorn extends RelicItem implements IExtRelicItem, IColor
                         Vec3 iStep = luk.scale(i);
                         Vec3 x = !(luk.normalize().x < 0.001 && luk.normalize().z < 0.001) ? luk.normalize().cross(new Vec3(0, 1, 0)).normalize().scale(radius) : luk.normalize().cross(new Vec3(1, 0, 0)).normalize().scale(radius);
                         Vec3 z = luk.normalize().cross(x).normalize().scale(radius);
-                        
+
                         Vec3 pos = iniPos
                                 .add(x.scale(Math.cos(Math.toRadians(a))).scale(rng.nextFloat()))
                                 .add(z.scale(Math.sin(Math.toRadians(a))).scale(rng.nextFloat()));
-                        
+
                         Vec3 move = luk.scale(0.5 + (double) i / segments).add(pos.subtract(iniPos).normalize().scale(0.1 * rng.nextFloat()));
                         pos = pos.add(iStep);
-                        
+
                         int fire = horn.getEnchantmentLevel(level.holderOrThrow(Enchantments.FIRE_ASPECT));
                         if (fire > 0 && rng.nextFloat() < 0.3) {
                             ParticleHelper.spawnEnginedParticle(level,
-                                    ParticleTypes.FLAME, pos, move.x, move.y, move.z, 0.2f, 40, Color.WHITE, 0.5f);
+                                    ParticleTypes.FLAME, pos, move.x, move.y, move.z, 0.2f, 40, OctoColor.WHITE, 0.5f);
                         } else if (rng.nextFloat() < 0.8f) {
                             ParticleHelper.spawnDirectedParticle(level,
-                                    ParticleHelper.constructSimpleSpark(new Color(37, 36, 30), 0.08f + (float) i / segments * 0.08f, (int) Math.round((segments - pos.subtract(iniPos).length()) / move.length()), -1)
+                                    ParticleHelper.constructSimpleSpark(FlamesUtils.fromRGBI(37, 36, 30), 0.08f + (float) i / segments * 0.08f, (int) Math.round((segments - pos.subtract(iniPos).length()) / move.length()), -1)
                                     , pos.x(), pos.y(), pos.z(), move.x, move.y, move.z);
                         } else {
                             ParticleHelper.spawnEnginedParticle(level,
-                                    ParticleTypes.CLOUD, pos, move.x, move.y, move.z, 0.2f, 40, Color.WHITE, 0.5f);
+                                    ParticleTypes.CLOUD, pos, move.x, move.y, move.z, 0.2f, 40, OctoColor.WHITE, 0.5f);
                         }
                     }
                 }
@@ -239,34 +242,34 @@ public class ItemSeliasetHorn extends RelicItem implements IExtRelicItem, IColor
             }
         }
     }
-    
+
     public void releaseRay(Player player, ItemStack horn) {
         Vec3 initPos = player.getEyePosition().add(0, -0.4, 0);
         double distance = this.getStatValue(player, horn, "air_ray", "distance");
-        
-        
+
+
         Vec3 endPos = initPos.add(player.getLookAngle().scale(distance / 2.0));
         if (!player.level().isClientSide) {
             List<Entity> entitiesToAffect = getAffectedEntities(player, initPos, endPos, distance, distance / 6.0);
-            
+
             for (Entity e : entitiesToAffect) {
                 if (e instanceof LivingEntity && (!e.isPushable() || e instanceof EntitySeliasetSun))
                     continue;
-                
+
                 Vec3 entityPos = e.position().add(0, e.getEyeHeight(), 0);
                 Vec3 b = entityPos.subtract(initPos).add(player.getLookAngle());
                 double efficiency = this.getStatValue(player, horn, "air_ray", "efficiency") / 20;
-                
+
                 if (e instanceof LivingEntity living && living.getMaxHealth() > 50)
                     efficiency = Mth.clamp(efficiency - (living.getMaxHealth() - 50.0) / 10.0, 0, efficiency);
-                
+
                 Vec3 speed = b.normalize().multiply(efficiency, efficiency, efficiency);
                 if (player.isShiftKeyDown()) {
                     speed = speed.reverse();
                 }
-                
+
                 e.setDeltaMovement(e.getDeltaMovement().add(speed));
-                
+
                 int fire = horn.getEnchantmentLevel(player.level().holderOrThrow(Enchantments.FIRE_ASPECT));
                 if (fire > 0) {
                     e.setRemainingFireTicks(fire * 2 * 20);
@@ -275,13 +278,13 @@ public class ItemSeliasetHorn extends RelicItem implements IExtRelicItem, IColor
             }
         }
     }
-    
+
     List<Entity> getAffectedEntities(Player player, Vec3 initPos, Vec3 endPos, double boxRadius, double dist) {
         Vec3 axis = endPos.subtract(initPos);
         return player.level().getEntitiesOfClass(Entity.class, new AABB(endPos, endPos).inflate(boxRadius), e -> {
             if (!(e instanceof LivingEntity) && !(e instanceof ItemEntity) && !(e instanceof ExperienceOrb) && !(e instanceof EntitySeliasetSun))
                 return false;
-            
+
             Vec3 ePos = e.getBoundingBox().getCenter();
             Vec3 eVec = ePos.subtract(initPos);
             double axisScalar = axis.dot(axis);
@@ -290,12 +293,12 @@ public class ItemSeliasetHorn extends RelicItem implements IExtRelicItem, IColor
             return point.subtract(ePos).lengthSqr() < dist * dist && !e.equals(player) && (eVec.add(axis).length() > eVec.subtract(axis).length());
         });
     }
-    
+
     @Override
     public int getUseDuration(@NotNull ItemStack p_41454_, @NotNull LivingEntity p_344979_) {
         return 72000;
     }
-    
+
     @Override
     public UseAnim getUseAnimation(ItemStack pStack) {
         return UseAnim.TOOT_HORN;
@@ -336,16 +339,23 @@ public class ItemSeliasetHorn extends RelicItem implements IExtRelicItem, IColor
                                         .formatValue(x -> (int) Math.round(x))
                                         .build())
                                 .stat(AbilityStatTemplate.builder("recharge")
-                                        .initialValue(60, 40)
-                                        .thresholdValue(10, 60)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), -6)
-                                        .formatValue(x -> (int) Math.round(x))
+                                        .initialValue(1200, 800)
+                                        .thresholdValue(200, 1200)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), -120)
+                                        .formatValue(x -> (int) Math.round(x / 20f))
                                         .build())
                                 .stat(AbilityStatTemplate.builder("stunDuration")
                                         .initialValue(0.4, 0.6)
                                         .thresholdValue(0.5, 4)
                                         .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 0.3)
                                         .formatValue(x -> MathUtils.round(x, 1))
+                                        .build())
+                                .experienceSources(ExperienceSourcesTemplate.builder()
+                                        .source("source_1")
+                                        .build())
+                                .research(ResearchTemplate.builder()
+                                        .star(0, 8, 28).star(1, 3, 7).star(2, 18, 6).star(3, 19, 13).star(4, 15, 10).star(5, 9, 15).star(6, 10, 20).star(7, 8, 7).star(8, 10, 3)
+                                        .link(0, 1).link(0, 3).link(3, 2).link(4, 5).link(5, 6).link(6, 0).link(7, 4).link(1, 8).link(8, 2)
                                         .build())
                                 .build())
                         .build())
@@ -359,70 +369,66 @@ public class ItemSeliasetHorn extends RelicItem implements IExtRelicItem, IColor
                         .build())
                 .build();
     }
-    
+
     @Override
     public void inventoryTick(@NotNull ItemStack stack, Level level, @NotNull Entity entity, int slot, boolean isSelected) {
-        
-        if (!level.isClientSide()) {
+
+        if (!level.isClientSide() && entity instanceof LivingEntity living) {
             int activeTicker = stack.getOrDefault(ACTIVE_TICK, 0);
             if (activeTicker > 0) {
-                if (activeTicker-- % 60 == 0) {
-                    this.releaseWave(level, entity);
-                } else {
-                    int tick = 60 - activeTicker % 60;
-                    this.tickWave(entity, stack, tick);
-                    
-                }
+                if (activeTicker-- % 60 == 0)
+                    this.releaseWave(level, living);
             }
             stack.set(ACTIVE_TICK, activeTicker);
         }
+
         super.inventoryTick(stack, level, entity, slot, isSelected);
     }
-    
+
     public void tickWave(Entity entity, ItemStack stack, int tick) {
         if (tick <= 30) {
             double radius = tick / 30f * 10;
-            
+
             List<Entity> targets = new ArrayList<>(entity.level().getEntitiesOfClass(LivingEntity.class, new AABB(
                     -radius, -radius, -radius, radius, radius, radius
-            ).move(entity.position()), e -> e.distanceTo(entity) <= radius));
-            
-            targets.addAll( entity.level().getEntitiesOfClass(ItemEntity.class, new AABB(
+            ).move(entity.position()), e -> e.getBoundingBox().distanceToSqr(entity.position()) <= radius * radius));
+
+            targets.addAll(entity.level().getEntitiesOfClass(ItemEntity.class, new AABB(
                     -radius, -radius, -radius, radius, radius, radius
-            ).move(entity.position()), e -> e.distanceTo(entity) <= radius));
-            
-            targets.addAll( entity.level().getEntitiesOfClass(ExperienceOrb.class, new AABB(
+            ).move(entity.position()), e -> e.getBoundingBox().distanceToSqr(entity.position()) <= radius * radius));
+
+            targets.addAll(entity.level().getEntitiesOfClass(ExperienceOrb.class, new AABB(
                     -radius, -radius, -radius, radius, radius, radius
-            ).move(entity.position()), e -> e.distanceTo(entity) <= radius));
-            
+            ).move(entity.position()), e -> e.getBoundingBox().distanceToSqr(entity.position()) <= radius * radius));
+
             for (Entity le : targets) {
                 if (le instanceof LivingEntity && !le.isPushable())
                     continue;
-                
+
                 if (Objects.equals(le.getUUID(), entity.getUUID())) continue;
                 Vec3 b = le.position().subtract(entity.position());
                 Vec3 sp = b.normalize().multiply(2, 2, 2).add(0, 0.5, 0);
                 if (le instanceof ItemEntity || le instanceof ExperienceOrb)
                     sp = sp.scale(0.2f);
                 le.setDeltaMovement(sp);
-                
+
                 if (!(le instanceof LivingEntity living))
                     return;
-                
+
                 if (!living.hasEffect(MobEffects.MOVEMENT_SLOWDOWN) && entity instanceof LivingEntity livin)
-                    this.addExperience(livin, stack, 1);
+                    this.addExperience(livin, stack, 6);
 
                 if (entity instanceof LivingEntity livin)
                     living.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, (int) Math.round(this.getStatValue(livin, stack, "block", "stunDuration") * 20), 3));
             }
         }
     }
-    
-    public void releaseWave(Level level, Entity entity) {
-        level.playSound(null, entity.blockPosition(), SoundsRegistry.SELI_HORN_WAVE.get(), SoundSource.MASTER, 1, 1);
-        releaseWaveParticles(level, entity);
+
+    public void releaseWave(Level level, LivingEntity entity) {
+        WaveEntity wave = new WaveEntity(level, entity);
+        level.addFreshEntity(wave);
     }
-    
+
     public void releaseWaveParticles(Level level, Entity entity) {
         double angle = Math.PI * 2 / 60;
         for (float g = -0.5f; g <= 0.5; g += 0.25f) {
@@ -430,12 +436,12 @@ public class ItemSeliasetHorn extends RelicItem implements IExtRelicItem, IColor
                 double vangle = angle * i + (g * angle);
                 double x = Math.sin(vangle);
                 double y = Math.cos(vangle);
-                
-                
+
+
                 float md = (1 - 2.5f / Math.abs(g)) * 0.9f;
                 Vec3 dir = new Vec3(x * md, g, y * md);
                 Vec3 ppos = entity.position().add(dir.scale(0.3)).add(0, 0.2, 0);
-                
+
                 Vec3 speed = dir.normalize().multiply(0.5, 0.5, 0.5);
                 for (int k = 0; k <= 3; k++) {
                     Vec3 ppos1 = ppos.add(
@@ -445,7 +451,7 @@ public class ItemSeliasetHorn extends RelicItem implements IExtRelicItem, IColor
                     );
                     ParticleHelper.spawnDirectedParticle(level, ParticleTypes.CLOUD, ppos1.x, ppos1.y, ppos1.z, speed.x, speed.y, speed.z);
                 }
-                
+
             }
         }
         Vec3 ePos = entity.position();
@@ -463,39 +469,82 @@ public class ItemSeliasetHorn extends RelicItem implements IExtRelicItem, IColor
                     Vec3 sped = pos.subtract(ePos.add(new Vec3(0, 0.3, 0))).normalize().scale(0.11);
 //                    ParticleHelper.spawnDirectedParticle(level, ParticleHelper.constructSimpleSpark(new Color(42, 41, 26), 0.3f, (int) Math.round(10 + r * 2), -1),
 //                            pos.x, pos.y + 0.3, pos.z, sped.x, 0, sped.z);
-                    
+
                     if (finalI == 13) ParticleHelper.spawnDirectedParticle(level, ParticleTypes.CLOUD,
                             pos.x, pos.y, pos.z, sped.scale(2).x, 0, sped.scale(2).z);
-                    
+
                 }
-                
+
                 for (int j = 0; j < count2; j++) {
                     Vec3 pos = ePos.add(new Vec3(r2 + rng.nextDouble(0.1), 0, 0).yRot((float) Math.toRadians(360.0 / count2 * j)));
                     Vec3 sped = pos.subtract(ePos.add(new Vec3(0, 0.3, 0))).normalize().scale(0.11 * (1 - finalI / 14) + rng.nextDouble(0.03));
-                    ParticleHelper.spawnDirectedParticle(level, ParticleHelper.constructSimpleSpark(new Color(63, 60, 39), 0.3f + ((finalI / 14) * 0.2f), (int) Math.round(10 + r2 * 2), 0.9f),
+                    ParticleHelper.spawnDirectedParticle(level, ParticleHelper.constructSimpleSpark(FlamesUtils.fromRGBI(63, 60, 39), 0.3f + ((finalI / 14) * 0.2f), (int) Math.round(10 + r2 * 2), 0.9f),
                             pos.x + rng.nextDouble(0.4) - 0.2, pos.y + 0.2 + rng.nextDouble(0.2), pos.z + rng.nextDouble(0.4) - 0.2, sped.x, 0, sped.z);
-                    
+
                 }
             });
-            
+
         }
-        
+
     }
-    
+
     @Override
     public int getFoilColor(@NotNull ItemStack stack) {
         return /*0xFA9FEB7D*/ new Color(183, 155, 58).getRGB();
     }
 
+    @EventBusSubscriber
+    public static class LeftClickHandler {
+
+        @SubscribeEvent
+        public static void onLeftClickEmpty(PlayerInteractEvent.LeftClickEmpty event) {
+            Network.sendToServer(new EntityPacket(event.getEntity().getId()) {
+
+                @Override
+                public void serverExecute(PacketContext ctx) {
+                    if (getEntity(ctx.getLevel()) instanceof Player player)
+                        handle(player);
+                }
+            });
+        }
+
+        @SubscribeEvent
+        public static void onLeftClickBlock(PlayerInteractEvent.LeftClickBlock event) {
+            handle(event.getEntity());
+        }
+
+        @SubscribeEvent
+        public static void onLeftClickEntity(AttackEntityEvent event) {
+            handle(event.getEntity());
+        }
+
+        private static void handle(Player player) {
+            ItemStack stack = player.getMainHandItem();
+
+            if (stack.getItem() instanceof ItemSeliasetHorn item) {
+
+                if (player.isShiftKeyDown() && item.canCast(player, stack, "block")) {
+
+                    if (!player.level().isClientSide) {
+                        int duration = (int) (item.getStatValue(player, stack, "block", "wavesCount") * 60);
+                        stack.set(ACTIVE_TICK, duration);
+                        item.setMaxCooldown(player, stack, "block");
+                    }
+
+                }
+            }
+        }
+    }
+
     @OnlyIn(Dist.CLIENT)
     public static class TootSoundInstance extends AbstractTickableSoundInstance {
-        
+
         public Vec3 originPos;
         public int unconfirmedDuration = 10;
         private float fadeDirection;
         private float fade;
-        
-        
+
+
         public TootSoundInstance(SoundEvent p_119658_) {
             super(p_119658_, SoundSource.PLAYERS, SoundInstance.createUnseededRandom());
             this.looping = false;
@@ -506,7 +555,7 @@ public class ItemSeliasetHorn extends RelicItem implements IExtRelicItem, IColor
             this.fade = 1;
             this.fadeDirection = 0;
         }
-        
+
         public TootSoundInstance(SoundEvent sound, Vec3 pos) {
             super(sound, SoundSource.PLAYERS, SoundInstance.createUnseededRandom());
             this.looping = false;
@@ -517,13 +566,13 @@ public class ItemSeliasetHorn extends RelicItem implements IExtRelicItem, IColor
             this.fade = 1;
             this.fadeDirection = 0;
         }
-        
+
         @Override
         public boolean isStopped() {
             return super.isStopped() && this.fade <= 0;
         }
-        
-        
+
+
         public void tick() {
             if (this.fade <= 0) {
                 this.stop();
@@ -534,23 +583,23 @@ public class ItemSeliasetHorn extends RelicItem implements IExtRelicItem, IColor
             this.volume = (float) Mth.clamp(player == null ? 0 : 25f / player.distanceToSqr(originPos), 0.0F, 1.0F) * fade;
             this.unconfirmedDuration = Math.max(0, this.unconfirmedDuration - 1);
         }
-        
+
         public void fadeOut() {
             this.fade = Math.min(this.fade, 1);
             this.fadeDirection = -0.1f;
-            
+
         }
-        
+
         public void fadeIn() {
             this.fade = Math.max(0, this.fade);
             this.fadeDirection = 0.2f;
         }
-        
+
         public void setFade(float fade) {
             this.fade = fade;
             this.volume = fade;
         }
-        
+
     }
-    
+
 }

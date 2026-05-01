@@ -1,6 +1,8 @@
 package com.qurenie.relics_thirteenflames.content.entities;
 
+import com.qurenie.relics_thirteenflames.util.FlamesUtils;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
+import it.hurts.octostudios.octolib.util.OctoColor;
 import it.hurts.sskirillss.relics.utils.MathUtils;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import net.minecraft.nbt.CompoundTag;
@@ -96,16 +98,16 @@ public class KnefDischarge extends ThrowableProjectile
     }
 
 //    Color[] lightningColors = {
-//            new Color(175, 117, 245),
-//            new Color(10, 46, 203),
-//            new Color(115, 110, 255),
-//            new Color(245, 152, 255)
+//            FlamesUtils.fromRGBI((175, 117, 245),
+//            FlamesUtils.fromRGBI((10, 46, 203),
+//            FlamesUtils.fromRGBI((115, 110, 255),
+//            FlamesUtils.fromRGBI((245, 152, 255)
 //    };
-    Color[] lightningColors = {
-            new Color(145, 255, 213),
-            new Color(117, 223, 255),
-            new Color(96, 255, 194),
-            new Color(86, 185, 255)
+    OctoColor[] lightningColors = {
+            FlamesUtils.fromRGBI(145, 255, 213),
+            FlamesUtils.fromRGBI(117, 223, 255),
+            FlamesUtils.fromRGBI(96, 255, 194),
+            FlamesUtils.fromRGBI(86, 185, 255)
     };
 
     private void spark(int count, double speed, float diam) {
@@ -171,7 +173,7 @@ public class KnefDischarge extends ThrowableProjectile
         super.onRemovedFromLevel();
     }
 
-    public void drawJaggedLightning(Level level, Vec3 start, Vec3 end, int sliceIterations, double maxJagMultiplier, float d, Color color, boolean doStartBurst){
+    public void drawJaggedLightning(Level level, Vec3 start, Vec3 end, int sliceIterations, double maxJagMultiplier, float d, OctoColor color, boolean doStartBurst){
 
         if(doStartBurst) {
             ParticleHelper.spawnParticleAABB(this.level(), ParticleHelper.constructSimpleSpark(lightningColors[0], 0.6f, 15, 0.68f),

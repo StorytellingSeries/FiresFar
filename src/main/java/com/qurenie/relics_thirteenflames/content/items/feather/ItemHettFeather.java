@@ -10,6 +10,8 @@ import com.qurenie.relics_thirteenflames.content.entities.RespawnBookEntity;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
 import com.qurenie.relics_thirteenflames.style.ColorScheme;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
+import it.hurts.sskirillss.relics.api.relics.abilities.ExperienceSourcesTemplate;
+import it.hurts.sskirillss.relics.items.misc.CreativeContentConstructor;
 import it.hurts.sskirillss.relics.items.relics.base.RelicItem;
 import it.hurts.sskirillss.relics.api.relics.RelicTemplate;
 import it.hurts.sskirillss.relics.api.relics.abilities.AbilitiesTemplate;
@@ -19,6 +21,7 @@ import it.hurts.sskirillss.relics.init.RelicsScalingModels;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.LevelingTemplate;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootTemplate;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootEntry;
+import it.hurts.sskirillss.relics.items.relics.base.data.research.ResearchTemplate;
 import it.hurts.sskirillss.relics.utils.MathUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.particles.ParticleTypes;
@@ -53,6 +56,7 @@ import java.awt.*;
 import java.util.List;
 
 import static com.qurenie.relics_thirteenflames.init.ComponentRegistry.ENTITY_UUID;
+import static com.qurenie.relics_thirteenflames.style.ColorScheme.HETT_COLOR;
 import static net.neoforged.neoforge.common.NeoForge.EVENT_BUS;
 
 public class ItemHettFeather extends RelicItem implements IExtRelicItem, IRegisterListener, IActivityContainer {
@@ -70,6 +74,10 @@ public class ItemHettFeather extends RelicItem implements IExtRelicItem, IRegist
     }
 
     @Override
+    public void gatherCreativeTabContent(CreativeContentConstructor constructor) {
+    }
+
+    @Override
     public RelicTemplate constructDefaultRelicTemplate() {
         return RelicTemplate.builder()
                 .abilities(AbilitiesTemplate.builder()
@@ -82,10 +90,16 @@ public class ItemHettFeather extends RelicItem implements IExtRelicItem, IRegist
                                         .formatValue(d -> MathUtils.round(d / 100, 2))
                                         .build()
                                 )
+                                .experienceSources(ExperienceSourcesTemplate.builder()
+                                        .source("source_1")
+                                        .build())
                                 .build()
                         )
                         .ability(AbilityTemplate.builder("book_slap")
                                 .initialMaxLevel(3)
+                                .experienceSources(ExperienceSourcesTemplate.builder()
+                                        .source("source_2")
+                                        .build())
                                 .stat(AbilityStatTemplate.builder("level")
                                         .initialValue(1, 1.75)
                                         .thresholdValue(0, 3)
@@ -101,16 +115,24 @@ public class ItemHettFeather extends RelicItem implements IExtRelicItem, IRegist
                                         .build()
                                 )
                                 .stat(AbilityStatTemplate.builder("recharge")
-                                        .initialValue(30, 30)
-                                        .thresholdValue(30, 30)
+                                        .initialValue(600, 600)
+                                        .thresholdValue(600, 600)
                                         .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 0)
+                                        .formatValue(d -> MathUtils.round(d / 20, 1))
                                         .build()
                                 )
+                                .research(ResearchTemplate.builder()
+                                        .star(0, 11, 14).star(1, 10, 21).star(2, 16, 14).star(3, 5, 14).star(4, 5, 20).star(5, 16, 20).star(6, 10, 5).star(7, 3, 6).star(8, 17, 6).star(9, 14, 17).star(10, 7, 17)
+                                        .link(1, 4).link(1, 0).link(3, 0).link(0, 2).link(1, 5).link(0, 6).link(3, 7).link(2, 8).link(2, 9).link(4, 10)
+                                        .build())
                                 .build()
                         )
                         .ability(AbilityTemplate.builder("savepoint")
                                 .requiredLevel(8)
                                 .initialMaxLevel(3)
+                                .experienceSources(ExperienceSourcesTemplate.builder()
+                                        .source("source_3")
+                                        .build())
                                 .stat(AbilityStatTemplate.builder("radius")
                                         .initialValue(12, 20)
                                         .thresholdValue(15, 60)
@@ -143,12 +165,6 @@ public class ItemHettFeather extends RelicItem implements IExtRelicItem, IRegist
                         .build())
                 .loot(LootTemplate.builder().entry(STRONGHOLD).build())
                 .build();
-    }
-
-    @Override
-    public void appendHoverText(@NotNull ItemStack stack, @NotNull TooltipContext context, List<net.minecraft.network.chat.Component> tooltip, TooltipFlag isAdvanced) {
-        tooltip.add(Component.translatable("tooltip.relics_thirteenflames.hett_feather.lore").withStyle(ChatFormatting.GOLD).withStyle(ChatFormatting.ITALIC));
-        super.appendHoverText(stack, context, tooltip, isAdvanced);
     }
 
     @Override
@@ -229,7 +245,7 @@ public class ItemHettFeather extends RelicItem implements IExtRelicItem, IRegist
                 if (living instanceof RespawnBookEntity respawnBook) {
                     ParticleHelper.spawnParticleEntity(ParticleTypes.CAMPFIRE_COSY_SMOKE, respawnBook, 20, 0.05);
 //                ParticleHelper.spawnParticleEntity(ParticleHelper.constructSimpleSpark(new Color(239, 215, 182), 0.2f, 60, 0.97f), e, 20, 0.05);
-                    ParticleHelper.spawnParticleEntity(ParticleHelper.constructSmoke(new Color(239, 215, 182), (respawnBook.getBbHeight() + respawnBook.getBbWidth()) / 2, 60, 0).withLightning(false), respawnBook, 20, 0.03);
+                    ParticleHelper.spawnParticleEntity(ParticleHelper.constructSmoke(HETT_COLOR, (respawnBook.getBbHeight() + respawnBook.getBbWidth()) / 2, 60, 0).withLightning(false), respawnBook, 20, 0.03);
                     ItemEntity item = new ItemEntity(respawnBook.level(), respawnBook.getX(), respawnBook.getY(), respawnBook.getZ(), new ItemStack(Items.BOOK));
                     respawnBook.level().addFreshEntity(item);
                     respawnBook.discard();

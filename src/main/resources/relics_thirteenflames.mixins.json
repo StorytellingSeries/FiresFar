@@ -29,6 +29,7 @@
     "THISISSOBADMIXIN"
   ],
   "client": [
+    "DescriptionMixin",
     "MenuScreenMixin",
     "client.BakedOverrideAccessor",
     "client.GameRendererMixin",

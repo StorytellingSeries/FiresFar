@@ -29,7 +29,7 @@ public class ComponentRegistry {
     public static final Registrar<DataComponentType<Integer>> NETHER_TICKER = Registrar.dataComponentType(DataComponentType.<Integer>builder()
             .persistent(Codec.INT)
             .networkSynchronized(ByteBufCodecs.INT).cacheEncoding());
-    
+
     @RegistryName("entity_uuid")
     public static final Registrar<DataComponentType<UUID>> ENTITY_UUID = Registrar.dataComponentType(DataComponentType.<UUID>builder()
             .persistent(UUIDUtil.CODEC)
@@ -85,13 +85,8 @@ public class ComponentRegistry {
             .persistent(Codec.INT)
             .networkSynchronized(ByteBufCodecs.INT).cacheEncoding());
     
-    @RegistryName("skint_genesis_count")
-    public static final Registrar<DataComponentType<Integer>> SKINT_GENESIS_COUNT = Registrar.dataComponentType(DataComponentType.<Integer>builder()
-            .persistent(Codec.INT)
-            .networkSynchronized(ByteBufCodecs.INT).cacheEncoding());
-    
     @RegistryName("bines")
-    public static final Registrar<DataComponentType<Integer>> BONES = Registrar.dataComponentType(DataComponentType.<Integer>builder()
+    public static final Registrar<DataComponentType<Integer>> SOULS = Registrar.dataComponentType(DataComponentType.<Integer>builder()
             .persistent(Codec.INT)
             .networkSynchronized(ByteBufCodecs.INT).cacheEncoding());
     

@@ -10,13 +10,13 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
 
-import static com.qurenie.relics_thirteenflames.content.items.ItemJodahMask.GOLD_COLOR;
+import static com.qurenie.relics_thirteenflames.style.ColorScheme.GOLD_COLOR;
 
 @EventBusSubscriber
 public class SkintEffect extends MobEffect {
     
     public SkintEffect() {
-        super(MobEffectCategory.BENEFICIAL, GOLD_COLOR.getRGB());
+        super(MobEffectCategory.BENEFICIAL, GOLD_COLOR.getARGB());
     }
     
     @Override
@@ -42,6 +42,7 @@ public class SkintEffect extends MobEffect {
         
         int scints = expired.getEntity().getData(AttachmentsRegistry.SKINT_DATA);
         FlamesUtils.addSkint(expired.getEntity(), -1, scints);
+        expired.setCanceled(true);
     }
     
 }

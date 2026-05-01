@@ -18,13 +18,22 @@ public class BarSetting implements IBarSetting {
     @Builder.Default
     BiFunction<ItemStack, Player, Boolean> visibility = (i, player) -> true;
     @Builder.Default
-    @Nullable OctoColor color = null;
+    @Nullable
+    OctoColor color = null;
+    @Builder.Default
+    boolean inverse = false;
 
-    BarSetting(BiFunction<ItemStack, Player, Double> maxValue, BiFunction<ItemStack, Player, Double> value, BiFunction<ItemStack, Player, Boolean> visibility, @Nullable OctoColor color) {
+    BarSetting(BiFunction<ItemStack, Player, Double> maxValue, BiFunction<ItemStack, Player, Double> value, BiFunction<ItemStack, Player, Boolean> visibility, @Nullable OctoColor color, boolean inverse) {
         this.maxValue = maxValue;
         this.value = value;
         this.visibility = visibility;
         this.color = color;
+        this.inverse = inverse;
+    }
+
+    @Override
+    public boolean inverse() {
+        return inverse;
     }
 
     @Override

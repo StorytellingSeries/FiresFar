@@ -2,6 +2,8 @@ package com.qurenie.relics_thirteenflames.content.items;
 
 import com.qurenie.api.IExtRelicItem;
 import com.qurenie.relics_thirteenflames.content.entities.EntitySeliasetSun;
+import it.hurts.sskirillss.relics.api.relics.abilities.ExperienceSourcesTemplate;
+import it.hurts.sskirillss.relics.items.misc.CreativeContentConstructor;
 import it.hurts.sskirillss.relics.items.relics.base.RelicItem;
 import it.hurts.sskirillss.relics.api.relics.RelicTemplate;
 import it.hurts.sskirillss.relics.api.relics.abilities.AbilitiesTemplate;
@@ -11,6 +13,7 @@ import it.hurts.sskirillss.relics.init.RelicsScalingModels;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.LevelingTemplate;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootTemplate;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.misc.LootEntries;
+import it.hurts.sskirillss.relics.items.relics.base.data.research.ResearchTemplate;
 import it.hurts.sskirillss.relics.utils.MathUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -63,9 +66,7 @@ public class ItemSeliasetSun extends RelicItem implements IExtRelicItem, IColore
 	}
 
 	@Override
-	public void appendHoverText(@NotNull ItemStack stack, @NotNull TooltipContext context, List<Component> tooltip, TooltipFlag isAdvanced) {
-		tooltip.add(Component.translatable("tooltip.relics_thirteenflames.seliaset_horn.lore").withStyle(ChatFormatting.GOLD).withStyle(ChatFormatting.ITALIC));
-		super.appendHoverText(stack, context, tooltip, isAdvanced);
+	public void gatherCreativeTabContent(CreativeContentConstructor constructor) {
 	}
 
 	@Override
@@ -74,6 +75,9 @@ public class ItemSeliasetSun extends RelicItem implements IExtRelicItem, IColore
 				.abilities(AbilitiesTemplate.builder()
 						.ability(AbilityTemplate.builder("blessed_light")
 								.initialMaxLevel(5)
+								.experienceSources(ExperienceSourcesTemplate.builder()
+										.source("source_1")
+										.build())
 								.stat(AbilityStatTemplate.builder("speed")
 										.initialValue(240, 200)
 										.upgradeModifier(RelicsScalingModels.ADDITIVE.get(), -35)
@@ -95,6 +99,13 @@ public class ItemSeliasetSun extends RelicItem implements IExtRelicItem, IColore
 								.build())
 						.ability(AbilityTemplate.builder("heat")
 								.initialMaxLevel(5)
+								.research(ResearchTemplate.builder()
+										.star(0, 6, 26).star(1, 9, 23).star(2, 12, 23).star(3, 15, 26).star(4, 4, 13).star(5, 18, 11).star(6, 8, 9).star(7, 13, 9).star(8, 18, 23).star(9, 3, 23)
+										.link(6, 1).link(1, 2).link(2, 7).link(2, 5).link(2, 3).link(1, 0).link(1, 4).link(3, 8).link(0, 9)
+										.build())
+								.experienceSources(ExperienceSourcesTemplate.builder()
+										.source("source_1")
+										.build())
 								.stat(AbilityStatTemplate.builder("heat_time")
 										.initialValue(15, 12)
 										.upgradeModifier(RelicsScalingModels.ADDITIVE.get(), -2)

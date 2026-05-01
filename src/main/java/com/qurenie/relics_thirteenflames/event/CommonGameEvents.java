@@ -1,8 +1,6 @@
 package com.qurenie.relics_thirteenflames.event;
 
 import com.qurenie.api.IActivityContainer;
-import com.qurenie.relics_thirteenflames.activity.call.CallInput;
-import com.qurenie.relics_thirteenflames.activity.call.settings.InventoryType;
 import com.qurenie.relics_thirteenflames.init.AttachmentsRegistry;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
 import com.qurenie.relics_thirteenflames.net.EntityPacket;
@@ -18,6 +16,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
@@ -27,19 +26,16 @@ import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import org.zeith.hammerlib.net.Network;
 import org.zeith.hammerlib.net.PacketContext;
 import top.theillusivec4.curios.api.CuriosApi;
-import top.theillusivec4.curios.api.type.inventory.IDynamicStackHandler;
 
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.List;
+
+import static com.qurenie.relics_thirteenflames.style.ColorScheme.GOLD_COLOR;
+import static com.qurenie.relics_thirteenflames.style.ColorScheme.GRAY_COLOR;
 
 
 @EventBusSubscriber
 public class CommonGameEvents {
-    
-    private static final Color GOLD_COLOR = new Color(200, 150, 20);
-    private static final Color PURPLE_COLOR = new Color(100, 20, 150);
-    public static final Color GRAY_COLOR = new Color(50, 50, 50);
     
     @SubscribeEvent
     public static void joinEvent(EntityJoinLevelEvent event) {
@@ -60,30 +56,6 @@ public class CommonGameEvents {
             });
         }
     }
-
-    @SubscribeEvent
-    public static void tickActivities(EntityTickEvent.Post event) {
-        if (!(event.getEntity() instanceof Player player) || player.level().isClientSide)
-            return;
-
-        var items = new ArrayList<ItemStack>();
-        items.addAll(player.getInventory().items);
-        items.addAll(player.getInventory().armor);
-        items.addAll(player.getInventory().offhand);
-        for (ItemStack stack : items) {
-            if (!stack.isEmpty() && stack.getItem() instanceof IActivityContainer container)
-                container.tick(stack, player);
-        }
-
-        CuriosApi.getCuriosInventory(player).ifPresent((handler) -> handler.getCurios().values().forEach(stacks -> {
-            var dStacks = stacks.getStacks();
-            for (int i = 0; i < dStacks.getSlots(); i++) {
-                ItemStack stack = dStacks.getStackInSlot(i);
-                if (!stack.isEmpty() && stack.getItem() instanceof IActivityContainer container)
-                    container.tick(stack, player);
-            }
-        }));
-    }
     
     @SubscribeEvent
     public static void tickAttachments(EntityTickEvent.Post event) {
@@ -92,6 +64,18 @@ public class CommonGameEvents {
             if (e instanceof LivingEntity p)
                 ItemsRegistry.JODAH_MASK.onPlaneshiftEnd(p);
         });
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void jodahShield(LivingDamageEvent.Pre event) {
+        LivingEntity l = event.getEntity();
+        float jodahShield = l.getData(AttachmentsRegistry.JODAH_SHEILD);
+
+        float shieldDamage = Math.min(event.getNewDamage(), jodahShield);
+        event.setNewDamage(event.getNewDamage() - shieldDamage);
+        if (event.getEntity() instanceof LivingEntity living) {
+            FlamesUtils.gainJodahShield(living, -shieldDamage);
+        }
     }
     
     @SubscribeEvent

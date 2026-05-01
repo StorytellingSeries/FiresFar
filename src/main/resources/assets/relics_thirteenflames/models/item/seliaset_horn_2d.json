@@ -2,5 +2,13 @@
   "parent": "item/generated",
   "textures": {
     "layer0": "relics_thirteenflames:item/seliaset_horn_2d"
-  }
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "relics:flawless": 1
+      },
+      "model": "relics_thirteenflames:item/seliaset_horn_2d_flawless"
+    }
+  ]
 }

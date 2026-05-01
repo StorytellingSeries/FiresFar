@@ -25,6 +25,9 @@ import java.awt.*;
 import java.util.List;
 import java.util.UUID;
 
+import static com.qurenie.relics_thirteenflames.style.ColorScheme.BURN_COLOR;
+import static com.qurenie.relics_thirteenflames.style.ColorScheme.CYAN_COLOR;
+
 public class TravellerAfterdashEntity extends Entity {
     
     public static final String OWNER_TAG = "owner";
@@ -35,9 +38,7 @@ public class TravellerAfterdashEntity extends Entity {
     public static final String FIRE_ASPECT_TAG = "fire_aspect";
     public static final String DAMAGE_TAG = "damage_tag";
     public static final String SIZE_DECREASE_TAG = "damage_tag";
-    
-    private static final Color COLOR = new Color(30, 170, 170);
-    private static final Color BURN_COLOR = new Color(230, 90, 20);
+
     private static final EntityDataAccessor<Vector3f> DIRECTION = SynchedEntityData.defineId(TravellerAfterdashEntity.class, EntityDataSerializers.VECTOR3);
     private static final EntityDataAccessor<Float> SIZE = SynchedEntityData.defineId(TravellerAfterdashEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Integer> FIRE_ASPECT = SynchedEntityData.defineId(TravellerAfterdashEntity.class, EntityDataSerializers.INT);
@@ -86,18 +87,18 @@ public class TravellerAfterdashEntity extends Entity {
         
         if (level().isClientSide) {
             if (fireAspect <= 0) {
-                ParticleHelper.spawnParticleTriangle(level(), ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(COLOR, getRandom()), 0.23f, 8, 0.6f),
+                ParticleHelper.spawnParticleTriangle(level(), ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(CYAN_COLOR, getRandom()), 0.23f, 8, 0.6f),
                         end, top, side1, 8, direction.normalize().scale(-0.1));
-                ParticleHelper.spawnParticleTriangle(level(), ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(COLOR, getRandom()), 0.23f, 8, 0.6f),
+                ParticleHelper.spawnParticleTriangle(level(), ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(CYAN_COLOR, getRandom()), 0.23f, 8, 0.6f),
                         end, top, side2, 8, direction.normalize().scale(-0.1));
-                ParticleHelper.spawnParticleTriangle(level(), ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(COLOR, getRandom()), 0.23f, 8, 0.6f),
+                ParticleHelper.spawnParticleTriangle(level(), ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(CYAN_COLOR, getRandom()), 0.23f, 8, 0.6f),
                         end, side1, side2, 8, direction.normalize().scale(-0.1));
             } else {
-                ParticleHelper.spawnParticleTriangle(level(), ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(COLOR, getRandom()), 0.23f, 8, 0.6f),
+                ParticleHelper.spawnParticleTriangle(level(), ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(CYAN_COLOR, getRandom()), 0.23f, 8, 0.6f),
                         end, top, side1, 5, direction.normalize().scale(-0.1));
-                ParticleHelper.spawnParticleTriangle(level(), ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(COLOR, getRandom()), 0.23f, 8, 0.6f),
+                ParticleHelper.spawnParticleTriangle(level(), ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(CYAN_COLOR, getRandom()), 0.23f, 8, 0.6f),
                         end, top, side2, 5, direction.normalize().scale(-0.1));
-                ParticleHelper.spawnParticleTriangle(level(), ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(COLOR, getRandom()), 0.23f, 8, 0.6f),
+                ParticleHelper.spawnParticleTriangle(level(), ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(CYAN_COLOR, getRandom()), 0.23f, 8, 0.6f),
                         end, side1, side2, 5, direction.normalize().scale(-0.1));
                 
                 ParticleHelper.spawnParticleTriangle(level(), ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(BURN_COLOR, getRandom()), 0.23f, 8, 0.6f),

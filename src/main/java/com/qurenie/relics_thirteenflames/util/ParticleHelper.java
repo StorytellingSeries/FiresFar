@@ -6,6 +6,7 @@ import com.qurenie.relics_thirteenflames.init.ParticlesRegistry;
 import com.qurenie.relics_thirteenflames.mixins.client.ParticleAccessor;
 import com.qurenie.relics_thirteenflames.net.PacketEnginedParticle;
 import com.qurenie.relics_thirteenflames.net.PacketSpawnParticle;
+import it.hurts.octostudios.octolib.util.OctoColor;
 import lombok.experimental.UtilityClass;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.Particle;
@@ -30,28 +31,28 @@ public class ParticleHelper {
     
     static Random rng = new Random();
     
-    public static ColoredRelicParticle.Options constructSimpleSpark(Color color, float diameter, int lifetime, float scaleModifier) {
-        return new ColoredRelicParticle.Options(ColoredRelicParticle.Constructor.builder().color(color.getRGB()).diameter(diameter).lifetime(lifetime).scaleModifier(scaleModifier).visibleThroughWalls(false).physical(false).roll(0.5F).build());
+    public static ColoredRelicParticle.Options constructSimpleSpark(OctoColor color, float diameter, int lifetime, float scaleModifier) {
+        return new ColoredRelicParticle.Options(ColoredRelicParticle.Constructor.builder().color(color.getARGB()).diameter(diameter).lifetime(lifetime).scaleModifier(scaleModifier).visibleThroughWalls(false).physical(false).roll(0.5F).build());
     }
     
-    public static ColoredRelicParticle.Options constructHeal(Color color, float diameter, int lifetime, float scaleModifier) {
-        return new ColoredRelicParticle.Options(ParticlesRegistry.COLORED_HEAL, ColoredRelicParticle.Constructor.builder().color(color.getRGB()).diameter(diameter).lifetime(lifetime).scaleModifier(scaleModifier).visibleThroughWalls(false).physical(false).roll(0.05F).build());
+    public static ColoredRelicParticle.Options constructHeal(OctoColor color, float diameter, int lifetime, float scaleModifier) {
+        return new ColoredRelicParticle.Options(ParticlesRegistry.COLORED_HEAL, ColoredRelicParticle.Constructor.builder().color(color.getARGB()).diameter(diameter).lifetime(lifetime).scaleModifier(scaleModifier).visibleThroughWalls(false).physical(false).roll(0.05F).build());
     }
     
-    public static ColoredRelicParticle.Options constructFigure(Color color, float diameter, int lifetime, float scaleModifier) {
-        return new ColoredRelicParticle.Options(ParticlesRegistry.FIGURES, ColoredRelicParticle.Constructor.builder().color(color.getRGB()).diameter(diameter).lifetime(lifetime).scaleModifier(scaleModifier).visibleThroughWalls(false).roll(0.3F).physical(false).build()).withRotType(RotationType.SIDE_RANDOM);
+    public static ColoredRelicParticle.Options constructFigure(OctoColor color, float diameter, int lifetime, float scaleModifier) {
+        return new ColoredRelicParticle.Options(ParticlesRegistry.FIGURES, ColoredRelicParticle.Constructor.builder().color(color.getARGB()).diameter(diameter).lifetime(lifetime).scaleModifier(scaleModifier).visibleThroughWalls(false).roll(0.3F).physical(false).build()).withRotType(RotationType.SIDE_RANDOM);
     }
     
-    public static ColoredRelicParticle.Options constructEye(Color color, float diameter, int lifetime, float scaleModifier) {
-        return new ColoredRelicParticle.Options(ParticlesRegistry.COLORED_EYE, ColoredRelicParticle.Constructor.builder().color(color.getRGB()).diameter(diameter).lifetime(lifetime).scaleModifier(scaleModifier).visibleThroughWalls(false).physical(false).roll(0F).build());
+    public static ColoredRelicParticle.Options constructEye(OctoColor color, float diameter, int lifetime, float scaleModifier) {
+        return new ColoredRelicParticle.Options(ParticlesRegistry.COLORED_EYE, ColoredRelicParticle.Constructor.builder().color(color.getARGB()).diameter(diameter).lifetime(lifetime).scaleModifier(scaleModifier).visibleThroughWalls(false).physical(false).roll(0F).build());
     }
     
-    public static ColoredRelicParticle.Options constructSmoke(Color color, float diameter, int lifetime) {
-        return new ColoredRelicParticle.Options(ParticlesRegistry.COLORED_SMOKE, ColoredRelicParticle.Constructor.builder().color(color.getRGB()).diameter(diameter).lifetime(lifetime).scaleModifier(1).visibleThroughWalls(false).physical(true).roll(0F).build());
+    public static ColoredRelicParticle.Options constructSmoke(OctoColor color, float diameter, int lifetime) {
+        return new ColoredRelicParticle.Options(ParticlesRegistry.COLORED_SMOKE, ColoredRelicParticle.Constructor.builder().color(color.getARGB()).diameter(diameter).lifetime(lifetime).scaleModifier(1).visibleThroughWalls(false).physical(true).roll(0F).build());
     }
     
-    public static ColoredRelicParticle.Options constructSmoke(Color color, float diameter, int lifetime, float roll) {
-        return new ColoredRelicParticle.Options(ParticlesRegistry.COLORED_SMOKE, ColoredRelicParticle.Constructor.builder().color(color.getRGB()).diameter(diameter).lifetime(lifetime).scaleModifier(1).visibleThroughWalls(false).physical(true).roll(roll).build());
+    public static ColoredRelicParticle.Options constructSmoke(OctoColor color, float diameter, int lifetime, float roll) {
+        return new ColoredRelicParticle.Options(ParticlesRegistry.COLORED_SMOKE, ColoredRelicParticle.Constructor.builder().color(color.getARGB()).diameter(diameter).lifetime(lifetime).scaleModifier(1).visibleThroughWalls(false).physical(true).roll(roll).build());
     }
     
     public static void spawnParticleEntity(ParticleOptions particleOptions, Entity entity, int count, double maxSpeed) {
@@ -210,37 +211,37 @@ public class ParticleHelper {
         }
     }
     
-    public static void spawnEnginedParticle(Level level, ParticleOptions options, Vec3 pos, double moveX, double moveY, double moveZ, float scale, int lifetime, Color color, float alpha) {
+    public static void spawnEnginedParticle(Level level, ParticleOptions options, Vec3 pos, double moveX, double moveY, double moveZ, float scale, int lifetime, OctoColor color, float alpha) {
         if (level.isClientSide()) {
             useParticleEngine(level, options, pos, moveX, moveY, moveZ, scale, lifetime, color, alpha);
         } else {
             Network.sendToAll(new PacketEnginedParticle(options, pos.x, pos.y, pos.z,
                     moveX, moveY, moveZ,
                     scale, lifetime,
-                    color.getRed() / 255.0f, color.getGreen() / 255.0f, color.getBlue() / 255.0f,
+                    color.r(), color.g(), color.b() / 255.0f,
                     alpha)
             );
         }
     }
     
     @OnlyIn(Dist.CLIENT)
-    private static void useParticleEngine(Level level, ParticleOptions options, Vec3 pos, double moveX, double moveY, double moveZ, float scale, int lifetime, Color color, float alpha) {
+    private static void useParticleEngine(Level level, ParticleOptions options, Vec3 pos, double moveX, double moveY, double moveZ, float scale, int lifetime, OctoColor color, float alpha) {
         Particle particle = Minecraft.getInstance().particleEngine
                 .createParticle(options,
                         pos.x, pos.y, pos.z, moveX, moveY, moveZ);
         if (particle != null) {
             particle.scale(scale);
             particle.setLifetime(lifetime);
-            particle.setColor(color.getRed() / 255.0f, color.getGreen() / 255.0f, color.getBlue() / 255.0f);
+            particle.setColor(color.r() / 255.0f, color.g() / 255.0f, color.b() / 255.0f);
             ((ParticleAccessor) particle).setAlpha(alpha);
         }
     }
     
-    public static void spawnEnginedParticle(Level level, ParticleOptions options, double x, double y, double z, double moveX, double moveY, double moveZ, float scale, int lifetime, Color color, float alpha) {
+    public static void spawnEnginedParticle(Level level, ParticleOptions options, double x, double y, double z, double moveX, double moveY, double moveZ, float scale, int lifetime, OctoColor color, float alpha) {
         spawnEnginedParticle(level, options, new Vec3(x, y, z), moveX, moveY, moveZ, scale, lifetime, color, alpha);
     }
     
-    public static void spawnEnginedParticles(Level level, ParticleOptions options, double x, double y, double z, int count, double dx, double dy, double dz, double maxSpeed, float scale, int lifetime, Color color, float alpha) {
+    public static void spawnEnginedParticles(Level level, ParticleOptions options, double x, double y, double z, int count, double dx, double dy, double dz, double maxSpeed, float scale, int lifetime, OctoColor color, float alpha) {
         for (int i = 0; i < count; ++i) {
             double d1 = level.random.nextGaussian() * dx;
             double d3 = level.random.nextGaussian() * dy;
@@ -252,7 +253,7 @@ public class ParticleHelper {
         }
     }
     
-    public static void spawnEnginedParticles(Level level, ParticleOptions options, Vec3 pos, int count, double dx, double dy, double dz, double maxSpeed, float scale, int lifetime, Color color, float alpha) {
+    public static void spawnEnginedParticles(Level level, ParticleOptions options, Vec3 pos, int count, double dx, double dy, double dz, double maxSpeed, float scale, int lifetime, OctoColor color, float alpha) {
         spawnEnginedParticles(level, options, pos.x, pos.y, pos.z, count, dx, dy, dz, maxSpeed, scale, lifetime, color, alpha);
     }
     

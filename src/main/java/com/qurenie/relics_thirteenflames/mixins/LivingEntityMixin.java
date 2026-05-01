@@ -34,9 +34,6 @@ public class LivingEntityMixin {
     @Shadow(remap = false)
     private long lastDamageStamp;
     
-    @Shadow
-    private boolean effectsDirty;
-    
     @Inject(method = "hurt", at = @At(value = "HEAD"), remap = false)
     public void hurt(DamageSource pSource, float pAmount, CallbackInfoReturnable<Boolean> cir) {
         if (Objects.equals(pSource, DamageSourceRegistry.SUCC)) {

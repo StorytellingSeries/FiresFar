@@ -21,13 +21,16 @@ import com.qurenie.relics_thirteenflames.util.MixinHooks;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import it.hurts.sskirillss.relics.api.relics.abilities.AbilitiesTemplate;
 import it.hurts.sskirillss.relics.api.relics.abilities.AbilityTemplate;
+import it.hurts.sskirillss.relics.api.relics.abilities.ExperienceSourcesTemplate;
 import it.hurts.sskirillss.relics.api.relics.abilities.stats.AbilityStatTemplate;
 import it.hurts.sskirillss.relics.api.relics.IRelicItem;
 import it.hurts.sskirillss.relics.api.relics.RelicTemplate;
+import it.hurts.sskirillss.relics.client.style.base.RelicStyle;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.*;
 import it.hurts.sskirillss.relics.init.RelicsScalingModels;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootTemplate;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootEntry;
+import it.hurts.sskirillss.relics.items.relics.base.data.research.ResearchTemplate;
 import it.hurts.sskirillss.relics.utils.MathUtils;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -52,6 +55,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
@@ -59,6 +63,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.SupportType;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.ItemAttributeModifierEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
@@ -75,19 +80,18 @@ import java.util.*;
 import java.util.function.Consumer;
 
 import static com.qurenie.relics_thirteenflames.init.ComponentRegistry.*;
+import static com.qurenie.relics_thirteenflames.style.ColorScheme.BURN_COLOR;
+import static com.qurenie.relics_thirteenflames.style.ColorScheme.CYAN_COLOR;
 import static net.neoforged.neoforge.common.NeoForge.EVENT_BUS;
 
 public class ItemTravellerSword extends SwordItem implements IExtRelicItem, IRelicItem, IRegisterListener, IActivityContainer {
-    
+
     public static final ResourceLocation TRAVELLER_STEP_HEIGHT = ThirteenFlames.rl("traveller_step_height");
     public static final ResourceLocation TRAVELLER_MOVEMENT_SPEED = ThirteenFlames.rl("traveller_movement_speed");
     private static final float MAX_CHARGE = 5f;
     private static final int DASH_TICKS = 3;
     
     public static final LootEntry RUINED_PORTAL = LootEntry.builder().dimension(".*").biome(".*").table("minecraft:chests/ruined_portal").weight(250).build();
-    
-    private static final Color COLOR = new Color(30, 170, 170);
-    private static final Color BURN_COLOR = new Color(230, 90, 20);
     
     public ItemTravellerSword(Tier tier, Properties properties) {
         super(tier, properties);
@@ -118,7 +122,7 @@ public class ItemTravellerSword extends SwordItem implements IExtRelicItem, IRel
             return true;
         
         AABB playerBox = player.getBoundingBox();
-        AABB movedBox = playerBox.move(targetPos.x - player.getX(), targetPos.y - player.getY(), targetPos.z - player.getZ()).deflate(0.3);
+        AABB movedBox = playerBox.move(targetPos.x - player.getX(), targetPos.y - player.getY(), targetPos.z - player.getZ()).deflate(0.2);
         return level.noCollision(movedBox);
     }
     
@@ -130,28 +134,22 @@ public class ItemTravellerSword extends SwordItem implements IExtRelicItem, IRel
         
         Set<Vec3> rawPoints = new TreeSet<>(Comparator.comparing(start::distanceToSqr));
         ArrayList<Vec3> collected = new ArrayList<>();
-        
+
         for (Axis axis : List.of(Axis.X, Axis.Z)) {
             double startCoord = axis == Axis.X ? start.x : start.z;
             double endCoord = axis == Axis.X ? end.x : end.z;
-            
+
             int min = (int) Math.floor(Math.min(startCoord, endCoord));
             int max = (int) Math.ceil(Math.max(startCoord, endCoord));
-            
+
+            // --- 1. Границы блоков (как было) ---
             for (double coord = min; coord <= max; coord += 1) {
-                double t;
-                if (axis == Axis.X) {
-                    if (direction.x == 0) continue;
-                    t = (coord - start.x) / direction.x;
-                } else {
-                    if (direction.z == 0) continue;
-                    t = (coord - start.z) / direction.z;
-                }
-                
-                if (t < 0 || t > 1) continue;
-                
-                Vec3 rawPoint = start.add(norm.scale(length * t));
-                rawPoints.add(rawPoint);
+                addIntersectionPoint(start, direction, norm, length, axis, coord, rawPoints);
+            }
+
+            // --- 2. Середины блоков (новое) ---
+            for (double coord = min + 0.5; coord <= max + 0.5; coord += 1) {
+                addIntersectionPoint(start, direction, norm, length, axis, coord, rawPoints);
             }
         }
         
@@ -161,7 +159,7 @@ public class ItemTravellerSword extends SwordItem implements IExtRelicItem, IRel
         for (Vec3 rawPoint : rawPoints) {
             if (!isWalkable(level, player, rawPoint)) break;
             
-            Vec3 projected = projectToSurface(level, rawPoint.x, rawPoint.y, rawPoint.z, inAir ? 1 : 3);
+            Vec3 projected = projectToSurface(level, rawPoint.x, rawPoint.y, rawPoint.z, inAir ? 2 : 3);
             
             if (projected != null)
                 collected.add(projected);
@@ -173,6 +171,30 @@ public class ItemTravellerSword extends SwordItem implements IExtRelicItem, IRel
             return null;
         
         return new TravellerDashPointer(collected.getLast(), collected);
+    }
+
+    private static void addIntersectionPoint(Vec3 start,
+                                             Vec3 direction,
+                                             Vec3 norm,
+                                             double length,
+                                             Axis axis,
+                                             double coord,
+                                             Set<Vec3> rawPoints) {
+
+        double t;
+
+        if (axis == Axis.X) {
+            if (direction.x == 0) return;
+            t = (coord - start.x) / direction.x;
+        } else {
+            if (direction.z == 0) return;
+            t = (coord - start.z) / direction.z;
+        }
+
+        if (t < 0 || t > 1) return;
+
+        Vec3 rawPoint = start.add(norm.scale(length * t));
+        rawPoints.add(rawPoint);
     }
     
     @Override
@@ -207,6 +229,12 @@ public class ItemTravellerSword extends SwordItem implements IExtRelicItem, IRel
                 .abilities(AbilitiesTemplate.builder()
                         .ability(AbilityTemplate.builder("travelers_stride")
                                 .initialMaxLevel(4)
+                                .experienceSources(ExperienceSourcesTemplate.builder()
+                                        .source("source_2")
+                                        .build())
+                                .experienceSources(ExperienceSourcesTemplate.builder()
+                                        .source("source_4")
+                                        .build())
                                 .stat(AbilityStatTemplate.builder("charge")
                                         .initialValue(1, 2)
                                         .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 0.75)
@@ -232,6 +260,12 @@ public class ItemTravellerSword extends SwordItem implements IExtRelicItem, IRel
                         )
                         .ability(AbilityTemplate.builder("dash")
                                 .initialMaxLevel(5)
+                                .experienceSources(ExperienceSourcesTemplate.builder()
+                                        .source("source_1")
+                                        .build())
+                                .experienceSources(ExperienceSourcesTemplate.builder()
+                                        .source("source_3")
+                                        .build())
                                 .stat(AbilityStatTemplate.builder("range")
                                         .initialValue(4, 7)
                                         .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 1)
@@ -253,6 +287,10 @@ public class ItemTravellerSword extends SwordItem implements IExtRelicItem, IRel
                                         .formatValue(d -> MathUtils.round(d, 1))
                                         .build()
                                 )
+                                .research(ResearchTemplate.builder()
+                                        .star(0, 11, 23).star(1, 4, 20).star(2, 18, 21).star(3, 11, 9).star(4, 7, 16).star(5, 18, 13)
+                                        .link(1, 0).link(0, 4).link(0, 3).link(0, 2).link(0, 5)
+                                        .build())
                                 .build()
                         )
                         .ability(AbilityTemplate.builder("swordcut")
@@ -267,9 +305,9 @@ public class ItemTravellerSword extends SwordItem implements IExtRelicItem, IRel
                                         .build()
                                 )
                                 .stat(AbilityStatTemplate.builder("recharge")
-                                        .initialValue(55, 45)
-                                        .thresholdValue(35, 55)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), -5)
+                                        .initialValue(220, 180)
+                                        .thresholdValue(140, 220)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), -20)
                                         .formatValue(d -> MathUtils.round(d, 1))
                                         .build()
                                 )
@@ -295,12 +333,6 @@ public class ItemTravellerSword extends SwordItem implements IExtRelicItem, IRel
     }
     
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, @NotNull TooltipContext context, List<net.minecraft.network.chat.Component> tooltip, TooltipFlag isAdvanced) {
-        tooltip.add(Component.translatable("tooltip.relics_thirteenflames.traveller_sword.lore").withStyle(ChatFormatting.GOLD).withStyle(ChatFormatting.ITALIC));
-        super.appendHoverText(stack, context, tooltip, isAdvanced);
-    }
-    
-    @Override
     public boolean shouldCauseReequipAnimation(@NotNull ItemStack oldStack, @NotNull ItemStack newStack, boolean slotChanged) {
         return slotChanged;
     }
@@ -314,7 +346,9 @@ public class ItemTravellerSword extends SwordItem implements IExtRelicItem, IRel
 
             double range = ItemsRegistry.TRAVELLER_SWORD.getStatValue(player, stack, "dash", "range");
             Vec3 lookAngle = player.getLookAngle();
-            double scale = 1 / lookAngle.multiply(1, 0, 1).length();
+            double ly = lookAngle.y;
+            double l1 = Math.sqrt(1 - ly * ly * 0.95);
+            double scale = 1 / l1;
             boolean onSurface = !player.isFallFlying() && !player.isInFluidType() && !player.level().getBlockState(player.blockPosition().below()).isAir();
             TravellerDashPointer pointer = createPointer(player.level(), player, player.getEyePosition(),
                     player.getEyePosition().add(player.getLookAngle().scale(scale * range)), !onSurface);
@@ -337,7 +371,27 @@ public class ItemTravellerSword extends SwordItem implements IExtRelicItem, IRel
 
             }
             stack.set(DIRECTION, pointer.getEnd().subtract(player.position()));
-            player.moveTo(pointer.getEnd());
+
+            var end = pointer.getEnd();
+            AABB movedBox = player.getBoundingBox().move(
+                    end.x - player.getX(),
+                    end.y - player.getY(),
+                    end.z - player.getZ()
+            );
+
+            double maxY = Double.NEGATIVE_INFINITY;
+
+            for (VoxelShape shape : level.getBlockCollisions(player, movedBox)) {
+                for (AABB aabb : shape.toAabbs()) {
+                    if (aabb.maxY > maxY) {
+                        maxY = aabb.maxY;
+                    }
+                }
+            }
+            double finalY = (maxY == Double.NEGATIVE_INFINITY) ? end.y : maxY;
+
+            player.moveTo(end.x, finalY, end.z);
+
             player.swing(stack == player.getItemInHand(InteractionHand.MAIN_HAND) ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND);
 
             if (player.level().isClientSide)
@@ -372,12 +426,12 @@ public class ItemTravellerSword extends SwordItem implements IExtRelicItem, IRel
         int count = (int) (distance / rate);
         
         if (!onFire)
-            ParticleHelper.spawnParticleLine(level, ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(COLOR, level.random), 0.43f, 70, 0.95f),
+            ParticleHelper.spawnParticleLine(level, ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(CYAN_COLOR, level.random), 0.43f, 70, 0.95f),
                     point, lastPoint, count, 0, 0.2);
         else {
             ParticleHelper.spawnParticleLine(level, ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(BURN_COLOR, level.random), 0.43f, 70, 0.95f),
                     point, lastPoint, (count / 2) + 1, 0, 0.2);
-            ParticleHelper.spawnParticleLine(level, ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(COLOR, level.random), 0.43f, 70, 0.95f),
+            ParticleHelper.spawnParticleLine(level, ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(CYAN_COLOR, level.random), 0.43f, 70, 0.95f),
                     point, lastPoint, (count / 2) + 1, 0, 0.2);
         }
         
@@ -385,10 +439,10 @@ public class ItemTravellerSword extends SwordItem implements IExtRelicItem, IRel
         lastPoint = lastPoint.add(0, 0.1, 0);
         if (upParticles) {
             if (!onFire)
-                ParticleHelper.spawnParticleLine(level, ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(COLOR, level.random), 0.43f, 60 + level.random.nextInt() * 30, 0.95f),
+                ParticleHelper.spawnParticleLine(level, ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(CYAN_COLOR, level.random), 0.43f, 60 + level.random.nextInt() * 30, 0.95f),
                         point, lastPoint, count * 2, new Vec3(0, 0.03, 0), 0.1);
             else {
-                ParticleHelper.spawnParticleLine(level, ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(COLOR, level.random), 0.43f, 60 + level.random.nextInt() * 30, 0.95f),
+                ParticleHelper.spawnParticleLine(level, ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(CYAN_COLOR, level.random), 0.43f, 60 + level.random.nextInt() * 30, 0.95f),
                         point, lastPoint, (count / 2) + 1, new Vec3(0, 0.03, 0), 0.1);
                 ParticleHelper.spawnParticleLine(level, ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(BURN_COLOR, level.random), 0.43f, 60 + level.random.nextInt() * 30, 0.95f),
                         point, lastPoint, (count / 2) + 1, new Vec3(0, 0.03, 0), 0.1);
@@ -444,16 +498,16 @@ public class ItemTravellerSword extends SwordItem implements IExtRelicItem, IRel
             double size = 0.53f * (completion + d) + range * 0.04f;
             if (fireAspect == 0) {
                 double spread = 0.1 * (completion + d) + range * 0.01;
-                ParticleHelper.spawnParticleLine(player.level(), ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(COLOR, player.level().random), (float) size, 20, 0.8f),
+                ParticleHelper.spawnParticleLine(player.level(), ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(CYAN_COLOR, player.level().random), (float) size, 20, 0.8f),
                         start, end, (int) (22 + range * 0.35), new Vec3(0, 0, 0), spread);
                 if (dashTick == 1)
-                    ParticleHelper.spawnParticleLine(player.level(), ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(COLOR, player.level().random), (float) (0.33f * (completion + d) + range * 0.007f), 40, 0.86f).withGravity(1.5f),
+                    ParticleHelper.spawnParticleLine(player.level(), ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(CYAN_COLOR, player.level().random), (float) (0.33f * (completion + d) + range * 0.007f), 40, 0.86f).withGravity(1.5f),
                             start, end, (int) (15 + range * 0.25), 0.06, spread);
             } else {
                 double spread = 0.1 * (completion + d) + range * 0.03;
                 ParticleHelper.spawnParticleLine(player.level(), ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(BURN_COLOR, player.level().random), (float) size, 20, 0.8f),
                         start, end, (int) (12 + range * 0.2), new Vec3(0, 0, 0), spread);
-                ParticleHelper.spawnParticleLine(player.level(), ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(COLOR, player.level().random), (float) size, 20, 0.8f),
+                ParticleHelper.spawnParticleLine(player.level(), ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(CYAN_COLOR, player.level().random), (float) size, 20, 0.8f),
                         start, end, (int) (12 + range * 0.2), new Vec3(0, 0, 0), spread);
             }
             
@@ -462,11 +516,11 @@ public class ItemTravellerSword extends SwordItem implements IExtRelicItem, IRel
                 stack.remove(LAST_POS);
                 stack.remove(DIRECTION);
                 
-                ParticleHelper.spawnParticleLine(player.level(), ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(COLOR, player.level().random), (float) (0.53f + range * 0.01f), 20, 0.8f),
+                ParticleHelper.spawnParticleLine(player.level(), ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(CYAN_COLOR, player.level().random), (float) (0.53f + range * 0.01f), 20, 0.8f),
                         end, sweep, (33) + 1, new Vec3(0, 0, 0), 0.15 + range * 0.01f);
-                ParticleHelper.spawnParticleLine(player.level(), ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(COLOR, player.level().random), (float) (0.33f + range * 0.02f), 55, 0.84f).withGravity(1.5f),
+                ParticleHelper.spawnParticleLine(player.level(), ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(CYAN_COLOR, player.level().random), (float) (0.33f + range * 0.02f), 55, 0.84f).withGravity(1.5f),
                         end, sweep, (int) ((15) + 1 + range * 2), 0.06 + range * 0.005f, 0.15 + range * 0.01f);
-                ParticleHelper.spawnParticles(level, ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(COLOR, player.level().random), (float) (0.63f + range * 0.03f), 55, 0.89f).withGravity(1.5f),
+                ParticleHelper.spawnParticles(level, ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(CYAN_COLOR, player.level().random), (float) (0.63f + range * 0.03f), 55, 0.89f).withGravity(1.5f),
                         end, (int) (20 + range * 3), 0.15, 0.15, 0.15, 0.06 + range * 0.005f);
             }
             
@@ -531,7 +585,7 @@ public class ItemTravellerSword extends SwordItem implements IExtRelicItem, IRel
     }
     
     public void onSwordCut(Player player, ItemStack stack) {
-        if (player.level().isClientSide || player.getCooldowns().getCooldownPercent(this, 0f) > 0)
+        if (player.level().isClientSide)
             return;
         
         int fireAspect = stack.getEnchantmentLevel(player.level().holder(Enchantments.FIRE_ASPECT).get());
@@ -539,7 +593,7 @@ public class ItemTravellerSword extends SwordItem implements IExtRelicItem, IRel
                 player, stack, fireAspect);
         cutEnt.setPos(player.position());
         player.level().addFreshEntity(cutEnt);
-        player.getCooldowns().addCooldown(this, 10);
+        setMaxCooldown(player, stack, "swordcut");
     }
 
 
@@ -580,14 +634,17 @@ public class ItemTravellerSword extends SwordItem implements IExtRelicItem, IRel
             click.getEntity().setSprinting(false);
             click.getEntity().startUsingItem(click.getHand());
             click.getEntity().setDeltaMovement(click.getEntity().getDeltaMovement().multiply(0, 1, 0));
-        } else {
-            int activeTick = click.getItemStack().getOrDefault(ComponentRegistry.ACTIVE_TICK, 0);
-            if (activeTick > 0 && !click.getEntity().getCooldowns().isOnCooldown(this))
-                Network.sendToServer(new TravellerCutPacket(click.getItemStack()));
         }
 
-        if (canCast(click.getEntity(), click.getItemStack(), "swordcut") && click.getEntity().isShiftKeyDown())
-            Network.sendToServer(new TravellerCutPacket(click.getItemStack()));
+        if (canCast(click.getEntity(), click.getItemStack(), "swordcut") && click.getEntity().isShiftKeyDown()) {
+            setMaxCooldown(click.getEntity(), click.getItemStack(), "swordcut");
+            Network.sendToServer(new TravellerCutPacket(click.getHand()));
+        }
+    }
+
+    public boolean isSprintSweepReady(ItemStack stack) {
+        float charge = stack.getOrDefault(ComponentRegistry.SPEED, 0f);
+        return charge >= MAX_CHARGE;
     }
     
     @SubscribeEvent
@@ -596,9 +653,8 @@ public class ItemTravellerSword extends SwordItem implements IExtRelicItem, IRel
         
         if (!stack.is(this) || event.getLevel().isClientSide)
             return;
-        
-        float charge = stack.getOrDefault(ComponentRegistry.SPEED, 0f);
-        if (charge >= MAX_CHARGE) {
+
+        if (isSprintSweepReady(stack)) {
             onSprintSweep(event.getEntity(), stack);
             Network.sendTo(event.getEntity(), new IPacket() {
                 @Override
@@ -610,12 +666,8 @@ public class ItemTravellerSword extends SwordItem implements IExtRelicItem, IRel
             });
         }
 
-        int activeTick = event.getItemStack().getOrDefault(ComponentRegistry.ACTIVE_TICK, 0);
-        if (activeTick > 0 && !event.getEntity().getCooldowns().isOnCooldown(this))
-            onSwordCut(event.getEntity(), event.getItemStack());
-
         if (canCast(event.getEntity(), stack, "swordcut") && event.getEntity().isShiftKeyDown()) {
-            stack.set(ACTIVE_TICK, 400);
+            onSwordCut(event.getEntity(), event.getItemStack());
             setMaxCooldown(event.getEntity(), stack, "swordcut");
         }
     }

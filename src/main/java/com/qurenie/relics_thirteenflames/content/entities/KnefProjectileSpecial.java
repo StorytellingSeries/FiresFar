@@ -1,8 +1,10 @@
 package com.qurenie.relics_thirteenflames.content.entities;
 
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
+import com.qurenie.relics_thirteenflames.util.FlamesUtils;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
+import it.hurts.octostudios.octolib.util.OctoColor;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.Entity;
@@ -24,11 +26,11 @@ public class KnefProjectileSpecial extends ThrowableProjectile
 {
     public Vec3 prevPos;
 
-    public Color color;
+    public OctoColor color;
 
     public KnefProjectileSpecial(EntityType<? extends KnefProjectileSpecial> type, Level world) {
         super(type, world);
-        this.color = new Color(100, 255, 178);
+        this.color = FlamesUtils.fromRGBI(100, 255, 178);
     }
     
     @Override
@@ -65,7 +67,7 @@ public class KnefProjectileSpecial extends ThrowableProjectile
             proj.setOwner(owner);
             proj.setPos(center);
             proj.setDeltaMovement(move);
-            proj.color = new Color(100, 255, 178);
+            proj.color = FlamesUtils.fromRGBI(100, 255, 178);
             list.add(proj);
         }
         return list;

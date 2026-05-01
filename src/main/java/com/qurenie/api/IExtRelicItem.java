@@ -21,11 +21,15 @@ public interface IExtRelicItem extends IRelicItem {
     }
 
     default boolean isAbilityUnlocked(@Nullable LivingEntity entity, ItemStack stack, String abilityName) {
-        return getRelicData(entity, stack).getAbilitiesData().getAbilityData(abilityName).getLockData().isUnlocked();
+        return getRelicData(entity, stack).getAbilitiesData().getAbilityData(abilityName).isUnlocked();
     }
 
     default boolean isModEnabled(@Nullable LivingEntity entity, ItemStack stack, String abilityName, String mod) {
         return getRelicData(entity, stack).getAbilitiesData().getAbilityData(abilityName).getMode().equals(mod);
+    }
+
+    default boolean hasRangModifier(@Nullable LivingEntity entity, ItemStack stack, String abilityName, String rangModifier) {
+        return getRelicData(entity, stack).getAbilitiesData().getAbilityData(abilityName).isRankModifierUnlocked(rangModifier);
     }
 
 }

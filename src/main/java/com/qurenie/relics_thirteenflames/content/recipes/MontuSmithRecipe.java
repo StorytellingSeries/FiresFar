@@ -6,7 +6,6 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.qurenie.relics_thirteenflames.init.RecipeTypesRegistry;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
@@ -17,87 +16,53 @@ import java.util.Objects;
 
 import static com.qurenie.relics_thirteenflames.init.RecipeSerializersRegistry.MONTU_SMITH_SERIALIZER;
 
-public final class MontuSmithRecipe implements Recipe<MontuRecipeInput> {
-    
-    private final ItemStack result;
-    private final int experience;
-    private final Ingredient center;
-    private final Ingredient right;
-    private final Ingredient left;
-    private final boolean canSwap;
-    
+public record MontuSmithRecipe(ItemStack result, int experience, Ingredient center, Ingredient right, Ingredient left,
+                               boolean canSwap) implements Recipe<MontuRecipeInput> {
+
     public MontuSmithRecipe(ItemStack result, int experience, Ingredient center, Ingredient right, Ingredient left) {
         this(result, experience, center, right, left, true);
     }
-    
-    public MontuSmithRecipe(ItemStack result, int experience, Ingredient center, Ingredient right, Ingredient left, boolean canSwap) {
-        this.result = result;
-        this.experience = experience;
-        this.center = center;
-        this.right = right;
-        this.left = left;
-        this.canSwap = canSwap;
-    }
-    
+
     public MontuSmithRecipe swap() {
         return new MontuSmithRecipe(result, experience, center, left, right, canSwap);
     }
-    
+
+    @Override
     public ItemStack result() {
         return result.copy();
     }
-    
+
     @Override
     public boolean matches(@NotNull MontuRecipeInput input, @NotNull Level level) {
         return center.test(input.center()) && (right.test(input.right()) && left.test(input.left())
                 || canSwap && left.test(input.right()) && right.test(input.left()));
     }
-    
+
     @Override
     public @NotNull ItemStack assemble(@NotNull MontuRecipeInput input, HolderLookup.@NotNull Provider registries) {
         return result.copy();
     }
-    
+
     @Override
     public boolean canCraftInDimensions(int width, int height) {
         return true;
     }
-    
+
     @Override
     public @NotNull ItemStack getResultItem(HolderLookup.@NotNull Provider registries) {
         return result;
     }
-    
+
     @Override
     public @NotNull RecipeSerializer<?> getSerializer() {
         return MONTU_SMITH_SERIALIZER.get();
     }
-    
+
     @Override
     public @NotNull RecipeType<?> getType() {
         return RecipeTypesRegistry.MONTU_SMITH_TYPE.get();
     }
-    
-    public int experience() {
-        return experience;
-    }
-    
-    public Ingredient center() {
-        return center;
-    }
-    
-    public Ingredient right() {
-        return right;
-    }
-    
-    public Ingredient left() {
-        return left;
-    }
-    
-    public boolean canSwap() {
-        return canSwap;
-    }
-    
+
     @Override
     public boolean equals(Object obj) {
         if (obj == this) return true;
@@ -109,14 +74,14 @@ public final class MontuSmithRecipe implements Recipe<MontuRecipeInput> {
                 Objects.equals(this.right, that.right) &&
                 Objects.equals(this.left, that.left);
     }
-    
+
     @Override
     public int hashCode() {
         return Objects.hash(result, experience, center, right, left);
     }
-    
+
     @Override
-    public String toString() {
+    public @NotNull String toString() {
         return "MontuSmithRecipe[" +
                 "result=" + result + ", " +
                 "experience=" + experience + ", " +
@@ -124,10 +89,10 @@ public final class MontuSmithRecipe implements Recipe<MontuRecipeInput> {
                 "right=" + right + ", " +
                 "left=" + left + ']';
     }
-    
-    
-    public static class MontuSmithSerializer implements RecipeSerializer<MontuSmithRecipe> {
-        
+
+
+    public static class Serializer implements RecipeSerializer<MontuSmithRecipe> {
+
         @Override
         public @NotNull MapCodec<MontuSmithRecipe> codec() {
             return RecordCodecBuilder.mapCodec(inst -> inst.group(
@@ -139,12 +104,12 @@ public final class MontuSmithRecipe implements Recipe<MontuRecipeInput> {
                     Codec.BOOL.optionalFieldOf("canSwap", true).forGetter(MontuSmithRecipe::canSwap)
             ).apply(inst, MontuSmithRecipe::new));
         }
-        
+
         @Override
         public @NotNull StreamCodec<RegistryFriendlyByteBuf, MontuSmithRecipe> streamCodec() {
             return StreamCodec.of(this::toNetwork, this::fromNetwork);
         }
-        
+
         private MontuSmithRecipe fromNetwork(RegistryFriendlyByteBuf buffer) {
             ItemStack result = ItemStack.STREAM_CODEC.decode(buffer);
             int experience = buffer.readInt();
@@ -154,7 +119,7 @@ public final class MontuSmithRecipe implements Recipe<MontuRecipeInput> {
             boolean canSwap = buffer.readBoolean();
             return new MontuSmithRecipe(result, experience, center, right, left, canSwap);
         }
-        
+
         private void toNetwork(RegistryFriendlyByteBuf buffer, MontuSmithRecipe recipe) {
             ItemStack.STREAM_CODEC.encode(buffer, recipe.result);
             buffer.writeInt(recipe.experience);
@@ -163,7 +128,7 @@ public final class MontuSmithRecipe implements Recipe<MontuRecipeInput> {
             Ingredient.CONTENTS_STREAM_CODEC.encode(buffer, recipe.left);
             buffer.writeBoolean(recipe.canSwap);
         }
-        
+
     }
-    
+
 }

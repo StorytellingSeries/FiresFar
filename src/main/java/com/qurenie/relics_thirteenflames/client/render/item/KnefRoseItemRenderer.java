@@ -1,11 +1,11 @@
 package com.qurenie.relics_thirteenflames.client.render.item;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Axis;
 import com.qurenie.relics_thirteenflames.content.items.ItemKnefRose;
+import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
+import com.qurenie.relics_thirteenflames.mixins.client.BakedOverrideAccessor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -26,9 +26,14 @@ public class KnefRoseItemRenderer
 		var ir = mc.getItemRenderer();
 		
 		var isterModel = ir.getModel(stack, mc.level, mc.player, 0);
+
 		var overrides = isterModel.getOverrides().getOverrides();
+
+		if (ItemsRegistry.KNEF_ROSE.getRelicData(mc.player, stack).isFlawless()) {
+//			overrides = ((BakedOverrideAccessor) overrides.getFirst()).getModel().getOverrides().getOverrides();
+		}
 		
-		var emission = stack.getItem() instanceof ItemKnefRose r && r.getBones(stack) > 0;
+		var emission = stack.getItem() instanceof ItemKnefRose r && r.getSouls(stack) > 0;
 		
 		pose.pushPose();
 		if (transformType == ItemDisplayContext.GUI || transformType == ItemDisplayContext.GROUND || transformType == ItemDisplayContext.FIXED) {

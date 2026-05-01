@@ -1,0 +1,43 @@
+{
+	"render_type": "cutout",
+	"parent": "relics_thirteenflames:item/builtin/ister",
+	"overrides": [
+		{
+			"predicate": {
+				"alt": 2
+			},
+			"model": "relics_thirteenflames:item/scroll_of_truth_3d_gem"
+		},
+		{
+			"predicate": {
+				"alt": 1
+			},
+			"model": "relics_thirteenflames:item/scroll_of_truth_3d_base_flawless"
+		},
+		{
+			"predicate": {
+				"alt": 0
+			},
+			"model": "relics_thirteenflames:item/scroll_of_truth_3d_emissive_flawless"
+		}
+	],
+	"display": {
+		"thirdperson_righthand": {
+			"translation": [0, 7, 0]
+		},
+		"thirdperson_lefthand": {
+			"translation": [0, 7, 0]
+		},
+		"firstperson_righthand": {
+			"rotation": [0, -32, 5],
+			"translation": [0.5, 8.75, -2.5]
+		},
+		"firstperson_lefthand": {
+			"rotation": [0, -32, 5],
+			"translation": [0.5, 8.75, -2.5]
+		},
+		"head": {
+			"translation": [0, 1.75, -7]
+		}
+	}
+}

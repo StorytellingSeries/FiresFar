@@ -6,7 +6,6 @@ import com.qurenie.relics_thirteenflames.ThirteenFlames;
 import com.qurenie.relics_thirteenflames.content.items.ItemJodahMask;
 import com.qurenie.relics_thirteenflames.content.items.misc.MaskState;
 import com.qurenie.relics_thirteenflames.content.items.models.InterworlderMask;
-import com.qurenie.relics_thirteenflames.content.items.models.MontuGlovesArmorRight;
 import com.qurenie.relics_thirteenflames.init.ComponentRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;

@@ -62,6 +62,17 @@ public class AnimationsRegistry
 	public static final IAnimationSource ADVENTURER_SWORD_BIG_RUN_PIERCE = register("adventurer_sword_big_run_pierce");
 	public static final IAnimationSource ADVENTURER_SWORD_BIG_ATTACK = register("adventurer_sword_big_attack");
 
+	public static final IAnimationSource GHOST_SMALL_ATTACK = register("rose_ghost1_attack");
+	public static final IAnimationSource GHOST_SMALL_DEATH = register("rose_ghost1_death");
+	public static final IAnimationSource GHOST_SMALL_IDLE = register("rose_ghost1_idle");
+	public static final IAnimationSource GHOST_SMALL_WALK = register("rose_ghost1_walk");
+
+	public static final IAnimationSource GHOST_BIG_ATTACK = register("rose_ghost2_attack");
+	public static final IAnimationSource GHOST_BIG_DEATH = register("rose_ghost2_death");
+	public static final IAnimationSource GHOST_BIG_IDLE = register("rose_ghost2_idle");
+	public static final IAnimationSource GHOST_BIG_WALK = register("rose_ghost2_walk");
+
+
 	@SubscribeEvent
 	public static void onSetup(FMLCommonSetupEvent event)
 	{

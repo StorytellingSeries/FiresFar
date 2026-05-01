@@ -2,6 +2,8 @@ package com.qurenie.relics_thirteenflames.content.entities;
 
 import com.qurenie.relics_thirteenflames.content.effects.PoisonEffectInstance;
 import com.qurenie.relics_thirteenflames.init.EffectsRegistry;
+import com.qurenie.relics_thirteenflames.style.ColorScheme;
+import com.qurenie.relics_thirteenflames.util.FlamesUtils;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import it.hurts.sskirillss.relics.api.relics.IRelicItem;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
@@ -67,20 +69,21 @@ public class DeathlyFartCloudEntity extends Projectile {
         AABB box = new AABB(this.getPosition(1), this.getPosition(1)).inflate(radius, radius / 2.5, radius);
         if(this.level() instanceof ServerLevel) {
 
-            ParticleHelper.spawnParticleAABB(this.level(), ParticleHelper.constructSimpleSpark(new Color(37, 13, 35),
-                    radius / 6.2f + 0.15f, 30, 0.84F), box, Math.round(radius * radius / 2) + 1, 0.01 * radius);
+            ParticleHelper.spawnParticleAABB(this.level(), ParticleHelper.constructSimpleSpark(ColorScheme.BLOOD_COLOR,
+                    radius / 6.2f + 0.15f, 30, 0.84F), box.inflate(-0.3), Math.round(radius * radius / 2) + 1, 0.01 * radius);
 
             ParticleHelper.spawnParticleAABB(this.level(),
                     ParticleTypes.SMOKE,
-                    box, Math.round(radius * radius * 2f) + 2, 0);
+                    box.inflate(2), Math.round(radius * radius * 2f) + 2, 0);
 
-            if (this.tickCount % 2 == 0) ParticleHelper.spawnEnginedParticles(this.level(),
-                    ParticleTypes.CLOUD,
-                    box.getCenter(), Math.round(radius * radius * 2f) + 2, box.getXsize(), box.getYsize(), box.getZsize(), 0.001, 0.8f, 20, Color.BLACK, 1);
+            if (this.tickCount % 3 > 0) ParticleHelper.spawnEnginedParticles(this.level(),
+                    ParticleHelper.constructSmoke(FlamesUtils.withAlpha(ColorScheme.GRAY_COLOR, 0.6f), 1.2f, level().random.nextInt(30) + 30).withLightning(false).withGravity(0.2f),
+                    box.getCenter(), Math.round(radius * radius * 1.4f), box.getXsize(), box.getYsize(), box.getZsize(), 0.02, 1.2f, level().random.nextInt(30)+ 20,
+                    ColorScheme.GRAY_COLOR, 0.6f);
 
-
-
-            List<LivingEntity> entities = this.level().getEntitiesOfClass(LivingEntity.class, box, e -> this.getOwner() != null && !e.getUUID().equals(this.getOwner().getUUID()) && !(e instanceof LivingFleshEntity));
+            List<LivingEntity> entities = this.level().getEntitiesOfClass(LivingEntity.class, box.inflate(box.getYsize() * 0.5f), e -> this.getOwner() != null && !e.getUUID().equals(this.getOwner().getUUID())
+                    && !(e instanceof LivingFleshEntity)
+                    && !(e instanceof GhostSmallEntity));
 
             if (dmgCD == 0) {
                 for (LivingEntity e : entities) {

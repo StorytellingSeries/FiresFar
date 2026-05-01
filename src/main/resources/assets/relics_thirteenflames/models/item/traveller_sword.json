@@ -18,12 +18,20 @@
 	"overrides": [
 		{
 			"predicate": {
+				"relics:flawless": 1
+			},
+			"model": "relics_thirteenflames:item/traveller_sword_flawless"
+		},
+		{
+			"predicate": {
+				"relics:flawless": 0,
 				"alt": 1
 			},
 			"model": "relics_thirteenflames:item/traveller_sword_base"
 		},
 		{
 			"predicate": {
+				"relics:flawless": 0,
 				"alt": 0
 			},
 			"model": "relics_thirteenflames:item/traveller_sword_emissive"

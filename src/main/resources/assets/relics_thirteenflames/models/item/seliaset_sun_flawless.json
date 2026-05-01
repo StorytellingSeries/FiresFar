@@ -1,0 +1,30 @@
+{
+	"render_type": "translucent",
+	"parent": "neoforge:item/default",
+	"textures": {
+		"particle": "relics_thirteenflames:item/seliaset_sun/base_flawless.png"
+	},
+	"loader": "neoforge:separate_transforms",
+	"base": {
+		"parent": "relics_thirteenflames:item/seliaset_sun_3d_flawless"
+	},
+	"perspectives": {
+		"ground": {
+			"parent": "relics_thirteenflames:item/seliaset_sun_2d_flawless"
+		},
+		"gui": {
+			"parent": "relics_thirteenflames:item/seliaset_sun_2d_flawless"
+		},
+		"fixed": {
+			"parent": "relics_thirteenflames:item/seliaset_sun_2d_flawless"
+		}
+	},
+	"overrides": [
+		{
+			"predicate": {
+				"alt": 0.5
+			},
+			"model": "relics_thirteenflames:item/seliaset_sun_2d_flawless"
+		}
+	]
+}

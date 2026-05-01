@@ -22,6 +22,13 @@
 	"overrides": [
 		{
 			"predicate": {
+				"relics:flawless": 1
+			},
+			"model": "relics_thirteenflames:item/seliaset_sun_flawless"
+		},
+		{
+			"predicate": {
+				"relics:flawless": 0,
 				"alt": 0.5
 			},
 			"model": "relics_thirteenflames:item/seliaset_sun_2d"

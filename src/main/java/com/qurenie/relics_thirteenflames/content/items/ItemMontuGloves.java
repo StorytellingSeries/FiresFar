@@ -3,6 +3,8 @@ package com.qurenie.relics_thirteenflames.content.items;
 import com.qurenie.api.IActivityContainer;
 import com.qurenie.api.IExtRelicItem;
 import com.qurenie.api.SettingsContainer;
+import com.qurenie.api.event.AnvilEnchantmentMergeEvent;
+import com.qurenie.api.event.AnvilRepairPostCountEvent;
 import com.qurenie.api.event.AnvilUpdatePostEvent;
 import com.qurenie.api.event.ItemHurtEvent;
 import com.qurenie.relics_thirteenflames.ThirteenFlames;
@@ -15,7 +17,11 @@ import com.qurenie.relics_thirteenflames.content.items.base.IRenderableCurioHand
 import com.qurenie.relics_thirteenflames.content.items.models.MontuGlovesArmorLeft;
 import com.qurenie.relics_thirteenflames.content.items.models.MontuGlovesArmorRight;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
+import it.hurts.sskirillss.relics.api.relics.RelicStatisticTemplate;
+import it.hurts.sskirillss.relics.api.relics.abilities.ExperienceSourcesTemplate;
+import it.hurts.sskirillss.relics.items.misc.CreativeContentConstructor;
 import it.hurts.sskirillss.relics.items.relics.base.RelicItem;
+import it.hurts.sskirillss.relics.items.relics.base.WearableRelicItem;
 import it.hurts.sskirillss.relics.items.relics.base.data.RelicAttributeModifier;
 import it.hurts.sskirillss.relics.api.relics.RelicTemplate;
 import it.hurts.sskirillss.relics.items.relics.base.data.RelicSlotModifier;
@@ -26,6 +32,7 @@ import it.hurts.sskirillss.relics.init.RelicsScalingModels;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.LevelingTemplate;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootTemplate;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.misc.LootEntries;
+import it.hurts.sskirillss.relics.items.relics.base.data.research.ResearchTemplate;
 import it.hurts.sskirillss.relics.utils.MathUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -60,18 +67,22 @@ import java.util.stream.IntStream;
 
 import static net.neoforged.neoforge.common.NeoForge.EVENT_BUS;
 
-public class ItemMontuGloves extends RelicItem implements IActivityContainer, IRegisterListener, IRenderableCurioHand, IExtRelicItem {
-    
-    public static final ResourceLocation BLOCK_INTERACTION_RANGE_ID = ThirteenFlames.rl("gloves_block_interaction_range");
-    public static final ResourceLocation ENTITY_INTERACTION_RANGE_ID = ThirteenFlames.rl("gloves_entity_interaction_range");
+public class ItemMontuGloves extends WearableRelicItem implements IActivityContainer, IRegisterListener, IRenderableCurioHand, IExtRelicItem {
+
     private static final Lazy<HumanoidModel<? extends LivingEntity>> RIGHT = Lazy.lazy(() -> new MontuGlovesArmorRight<>(Minecraft.getInstance().getEntityModels().bakeLayer(MontuGlovesArmorRight.LAYER_LOCATION)));
+    private static final Lazy<HumanoidModel<? extends LivingEntity>> RIGHT_FLAWLESS = Lazy.lazy(() -> new MontuGlovesArmorRight.Flawless<>(Minecraft.getInstance().getEntityModels().bakeLayer(MontuGlovesArmorRight.Flawless.LAYER_LOCATION)));
     private static final Lazy<HumanoidModel<? extends LivingEntity>> LEFT = Lazy.lazy(() -> new MontuGlovesArmorLeft<>(Minecraft.getInstance().getEntityModels().bakeLayer(MontuGlovesArmorLeft.LAYER_LOCATION)));
+    private static final Lazy<HumanoidModel<? extends LivingEntity>> LEFT_FLAWLESS = Lazy.lazy(() -> new MontuGlovesArmorLeft.Flawless<>(Minecraft.getInstance().getEntityModels().bakeLayer(MontuGlovesArmorLeft.Flawless.LAYER_LOCATION)));
     private static final ResourceLocation TEXTURE = ThirteenFlames.rl("textures/armor/montu_gloves.png");
-    
+    //TODO:
     public ItemMontuGloves(Properties properties) {
-        super(properties);
+        super();
     }
-    
+
+    @Override
+    public void gatherCreativeTabContent(CreativeContentConstructor constructor) {
+    }
+
     @Override
     public RelicTemplate constructDefaultRelicTemplate() {
         return RelicTemplate.builder()
@@ -80,15 +91,15 @@ public class ItemMontuGloves extends RelicItem implements IActivityContainer, IR
                                 .initialMaxLevel(5)
                                 .stat(AbilityStatTemplate.builder("range")
                                         .initialValue(1, 3)
-                                        .thresholdValue(1, 8)
+                                        .thresholdValue(1, 15)
                                         .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 1)
                                         .formatValue(d -> MathUtils.round(d, 1))
                                         .build()
                                 )
                                 .stat(AbilityStatTemplate.builder("unbreaking")
                                         .initialValue(10, 25)
-                                        .thresholdValue(10, 75)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 10)
+                                        .thresholdValue(10, 90)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 8)
                                         .formatValue(d -> MathUtils.round(d, 0))
                                         .build()
                                 )
@@ -99,6 +110,20 @@ public class ItemMontuGloves extends RelicItem implements IActivityContainer, IR
                                         .formatValue(d -> MathUtils.round(d, 0))
                                         .build()
                                 )
+                                .stat(AbilityStatTemplate.builder("discount")
+                                        .initialValue(1, 15)
+                                        .thresholdValue(1, 70)
+                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), 0.28)
+                                        .formatValue(d -> MathUtils.round(d, 0))
+                                        .build()
+                                )
+                                .rankModifier(1, "discount")
+                                .experienceSources(ExperienceSourcesTemplate.builder()
+                                        .source("source_1")
+                                        .build())
+                                .experienceSources(ExperienceSourcesTemplate.builder()
+                                        .source("source_2")
+                                        .build())
                                 .build()
                         )
                         .ability(AbilityTemplate.builder("crafting")
@@ -109,22 +134,39 @@ public class ItemMontuGloves extends RelicItem implements IActivityContainer, IR
                                         .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 10)
                                         .build()
                                 )
+                                .experienceSources(ExperienceSourcesTemplate.builder()
+                                        .source("source_1")
+                                        .build())
+                                .research(ResearchTemplate.builder()
+                                        .star(0, 6, 12).star(1, 6, 7).star(2, 15, 12).star(3, 6, 18).star(4, 8, 16).star(5, 12, 16).star(6, 15, 18).star(7, 8, 23).star(8, 13, 23).star(9, 15, 7)
+                                        .link(2, 0).link(0, 1).link(8, 7).link(7, 3).link(4, 7).link(5, 8).link(8, 6).link(1, 9).link(9, 2).link(4, 0).link(5, 2)
+                                        .build())
                                 .build()
                         )
                         .ability(AbilityTemplate.builder("smelting")
                                 .initialMaxLevel(1)
                                 .requiredPoints(5)
+                                .maxLevelRankModifier(1)
                                 .requiredLevel(8)
+                                .stat(AbilityStatTemplate.builder("addLevel")
+                                        .initialValue(0, 900)
+                                        .thresholdValue(0, 10000)
+                                        .upgradeModifier(RelicsScalingModels.MULTIPLICATIVE_BASE.get(), 5)
+                                        .formatValue(Math::round)
+                                        .build()
+                                )
                                 .stat(AbilityStatTemplate.builder("empty").build())
+                                .rankModifier(1, "upgrade")
                                 .build()
                         )
                         .build()
                 )
                 .leveling(LevelingTemplate.builder()
-                        .maxRank(2)
+                        .maxRank(1)
                         .step(50)
                         .initialCost(75)
                         .build())
+                .statistic(RelicStatisticTemplate.builder().build())
                 .loot(LootTemplate.builder().entry(LootEntries.MINESHAFT).build())
                 .build();
     }
@@ -139,7 +181,7 @@ public class ItemMontuGloves extends RelicItem implements IActivityContainer, IR
                                 .minVisibilityLevel(1)
                                 .cast((l, s) -> {
                                     if (l.level().isClientSide)
-                                        return ActivityResult.FAILURE;
+                                        return ActivityResult.SUCCESS;
 
                                     if (!(l instanceof Player player))
                                         return ActivityResult.FAILURE;
@@ -157,14 +199,14 @@ public class ItemMontuGloves extends RelicItem implements IActivityContainer, IR
                                 .minVisibilityLevel(2)
                                 .cast((l, s) -> {
                                     if (l.level().isClientSide)
-                                        return ActivityResult.FAILURE;
+                                        return ActivityResult.SUCCESS;
 
                                     if (!(l instanceof Player player))
                                         return ActivityResult.FAILURE;
 
                                     int level = getAbilityLevel(player, s, "crafting");
                                     player.openMenu(new MontuCompositeContainer.Provider(level - 1, s), buf -> {
-                                        ByteBufCodecs.INT.encode(buf, level - 1);
+                                        ByteBufCodecs.INT.encode(buf, level);
                                         ItemStack.STREAM_CODEC.encode(buf, s);
                                     });
                                     player.stopUsingItem();
@@ -176,14 +218,10 @@ public class ItemMontuGloves extends RelicItem implements IActivityContainer, IR
     }
     
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, @NotNull TooltipContext context, List<Component> tooltip, TooltipFlag isAdvanced) {
-        tooltip.add(Component.translatable("tooltip.relics_thirteenflames.montu_gloves.lore").withStyle(ChatFormatting.GOLD).withStyle(ChatFormatting.ITALIC));
-        super.appendHoverText(stack, context, tooltip, isAdvanced);
-    }
-    
-    @Override
     public @Nullable RelicAttributeModifier getRelicAttributeModifiers(LivingEntity livingEntity, ItemStack stack) {
+        var modifiers = super.getRelicAttributeModifiers(livingEntity, stack);
         return RelicAttributeModifier.builder()
+                .attributes(modifiers == null ? modifiers.getAttributes() : List.of())
                 .attribute(new RelicAttributeModifier.Modifier(Attributes.BLOCK_INTERACTION_RANGE, (float) ((ItemMontuGloves) stack.getItem()).getStatValue(livingEntity, stack, "gloves_range", "range"), AttributeModifier.Operation.ADD_VALUE))
                 .attribute(new RelicAttributeModifier.Modifier(Attributes.ENTITY_INTERACTION_RANGE, (float) ((ItemMontuGloves) stack.getItem()).getStatValue(livingEntity, stack, "gloves_range", "range"), AttributeModifier.Operation.ADD_VALUE))
                 .attribute(new RelicAttributeModifier.Modifier(Attributes.BLOCK_BREAK_SPEED, (float) ((ItemMontuGloves) stack.getItem()).getStatValue(livingEntity, stack, "gloves_range", "block_braking") / 100, AttributeModifier.Operation.ADD_VALUE))
@@ -252,7 +290,7 @@ public class ItemMontuGloves extends RelicItem implements IActivityContainer, IR
                         var stacks = handler.getStacks();
                         return IntStream.range(0, stacks.getSlots()).allMatch(i -> canEquipEvent.getSlotContext().index() == i || stacks.getStackInSlot(i).isEmpty());
                     }).orElse(true);
-            canEquipEvent.setEquipResult(can ? TriState.DEFAULT : TriState.FALSE);
+            canEquipEvent.setEquipResult(can ? canEquipEvent.getEquipResult() : TriState.FALSE);
         }
     }
     
@@ -295,6 +333,51 @@ public class ItemMontuGloves extends RelicItem implements IActivityContainer, IR
             }
         }
     }
+
+    @SubscribeEvent
+    public void forgeRepairEvent(AnvilRepairPostCountEvent updateEvent) {
+        Player player = updateEvent.getPlayer();
+
+        if (player.level().isClientSide || !(updateEvent.getPlayer().containerMenu instanceof AnvilMenu menu))
+            return;
+
+        var itr = ItemChargeHelper.listPlayerInventories(player).iterator();
+        while (itr.hasNext()) {
+            var ih = itr.next();
+            for (int j = 0; j < ih.getSlots(); j++) {
+                var it = ih.getStackInSlot(j);
+                if (!it.is(this) || !hasRangModifier(player, it, "gloves_range", "discount"))
+                    continue;
+
+                double discount = updateEvent.getRepairItemCountCost() * ((ItemMontuGloves) it.getItem()).getStatValue(player, it, "gloves_range", "discount") / 100d;
+                double remains = discount - (int) discount;
+                int finalDiscount = ((int) discount) + ((Math.random() < remains) ? 1 : 0);
+                updateEvent.setRepairItemCountCost(updateEvent.getRepairItemCountCost() - finalDiscount);
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public void forgeEnchantEvent(AnvilEnchantmentMergeEvent updateEvent) {
+        Player player = updateEvent.getPlayer();
+
+        if (player.level().isClientSide || !(updateEvent.getPlayer().containerMenu instanceof AnvilMenu menu))
+            return;
+
+        var itr = ItemChargeHelper.listPlayerInventories(player).iterator();
+        while (itr.hasNext()) {
+            var ih = itr.next();
+            for (int j = 0; j < ih.getSlots(); j++) {
+                var it = ih.getStackInSlot(j);
+                if (!it.is(this) || !hasRangModifier(player, it, "gloves_range", "discount"))
+                    continue;
+
+                double discount = ((ItemMontuGloves) it.getItem()).getStatValue(player, it, "gloves_range", "discount") / 100d;
+                if (Math.random() < discount)
+                    updateEvent.setBookTaken(false);
+            }
+        }
+    }
     
     @SubscribeEvent
     public void forgingEvent(AnvilUpdatePostEvent updateEvent) {
@@ -317,14 +400,19 @@ public class ItemMontuGloves extends RelicItem implements IActivityContainer, IR
     }
     
     @Override
-    public HumanoidModel<? extends LivingEntity> getModel(ItemStack stack, HumanoidArm arm) {
-        return arm == HumanoidArm.LEFT ? LEFT.get() : RIGHT.get();
+    public HumanoidModel<? extends LivingEntity> getModel(Player player, ItemStack stack, HumanoidArm arm) {
+        boolean flawless = getRelicData(player, stack).isFlawless();
+        return flawless ? arm == HumanoidArm.LEFT ? LEFT_FLAWLESS.get() : RIGHT_FLAWLESS.get() : arm == HumanoidArm.LEFT ? LEFT.get() : RIGHT.get();
     }
     
     @Override
-    public ResourceLocation getTexture(ItemStack stack, HumanoidArm arm) {
-        return TEXTURE;
+    public ResourceLocation getTexture(Player player, ItemStack stack, HumanoidArm arm) {
+        boolean flawless = getRelicData(player, stack).isFlawless();
+        return flawless ? getFlawlessLocation(player.tickCount / 2) : TEXTURE;
     }
 
+    private ResourceLocation getFlawlessLocation(int tickCount) {
+        return ThirteenFlames.rl(String.format("textures/armor/montu_glove_upgraded%d.png", tickCount % 6 + 1));
+    }
 
 }

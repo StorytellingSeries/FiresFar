@@ -14,4 +14,8 @@ public interface IBarSetting {
 
     OctoColor getColor(int index);
 
+    default boolean inverse() {
+        return false;
+    }
+
 }

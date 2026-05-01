@@ -12,6 +12,10 @@ import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
 import com.qurenie.relics_thirteenflames.net.HammerAOEChangePacket;
 import com.qurenie.relics_thirteenflames.net.PacketPlaySound;
 import com.qurenie.relics_thirteenflames.util.FlamesUtils;
+import it.hurts.sskirillss.relics.api.relics.AbilityStatisticTemplate;
+import it.hurts.sskirillss.relics.api.relics.RelicStatisticTemplate;
+import it.hurts.sskirillss.relics.api.relics.abilities.ExperienceSourcesTemplate;
+import it.hurts.sskirillss.relics.items.misc.CreativeContentConstructor;
 import it.hurts.sskirillss.relics.items.relics.base.RelicItem;
 import it.hurts.sskirillss.relics.api.relics.RelicTemplate;
 import it.hurts.sskirillss.relics.api.relics.abilities.AbilitiesTemplate;
@@ -21,6 +25,7 @@ import it.hurts.sskirillss.relics.init.RelicsScalingModels;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.LevelingTemplate;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootTemplate;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.misc.LootEntries;
+import it.hurts.sskirillss.relics.items.relics.base.data.research.ResearchTemplate;
 import it.hurts.sskirillss.relics.utils.MathUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -84,13 +89,12 @@ public class ItemMontuHammer
     private final ItemAttributeModifiers defaultModifiers;
     private static final Random RNG = new Random();
     
-    
     public ItemMontuHammer(Properties properties, Tier tier) {
-        super(properties);
-        this.tool = new Tool(List.of(Tool.Rule.deniesDrops(tier.getIncorrectBlocksForDrops()),
+        super(properties.component(DataComponents.TOOL, new Tool(List.of(
                 Tool.Rule.minesAndDrops(BlockTags.MINEABLE_WITH_PICKAXE, tier.getSpeed()),
                 Tool.Rule.minesAndDrops(BlockTags.MINEABLE_WITH_SHOVEL, tier.getSpeed())),
-                1.0F, 1);
+                1.0F, 1)));
+        this.tool = components().get(DataComponents.TOOL);
         this.speed = tier.getSpeed();
         float attackDamageBaseline = 5 + tier.getAttackDamageBonus();
         defaultModifiers = ItemAttributeModifiers.builder()
@@ -98,7 +102,11 @@ public class ItemMontuHammer
                 .add(Attributes.ATTACK_SPEED, new AttributeModifier(BASE_ATTACK_SPEED_ID, -3.1F, AttributeModifier.Operation.ADD_VALUE), EquipmentSlotGroup.MAINHAND)
                 .build();
     }
-    
+
+    @Override
+    public void gatherCreativeTabContent(CreativeContentConstructor constructor) {
+    }
+
     public static Tuple2<BlockPos, BlockPos> getMiningArea(BlockPos pos, int sideHit, int breakRadius, int breakDepth) {
         int xMax = breakRadius;
         int xMin = breakRadius;
@@ -153,10 +161,11 @@ public class ItemMontuHammer
                 .abilities(AbilitiesTemplate.builder()
                         .ability(AbilityTemplate.builder("slap")
                                 .initialMaxLevel(4)
+                                .statistic(AbilityStatisticTemplate.builder().build())
                                 .stat(AbilityStatTemplate.builder("recharge")
-                                        .initialValue(60, 40)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), -5.0)
-                                        .formatValue(x -> (int) MathUtils.round(x, 1))
+                                        .initialValue(1200, 800)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), -100.0)
+                                        .formatValue(x -> (int) MathUtils.round(x / 20f, 1))
                                         .build()
                                 )
                                 .stat(AbilityStatTemplate.builder("radius")
@@ -166,11 +175,19 @@ public class ItemMontuHammer
                                         .formatValue(x -> (int) MathUtils.round(x, 0))
                                         .build()
                                 )
+                                .experienceSources(ExperienceSourcesTemplate.builder()
+                                        .source("source_1")
+                                        .build())
+                                .research(ResearchTemplate.builder()
+                                        .star(0, 3, 9).star(1, 16, 13).star(2, 10, 3).star(3, 15, 4).star(4, 18, 7).star(5, 9, 16).star(6, 4, 18).star(7, 13, 20).star(8, 17, 20).star(9, 8, 22).star(10, 6, 26).star(11, 3, 25).star(12, 12, 27)
+                                        .link(1, 3).link(1, 4).link(0, 2).link(0, 5).link(1, 5).link(5, 6).link(5, 7).link(7, 8).link(6, 9).link(9, 10).link(10, 11).link(10, 12)
+                                        .build())
                                 .build()
                         )
                         .ability(AbilityTemplate.builder("aoe")
                                 .initialMaxLevel(2)
                                 .requiredPoints(3)
+                                .statistic(AbilityStatisticTemplate.builder().build())
                                 .stat(AbilityStatTemplate.builder("radius")
                                         .initialValue(0.0, 0.0)
                                         .thresholdValue(0.0, 2.0)
@@ -178,9 +195,13 @@ public class ItemMontuHammer
                                         .formatValue(x -> (int) MathUtils.round(x + 1, 0))
                                         .build()
                                 )
+                                .experienceSources(ExperienceSourcesTemplate.builder()
+                                        .source("source_2")
+                                        .build())
                                 .build())
                         .build()
                 )
+                .statistic(RelicStatisticTemplate.builder().build())
                 .leveling(LevelingTemplate.builder()
                         .initialCost(100)
                         .step(100)
@@ -188,12 +209,6 @@ public class ItemMontuHammer
                         .build())
                 .loot(LootTemplate.builder().entry(LootEntries.MINESHAFT).build())
                 .build();
-    }
-    
-    @Override
-    public void appendHoverText(@NotNull ItemStack stack, @NotNull TooltipContext level, @NotNull List<Component> tooltip, @NotNull TooltipFlag isAdvanced) {
-        tooltip.add(Component.translatable("tooltip.relics_thirteenflames.montu_hammer.lore").withStyle(ChatFormatting.GOLD).withStyle(ChatFormatting.ITALIC));
-        super.appendHoverText(stack, level, tooltip, isAdvanced);
     }
     
     @Override
@@ -340,7 +355,7 @@ public class ItemMontuHammer
                 || player.isShiftKeyDown()
                 || !stack.canPerformAction(ItemAbilities.PICKAXE_DIG)
         ) return false;
-        
+
         Vec3 view = player.getViewVector(0);
         Vec3 look = player.getEyePosition(0);
         
@@ -390,7 +405,7 @@ public class ItemMontuHammer
     
     @Override
     public boolean isCorrectToolForDrops(ItemStack stack, BlockState state) {
-        return (state.is(BlockTags.MINEABLE_WITH_PICKAXE) || state.is(BlockTags.MINEABLE_WITH_SHOVEL)) && tool.isCorrectForDrops(state);
+        return tool.isCorrectForDrops(state);
     }
     
     @Override

@@ -233,11 +233,11 @@ public class MontuCompositeContainer extends AbstractContainerMenu {
         }
         
         public MontuMenuType next(int level) {
-            return MontuMenuType.values()[(this.ordinal() + 1) % level];
+            return MontuMenuType.values()[(this.ordinal() + 1) % Math.min(level, values().length)];
         }
         
         public MontuMenuType previous(int level) {
-            return MontuMenuType.values()[(this.ordinal() + level - 1) % level];
+            return MontuMenuType.values()[(this.ordinal() - 1) % Math.min(level, values().length)];
         }
         
         private interface MenuSupplierWithAccess<T extends AbstractContainerMenu> {

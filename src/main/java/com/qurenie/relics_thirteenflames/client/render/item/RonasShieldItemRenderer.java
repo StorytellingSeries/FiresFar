@@ -15,6 +15,8 @@ import static com.qurenie.relics_thirteenflames.init.ComponentRegistry.RHONAS_CH
 public class RonasShieldItemRenderer
         extends ZeithTechISTER {
 
+    private static final int FLAWLESS_OVERRIDES = 1;
+
     @Override
     public void renderByItem(@NotNull ItemStack pStack, @NotNull ItemDisplayContext pTransformType, @NotNull PoseStack poseStack, @NotNull MultiBufferSource pBuffer, int pPackedLight, int pPackedOverlay) {
         renderLanternOverrides(pStack, pTransformType, poseStack, pBuffer, pPackedLight, pPackedOverlay);

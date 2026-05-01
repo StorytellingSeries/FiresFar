@@ -1,5 +1,6 @@
 package com.qurenie.relics_thirteenflames.activity.call.settings;
 
+import com.qurenie.relics_thirteenflames.ThirteenFlames;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import net.minecraft.resources.ResourceLocation;
@@ -13,7 +14,8 @@ import java.util.function.BiPredicate;
 @AllArgsConstructor
 public class ActivityCallSettings implements IActivityCallSettings {
 
-    BiFunction<LivingEntity, ItemStack, ResourceLocation> resourceLocation;
+    @Builder.Default
+    BiFunction<LivingEntity, ItemStack, ResourceLocation> resourceLocation = (l, s) -> ThirteenFlames.rl("call");
     @Builder.Default
     BiPredicate<LivingEntity, ItemStack> visibility = (e, s) -> true;
     @Builder.Default

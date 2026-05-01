@@ -4,20 +4,6 @@
 	"textures": {
 		"particle": "relics_thirteenflames:item/jodah_staff_3d"
 	},
-	"overrides": [
-		{
-			"predicate": {
-				"alt": 0
-			},
-			"model": "relics_thirteenflames:item/jodah_staff_base"
-		},
-		{
-			"predicate": {
-				"alt": 1
-			},
-			"model": "relics_thirteenflames:item/jodah_staff_emissive"
-		}
-	],
 	"gui_light": "front",
 	"display": {
 		"thirdperson_righthand": {

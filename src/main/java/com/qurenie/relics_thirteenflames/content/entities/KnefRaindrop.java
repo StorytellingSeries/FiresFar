@@ -2,7 +2,9 @@ package com.qurenie.relics_thirteenflames.content.entities;
 
 import com.qurenie.relics_thirteenflames.content.items.ItemKnefBow;
 import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
+import com.qurenie.relics_thirteenflames.util.FlamesUtils;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
+import it.hurts.octostudios.octolib.util.OctoColor;
 import it.hurts.sskirillss.relics.api.relics.IRelicItem;
 import lombok.Getter;
 import lombok.Setter;
@@ -31,7 +33,7 @@ public class KnefRaindrop extends ThrowableProjectile
     public Vec3 movement;
     public Vec3 prevPos;
 
-    public Color color;
+    public OctoColor color;
 
     @Getter
     @Setter
@@ -57,7 +59,7 @@ public class KnefRaindrop extends ThrowableProjectile
 
     public KnefRaindrop(EntityType<? extends KnefRaindrop> type, Level world) {
         super(type, world);
-        this.color = new Color(0, 86 - this.random.nextInt(80), 255 - this.random.nextInt(90));
+        this.color = FlamesUtils.fromRGBI(0, 86 - this.random.nextInt(80), 255 - this.random.nextInt(90));
         //this.color = new Color(94, 0, 255 - this.random.nextInt(90));
 
     }
@@ -107,9 +109,9 @@ public class KnefRaindrop extends ThrowableProjectile
             ParticleHelper.spawnParticleLine(this.level(), ParticleHelper.constructSimpleSpark(color, 0.1f, 80, 0.85f),
                     this.position(), result.getLocation(), (int) Math.round(distance * this.tickCount * this.tickCount / 156 + 2), 0);
 
-            ParticleHelper.spawnParticleAABB(this.level(), ParticleHelper.constructSimpleSpark(new Color(72, 0, 255), 0.2f, 20, 0.65f),
+            ParticleHelper.spawnParticleAABB(this.level(), ParticleHelper.constructSimpleSpark(FlamesUtils.fromRGBI(72, 0, 255), 0.2f, 20, 0.65f),
                     new AABB(result.getLocation(), result.getLocation()), 15, 0.1);
-            ParticleHelper.spawnParticleAABB(this.level(), ParticleHelper.constructSimpleSpark(new Color(0, 60, 255), 0.2f, 20, 0.65f),
+            ParticleHelper.spawnParticleAABB(this.level(), ParticleHelper.constructSimpleSpark(FlamesUtils.fromRGBI(0, 60, 255), 0.2f, 20, 0.65f),
                     new AABB(result.getLocation(), result.getLocation()), 15, 0.1);
         }
         this.discard();

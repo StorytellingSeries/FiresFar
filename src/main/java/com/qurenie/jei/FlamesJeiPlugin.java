@@ -1,19 +1,19 @@
 package com.qurenie.jei;
 
 import com.qurenie.relics_thirteenflames.ThirteenFlames;
+import com.qurenie.relics_thirteenflames.client.screen.gloves.MontuCompositeScreen;
 import com.qurenie.relics_thirteenflames.content.recipes.MontuSmithRecipe;
 import com.qurenie.relics_thirteenflames.init.RecipeTypesRegistry;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.helpers.IGuiHelper;
+import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
 import net.minecraft.client.Minecraft;
-import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
-import net.minecraft.world.item.crafting.RecipeType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -36,7 +36,14 @@ public class FlamesJeiPlugin implements IModPlugin {
         
         registration.addRecipeCategories(new MontuGlovesRecipeCategory(guiHelper));
     }
-    
+
+    @Override
+    public void registerGuiHandlers(@NotNull IGuiHandlerRegistration registration) {
+        IModPlugin.super.registerGuiHandlers(registration);
+
+        registration.addGenericGuiContainerHandler(MontuCompositeScreen.class, new MontuGuiHandler());
+    }
+
     @Override
     public void registerRecipes(IRecipeRegistration registration) {
         Minecraft mc = Minecraft.getInstance();

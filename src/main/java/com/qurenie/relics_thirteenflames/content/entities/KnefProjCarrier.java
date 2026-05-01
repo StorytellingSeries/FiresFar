@@ -17,6 +17,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class KnefProjCarrier extends ThrowableProjectile
 {
@@ -66,37 +67,13 @@ public class KnefProjCarrier extends ThrowableProjectile
     public void tick() {
         Vec3 motion = this.getDeltaMovement();
 
-        for (int i = 0; i < rays.size(); i++){
-            if(rays.get(i).prevPos == null) {
-                double a = 360.0 / rays.size() * i - this.tickCount * 10.0;
-                double radius = rad + Math.sin(Math.toRadians(this.tickCount * 20.0) - 90) * 0.04;
-                if (i % 2 == 0 && rays.size() > 7) {
-                    radius += 0.1;
-                    if (i % 4 == 0 && rays.size() > 15) radius -= 0.1;
-                }
-                Vec3 x = !(motion.normalize().x < 0.001 && motion.normalize().z < 0.001) ? motion.normalize().cross(new Vec3(0, 1, 0)).normalize().scale(radius) : motion.normalize().cross(new Vec3(1, 0, 0)).normalize().scale(radius);
-                Vec3 z = motion.normalize().cross(x).normalize().scale(radius);
-
-                Vec3 pos = this.getPosition(1F)
-                        .add(x.scale(Math.cos(Math.toRadians(a))))
-                        .add(z.scale(Math.sin(Math.toRadians(a))))
-                        //.subtract(motion.scale((double) i / rays.size() * 2))
-                        ;
-
-                if (i % 2 == 0) {
-                    pos = pos.add(motion.scale(0.3));
-                    if (i % 4 == 0 && rays.size() > 15) pos = pos.subtract(motion.scale(0.3));
-                }
-                rays.get(i).prevPos = pos;
-            }
-        }
-
         super.tick();
 
         setDeltaMovement(motion);
 
+        rays = rays.stream().filter(r -> !r.isFree()).collect(Collectors.toList());
         for (int i = 0; i < rays.size(); i++){
-
+            var ray = rays.get(i);
             double a = 360.0 / rays.size() * i - this.tickCount * 10.0;
             double radius = rad + Math.sin(Math.toRadians(this.tickCount * 20.0) - 90) * 0.04;
             if(i % 2 == 0 && rays.size() > 7){
@@ -115,7 +92,8 @@ public class KnefProjCarrier extends ThrowableProjectile
                 pos = pos.add(motion.scale(0.3));
                 if(i % 4 == 0 && rays.size() > 15) pos = pos.subtract(motion.scale(0.3));
             }
-            rays.get(i).setPos(pos);
+
+            ray.setDeltaMovement(pos.subtract(ray.position()).normalize().scale(0.6));
         }
 
         if(!this.level().isClientSide() ) {
@@ -135,12 +113,10 @@ public class KnefProjCarrier extends ThrowableProjectile
                         rays.get(i).target = targets.get(i);
                         rays.get(i).setFree(true);
                     }
-                    rays.clear();
-                    this.discard();
                 } else {
                     for (LivingEntity target : targets) {
                         for (int i = 0; i < cap; i++) {
-                            KnefProjectile proj = rays.remove(0);
+                            KnefProjectile proj = rays.removeFirst();
                             proj.target = target;
                             proj.setFree(true);
                         }
@@ -149,9 +125,9 @@ public class KnefProjCarrier extends ThrowableProjectile
                         rays.get(i).target = targets.get(i);
                         rays.get(i).setFree(true);
                     }
-                    rays.clear();
-                    this.discard();
                 }
+                rays.clear();
+                this.discard();
             }
         }
     }

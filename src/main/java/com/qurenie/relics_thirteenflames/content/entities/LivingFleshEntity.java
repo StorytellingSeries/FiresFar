@@ -3,6 +3,7 @@ package com.qurenie.relics_thirteenflames.content.entities;
 import com.qurenie.relics_thirteenflames.client.AnimationsRegistry;
 import com.qurenie.relics_thirteenflames.content.items.ItemKnefRose;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
+import com.qurenie.relics_thirteenflames.style.ColorScheme;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import it.hurts.sskirillss.relics.api.relics.IRelicItem;
 import net.minecraft.core.particles.ParticleTypes;
@@ -198,7 +199,7 @@ public class LivingFleshEntity
 				for(int i = 0; i < splits; i++)
 				{
 					var splitStats = stats.split();
-					float splitScale = getScale() * splitStats.splitScale / 100F;
+					float splitScale = getScale() * splitStats.splitScale / 10F;
 					
 					var ent = createSplit()
 							.setScale(splitScale, getMaxHealth() * splitStats.splitScale / 100F)
@@ -215,7 +216,8 @@ public class LivingFleshEntity
 		try {
 			cloud.setOwner(this.level().getPlayerByUUID(UUID.fromString(getOwnerUUID())));
 		} catch (IllegalArgumentException ignored) {}
-		ParticleHelper.spawnEnginedParticles(this.level(), ParticleTypes.CLOUD, this.getBoundingBox().getCenter(), 60, getScale() / 2, getScale() / 2, getScale() / 2, 0.05, 0.6f, 20, new Color(10, 10, 10), 0.8f);
+		ParticleHelper.spawnEnginedParticles(this.level(), ParticleTypes.CLOUD, this.getBoundingBox().getCenter(), 60, getScale() / 2, getScale() / 2, getScale() / 2,
+				0.05, 0.6f, 20, ColorScheme.GRAY_COLOR, 0.8f);
 		this.level().addFreshEntity(cloud);
 	}
 	

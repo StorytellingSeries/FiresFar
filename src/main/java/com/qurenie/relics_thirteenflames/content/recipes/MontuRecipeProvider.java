@@ -18,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.concurrent.CompletableFuture;
 
 public class MontuRecipeProvider extends RecipeProvider {
-    
+
     public MontuRecipeProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
         super(output, registries);
     }
@@ -45,13 +45,16 @@ public class MontuRecipeProvider extends RecipeProvider {
                 Ingredient.of(Items.NETHERITE_BOOTS), Ingredient.of(ItemsRegistry.AURITEKH_INGOT), 60);
         build(recipeOutput, ItemsRegistry.AURITEKH_HELMET, Ingredient.of(ItemsRegistry.AURITEKH_INGOT),
                 Ingredient.of(Items.NETHERITE_HELMET), Ingredient.of(ItemsRegistry.AURITEKH_INGOT), 60);
+        buildLevelUp(recipeOutput, Ingredient.of(Items.EXPERIENCE_BOTTLE), Ingredient.of(ItemsRegistry.AURITEKH_INGOT));
     }
     
     public void build(@NotNull RecipeOutput recipeOutput, ItemLike result, Ingredient left, Ingredient center, Ingredient right, int experience) {
         recipeOutput.accept(ThirteenFlames.rl(BuiltInRegistries.ITEM.getKey(result.asItem()).getPath()),
                 new MontuSmithRecipe(new ItemStack(result), experience, center, right, left), null);
     }
-    
-    
+
+    public void buildLevelUp(@NotNull RecipeOutput recipeOutput, Ingredient left,  Ingredient right) {
+        recipeOutput.accept(ThirteenFlames.rl("montu_level_up"), new MontuSmithLevelUpRecipe(right, left), null);
+    }
     
 }

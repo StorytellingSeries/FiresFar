@@ -1,5 +1,15 @@
 {
   "parent": "minecraft:item/generated",
+
+  "overrides": [
+    {
+      "predicate": {
+        "relics:flawless": 1
+      },
+      "model": "relics_thirteenflames:item/montu_gloves_flawless"
+    }
+  ],
+
   "textures": {
     "layer0": "relics_thirteenflames:item/montu_gloves"
   }

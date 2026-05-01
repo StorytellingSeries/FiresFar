@@ -1,0 +1,102 @@
+{
+  "parent": "neoforge:item/default",
+  "base": {
+    "parent": "relics_thirteenflames:item/knef_bow_3d_flawless"
+  },
+  "loader": "neoforge:separate_transforms",
+  "perspectives": {
+    "ground": {
+      "parent": "relics_thirteenflames:item/knef_bow_2d_flawless"
+    },
+    "gui": {
+      "parent": "relics_thirteenflames:item/knef_bow_2d_flawless"
+    },
+    "fixed": {
+      "parent": "relics_thirteenflames:item/knef_bow_2d_flawless"
+    }
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "alt": 11
+      },
+      "model": "relics_thirteenflames:item/knef_bow_2d_base_flawless"
+    },
+    {
+      "predicate": {
+        "alt": 10,
+        "relics_thirteenflames:pull": 0.1
+      },
+      "model": "relics_thirteenflames:item/knef_bow_2d_0_flawless"
+    },
+    {
+      "predicate": {
+        "alt": 9,
+        "relics_thirteenflames:pull": 0.65
+      },
+      "model": "relics_thirteenflames:item/knef_bow_2d_1_flawless"
+    },
+    {
+      "predicate": {
+        "alt": 8,
+        "relics_thirteenflames:pull": 0.9
+      },
+      "model": "relics_thirteenflames:item/knef_bow_2d_2_flawless"
+    },
+
+    {
+      "predicate": {
+        "alt": 7
+      },
+      "model": "relics_thirteenflames:item/knef_bow_base"
+    },
+    {
+      "predicate": {
+        "alt": 6
+      },
+      "model": "relics_thirteenflames:item/knef_bow_emissive"
+    },
+    {
+      "predicate": {
+        "alt": 5,
+        "relics_thirteenflames:pull": 0.1
+      },
+      "model": "relics_thirteenflames:item/knef_bow_0"
+    },
+    {
+      "predicate": {
+        "alt": 4,
+        "relics_thirteenflames:pull": 0.1
+      },
+      "model": "relics_thirteenflames:item/knef_bow_0_emissive"
+    },
+    {
+      "predicate": {
+        "alt": 3,
+        "relics_thirteenflames:pull": 0.65
+      },
+      "model": "relics_thirteenflames:item/knef_bow_1"
+    },
+    {
+      "predicate": {
+        "alt": 2,
+        "relics_thirteenflames:pull": 0.65
+      },
+      "model": "relics_thirteenflames:item/knef_bow_1_emissive"
+    },
+    {
+      "predicate": {
+        "alt": 1,
+        "relics_thirteenflames:pull": 0.9
+      },
+      "model": "relics_thirteenflames:item/knef_bow_2"
+    },
+    {
+      "predicate": {
+        "alt": 0,
+        "relics_thirteenflames:pull": 0.9
+      },
+      "model": "relics_thirteenflames:item/knef_bow_2_emissive"
+    }
+  ]
+}

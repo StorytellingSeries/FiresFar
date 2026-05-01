@@ -1,9 +1,21 @@
 {
 	"parent": "neoforge:item/default",
+
+	"overrides": [
+		{
+			"predicate": {
+				"relics:flawless": 1
+			},
+			"model": "relics_thirteenflames:item/jodah_staff_flawless"
+		}
+	],
+
 	"base": {
 		"parent": "relics_thirteenflames:item/jodah_staff_3d"
 	},
+
 	"loader": "neoforge:separate_transforms",
+
 	"perspectives": {
 		"ground": {
 			"parent": "relics_thirteenflames:item/jodah_staff_2d"
@@ -14,19 +26,5 @@
 		"fixed": {
 			"parent": "relics_thirteenflames:item/jodah_staff_2d"
 		}
-	},
-	"overrides": [
-		{
-			"predicate": {
-				"alt": 1
-			},
-			"model": "relics_thirteenflames:item/jodah_staff_base"
-		},
-		{
-			"predicate": {
-				"alt": 0
-			},
-			"model": "relics_thirteenflames:item/jodah_staff_emissive"
-		}
-	]
+	}
 }

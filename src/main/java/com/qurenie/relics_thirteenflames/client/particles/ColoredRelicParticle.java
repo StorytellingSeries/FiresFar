@@ -28,6 +28,7 @@ import org.joml.Quaternionf;
 
 import javax.annotation.Nonnull;
 
+import java.awt.*;
 import java.util.function.Supplier;
 
 import static com.qurenie.relics_thirteenflames.client.ThirteenRenderTypes.CUSTOM_RENDER_TRANSLUCENT;
@@ -216,6 +217,7 @@ public class ColoredRelicParticle extends BasicColoredParticle {
     double dScale;
     float oldQuadSize;
     float currentQuadSize;
+    float roll;
     
     public ColoredRelicParticle(ClientLevel world, double x, double y, double z, double velocityX, double velocityY, double velocityZ, Constructor constructor, float gravity, boolean lightning, boolean invisibleOnDisappear, RotationType rotationType) {
         super(world, x, y, z, velocityX, velocityY, velocityZ, constructor);
@@ -224,29 +226,39 @@ public class ColoredRelicParticle extends BasicColoredParticle {
         this.lightning = lightning;
         this.dScale = constructor.getScaleModifier();
         this.oldQuadSize = this.currentQuadSize = this.quadSize = constructor.getDiameter();
-        constructor.setRoll(switch (rotationType) {
+        this.roll = switch (rotationType) {
             case PLANE -> constructor.getRoll();
             case SIDE_RANDOM -> random.nextBoolean() ? constructor.getRoll() : -constructor.getRoll();
             case TOTAL_RANDOM -> (float) (Math.random() * 0.5 - 1) * 2 * constructor.getRoll();
-        });
+        };
     }
     
     @Override
     public @NotNull ParticleRenderType getRenderType() {
         return lightning ? CUSTOM_RENDER_TRANSLUCENT_LIGHTNING : CUSTOM_RENDER_TRANSLUCENT;
     }
-    
+
     @Override
     public void tick() {
+        // Fucking relics particles! No super.tick()
         this.oldQuadSize = this.quadSize;
         this.currentQuadSize *= (float) dScale;
-        
-        super.tick();
-        
+
+        this.xo = this.x;
+        this.yo = this.y;
+        this.zo = this.z;
+        this.oRoll = this.roll;
+
+        this.move(this.xd, this.yd, this.zd);
+
         if (invisibleOnDisappear && this.lifetime - age < 30)
             this.alpha = Math.max(0, alpha - 1 / 28f);
         
         this.yd -= gravity;
+
+        if (this.age++ >= this.lifetime) {
+            this.remove();
+        }
     }
     
     protected int getLightColor(float partialTick) {

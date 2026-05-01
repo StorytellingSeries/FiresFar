@@ -13,15 +13,16 @@ import java.util.function.Function;
 
 public record ActivitiesData(Map<String, ActivityData> activities) {
 
-    public static final StreamCodec<ByteBuf, ActivitiesData> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.map(
-                    HashMap::new,
-                    ByteBufCodecs.STRING_UTF8,
-                    ActivityData.STREAM_CODEC
-            ),
-            ActivitiesData::activities,
-            ActivitiesData::new
-    );
+    public ActivitiesData {
+        activities = Map.copyOf(activities);
+    }
+
+    public static final StreamCodec<ByteBuf, ActivitiesData> STREAM_CODEC =
+            StreamCodec.composite(
+                    ByteBufCodecs.map(HashMap::new, ByteBufCodecs.STRING_UTF8, ActivityData.STREAM_CODEC),
+                    ActivitiesData::activities,
+                    map -> new ActivitiesData(Map.copyOf(map))
+            );
 
     public static final Codec<ActivitiesData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.unboundedMap(
@@ -34,19 +35,19 @@ public record ActivitiesData(Map<String, ActivityData> activities) {
         return new ActivitiesData(new HashMap<>());
     }
 
-    public ActivitiesData reload(String activity, int maxValue) {
-        ActivityData data = activities.getOrDefault(activity, new ActivityData(maxValue));
+    public ActivitiesData reload(String activity) {
+        ActivityData data = activities.getOrDefault(activity, new ActivityData(Integer.MIN_VALUE));
 
-        return withActivity(activity, data.with(maxValue));
+        return withActivity(activity, data.with(Integer.MIN_VALUE));
     }
 
-    public ActivitiesData tick(String key, int maxValue) {
+    public long remains(String key, int currentTime) {
         ActivityData data = activities.get(key);
 
         if (data == null)
-            return withActivity(key, new ActivityData(maxValue));
+            return currentTime;
 
-        return withActivity(key, data.ticked(maxValue));
+        return data.remains(currentTime);
     }
 
     public ActivitiesData withActivity(String key, ActivityData data) {

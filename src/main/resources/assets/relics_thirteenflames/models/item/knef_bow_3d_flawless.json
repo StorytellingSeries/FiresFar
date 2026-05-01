@@ -1,0 +1,132 @@
+{
+  "render_type": "cutout",
+  "parent": "relics_thirteenflames:item/builtin/ister",
+  "textures": {
+    "particle": "relics_thirteenflames:item/knef_bow_0"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "alt": 0.5
+      },
+      "model": "relics_thirteenflames:item/knef_bow_2d_base_flawless"
+    },
+    {
+      "predicate": {
+        "alt": 0.5,
+        "relics_thirteenflames:pull": 0.1
+      },
+      "model": "relics_thirteenflames:item/knef_bow_2d_0_flawless"
+    },
+    {
+      "predicate": {
+        "alt": 0.5,
+        "relics_thirteenflames:pull": 0.65
+      },
+      "model": "relics_thirteenflames:item/knef_bow_2d_1_flawless"
+    },
+    {
+      "predicate": {
+        "alt": 0.5,
+        "relics_thirteenflames:pull": 0.9
+      },
+      "model": "relics_thirteenflames:item/knef_bow_2d_2_flawless"
+    },
+
+
+    {
+      "predicate": {
+        "alt": 0.5
+      },
+      "model": "relics_thirteenflames:item/knef_bow_base"
+    },
+    {
+      "predicate": {
+        "alt": 0.75
+      },
+      "model": "relics_thirteenflames:item/knef_bow_emissive"
+    },
+    {
+      "predicate": {
+        "alt": 0.5,
+        "relics_thirteenflames:pull": 0.1
+      },
+      "model": "relics_thirteenflames:item/knef_bow_0"
+    },
+    {
+      "predicate": {
+        "alt": 0.75,
+        "relics_thirteenflames:pull": 0.1
+      },
+      "model": "relics_thirteenflames:item/knef_bow_0_emissive"
+    },
+    {
+      "predicate": {
+        "alt": 0.5,
+        "relics_thirteenflames:pull": 0.65
+      },
+      "model": "relics_thirteenflames:item/knef_bow_1"
+    },
+    {
+      "predicate": {
+        "alt": 0.75,
+        "relics_thirteenflames:pull": 0.65
+      },
+      "model": "relics_thirteenflames:item/knef_bow_1_emissive"
+    },
+    {
+      "predicate": {
+        "alt": 0.5,
+        "relics_thirteenflames:pull": 0.9
+      },
+      "model": "relics_thirteenflames:item/knef_bow_2"
+    },
+    {
+      "predicate": {
+        "alt": 0.75,
+        "relics_thirteenflames:pull": 0.9
+      },
+      "model": "relics_thirteenflames:item/knef_bow_2_emissive"
+    }
+  ],
+  "display": {
+    "thirdperson_righthand": {
+      "rotation": [0, -95, 0],
+      "translation": [-0.5, -2, 1.75],
+      "scale": [0.45, 0.7, 0.45]
+    },
+    "thirdperson_lefthand": {
+      "rotation": [0, 95, 0],
+      "translation": [-0.5, -2, 1.75],
+      "scale": [0.45, 0.7, 0.45]
+    },
+    "firstperson_righthand": {
+      "rotation": [22, -75, 0],
+      "translation": [4.25, 3.25, -7.5],
+      "scale": [0.45, 0.7, 0.45]
+    },
+    "firstperson_lefthand": {
+      "rotation": [22, -75, -180],
+      "translation": [4.25, 3.25, -7.5],
+      "scale": [0.45, 0.7, 0.45]
+    },
+    "ground": {
+      "rotation": [90, 0, 0],
+      "scale": [0.45, 0.45, 0.45]
+    },
+    "gui": {
+      "rotation": [0, 180, -135],
+      "translation": [-1.5, 1.5, 0],
+      "scale": [0.45, 0.45, 0.45]
+    },
+    "head": {
+      "rotation": [0, 0, -90],
+      "translation": [0, 5.75, 0]
+    },
+    "fixed": {
+      "rotation": [0, 0, 45],
+      "translation": [-2.5, -1.75, 0],
+      "scale": [0.5, 0.5, 0.5]
+    }
+  }
+}

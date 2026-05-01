@@ -1,0 +1,67 @@
+{
+  "parent": "neoforge:item/default",
+  "base": {
+    "parent": "relics_thirteenflames:item/ronas_sword_3d_flawless"
+  },
+  "loader": "neoforge:separate_transforms",
+  "perspectives": {
+    "ground": {
+      "parent": "relics_thirteenflames:item/ronas_sword_2d_flawless"
+    },
+    "gui": {
+      "parent": "relics_thirteenflames:item/ronas_sword_2d_flawless"
+    },
+    "fixed": {
+      "parent": "relics_thirteenflames:item/ronas_sword_2d_flawless"
+    }
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "alt": 0.5
+      },
+      "model": "relics_thirteenflames:item/ronas_sword_inv_flawless"
+    },
+    {
+      "predicate": {
+        "alt": 0.75
+      },
+      "model": "relics_thirteenflames:item/ronas_sword_inv_emissive_flawless"
+    }
+  ],
+  "display": {
+    "thirdperson_righthand": {
+      "rotation": [90, 5, -5],
+      "translation": [-2, 8.25, -9]
+    },
+    "thirdperson_lefthand": {
+      "rotation": [90, 5, -5],
+      "translation": [-2, 8.25, -9]
+    },
+    "firstperson_righthand": {
+      "rotation": [90, -14, 0],
+      "translation": [-4.25, 1.75, 0],
+      "scale": [0.75, 0.75, 0.75]
+    },
+    "firstperson_lefthand": {
+      "rotation": [90, -14, 0],
+      "translation": [-4.25, 1.75, 0],
+      "scale": [0.75, 0.75, 0.75]
+    },
+    "ground": {
+      "rotation": [90, 0, 0],
+      "translation": [0, 3, -4],
+      "scale": [0.5, 0.5, 0.5]
+    },
+    "gui": {
+      "rotation": [90, -45, 90],
+      "translation": [4.5, -5.6, 0],
+      "scale": [0.55, 0.55, 0.55]
+    },
+    "fixed": {
+      "rotation": [90, 45, -90],
+      "translation": [-5.5, -6.5, 0],
+      "scale": [0.65, 0.65, 0.65]
+    }
+  }
+}

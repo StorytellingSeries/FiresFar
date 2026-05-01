@@ -32,7 +32,8 @@ public class LevelRendererMixin {
         if (!(entity instanceof LivingEntity living))
             return bufferSource;
         
-        if (!((LevelRenderer) (Object) this).shouldShowEntityOutlines() || !IJodahGlowed.of(living).hasJodahGlowEffect())
+        if (!((LevelRenderer) (Object) this).shouldShowEntityOutlines()
+                || !IJodahGlowed.of(living).hasJodahGlowEffect())
             return bufferSource;
         
         var outline = Minecraft.getInstance().renderBuffers().outlineBufferSource();

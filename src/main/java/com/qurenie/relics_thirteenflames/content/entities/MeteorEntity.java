@@ -26,29 +26,31 @@ import java.awt.*;
 import java.util.List;
 import java.util.UUID;
 
-import static com.qurenie.relics_thirteenflames.event.CommonGameEvents.GRAY_COLOR;
+import static com.qurenie.relics_thirteenflames.style.ColorScheme.BURN_COLOR;
+import static com.qurenie.relics_thirteenflames.style.ColorScheme.GRAY_COLOR;
 import static net.neoforged.neoforge.common.NeoForge.EVENT_BUS;
 
 public class MeteorEntity extends Entity {
     
     private static final EntityDataAccessor<Float> SIZE = SynchedEntityData.defineId(MeteorEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Boolean> RELEASED = SynchedEntityData.defineId(MeteorEntity.class, EntityDataSerializers.BOOLEAN);
-    private static final Color BURN_COLOR = new Color(230, 90, 20);
     
     Player owner;
     UUID ownerUUID;
     LivingEntity target;
     private float size;
+    private int time;
     
     public MeteorEntity(EntityType<?> entityType, Level level) {
         super(entityType, level);
     }
     
-    public MeteorEntity(Level level, Player owner, @Nullable LivingEntity target, float size) {
+    public MeteorEntity(Level level, Player owner, @Nullable LivingEntity target, float size, int time) {
         super(EntityRegistry.METEOR, level);
         this.owner = owner;
         this.ownerUUID = owner.getUUID();
         this.target = target;
+        this.time = time;
         setSize(size);
 
 //        while (level.getBlockState(new BlockPos(pos.getX(), pos.getY() + (dy++), pos.getZ())).isAir() && dy <= size * 15)
@@ -83,36 +85,38 @@ public class MeteorEntity extends Entity {
         for (var p : getPassengers())
             p.setInvisible(true);
         
-        if (this.tickCount >= 80 && !entityData.get(RELEASED))
+        if (this.tickCount >= time && !entityData.get(RELEASED))
             explode();
         
         if (level().isClientSide) {
             Vec3 mov = getDeltaMovement().normalize().scale(-0.04);
-            
+
+            float particleSize = getParticleSize();
+
             for (int i = 0; i < 10 * getDeltaMovement().length() * 2; i++) {
-                double x = (random.nextDouble() * 2 - 1) * getSize();
-                double z = (random.nextDouble() * 2 - 1) * Math.sqrt(getSize() * getSize() - x * x);
-                double y = (random.nextBoolean() ? 1 : -1) * Math.sqrt(getSize() * getSize() - x * x - z * z);
+                double x = (random.nextDouble() * 2 - 1) * particleSize;
+                double z = (random.nextDouble() * 2 - 1) * Math.sqrt(particleSize * particleSize - x * x);
+                double y = (random.nextBoolean() ? 1 : -1) * Math.sqrt(particleSize * particleSize - x * x - z * z);
                 Vec3 pos = position().add(x, y, z);
                 if (random.nextBoolean())
-                    ParticleHelper.spawnDirectedParticle(level(), ParticleHelper.constructSimpleSpark(GRAY_COLOR, (float) (0.7f + Math.sqrt(getSize() / 2)),
+                    ParticleHelper.spawnDirectedParticle(level(), ParticleHelper.constructSimpleSpark(GRAY_COLOR, (float) (0.7f + Math.sqrt(particleSize / 2)),
                             40, 0.9f).withLightning(false).withGravity(2f), pos, mov);
                 else
-                    ParticleHelper.spawnDirectedParticle(level(), ParticleHelper.constructSmoke(GRAY_COLOR, (float) (0.7f + Math.sqrt(getSize() / 2)),
+                    ParticleHelper.spawnDirectedParticle(level(), ParticleHelper.constructSmoke(GRAY_COLOR, (float) (0.7f + Math.sqrt(particleSize / 2)),
                             40, 0f).withLightning(false).withGravity(2f), pos, mov);
             }
             
             if (random.nextDouble() < getDeltaMovement().length()) {
-                double x = (random.nextDouble() * 2 - 1) * getSize();
-                double z = (random.nextDouble() * 2 - 1) * Math.sqrt(getSize() * getSize() - x * x);
-                double y = (random.nextBoolean() ? 1 : -1) * Math.sqrt(getSize() * getSize() - x * x - z * z);
+                double x = (random.nextDouble() * 2 - 1) * particleSize;
+                double z = (random.nextDouble() * 2 - 1) * Math.sqrt(particleSize * particleSize - x * x);
+                double y = (random.nextBoolean() ? 1 : -1) * Math.sqrt(particleSize * particleSize - x * x - z * z);
                 Vec3 pos = position().add(x, y, z);
                 for (int i = 0; i < 3 * getDeltaMovement().length() * 2; i++) {
                     if (random.nextBoolean())
-                        ParticleHelper.spawnDirectedParticle(level(), ParticleHelper.constructSimpleSpark(BURN_COLOR, (float) (0.7f + Math.sqrt(getSize() / 2)),
+                        ParticleHelper.spawnDirectedParticle(level(), ParticleHelper.constructSimpleSpark(BURN_COLOR, (float) (0.7f + Math.sqrt(particleSize / 2)),
                                 40, 0.9f).withLightning(false).withGravity(2f), pos, mov);
                     else
-                        ParticleHelper.spawnDirectedParticle(level(), ParticleHelper.constructSmoke(BURN_COLOR, (float) (0.7f + Math.sqrt(getSize() / 2)),
+                        ParticleHelper.spawnDirectedParticle(level(), ParticleHelper.constructSmoke(BURN_COLOR, (float) (0.7f + Math.sqrt(particleSize / 2)),
                                 40, 0f).withLightning(false).withGravity(2f), pos, mov);
                 }
             }
@@ -127,11 +131,11 @@ public class MeteorEntity extends Entity {
         }
         
         if (!entityData.get(RELEASED)) {
-            Vec3 acceleration = target != null ? target.getBoundingBox().getCenter().subtract(this.position()).normalize().scale(0.1)
+            Vec3 acceleration = target != null ? target.getBoundingBox().getCenter().subtract(this.position()).normalize().scale(0.13)
                     : this.getDeltaMovement().normalize().scale(0.1);
             this.setDeltaMovement(getDeltaMovement().add(acceleration).scale(0.98f));
         } else {
-            this.setDeltaMovement(getDeltaMovement().scale(0.87f));
+            this.setDeltaMovement(getDeltaMovement().scale(0.84f));
             if (this.getDeltaMovement().length() < 0.2)
                 dispel();
         }
@@ -156,15 +160,17 @@ public class MeteorEntity extends Entity {
                 1 + (float) getDeltaMovement().length() * getSize() * 1.5f, false, Level.ExplosionInteraction.TRIGGER);
         level().explode(this, damageSources().playerAttack(owner), new ExplosionDamageCalculator(), position(),
                 (float) getDeltaMovement().length() * getSize() / 2, false, Level.ExplosionInteraction.BLOCK);
+
+        var particleSize = getParticleSize();
         ParticleHelper.spawnParticleAABB(level(), ParticleHelper.constructSimpleSpark(GRAY_COLOR, 1f,
-                80, 0.95f).withLightning(false).withGravity(2f), this.getBoundingBox().inflate(getSize() - 0.2), 40, 0.08 * getDeltaMovement().length());
+                80, 0.95f).withLightning(false).withGravity(2f), this.getBoundingBox().inflate(particleSize - 0.2), 40, 0.08 * getDeltaMovement().length());
         ParticleHelper.spawnParticleAABB(level(), ParticleHelper.constructSmoke(GRAY_COLOR, 1f,
-                80, 0f).withLightning(false).withGravity(2f), this.getBoundingBox().inflate(getSize() - 0.2), 40, 0.08 * getDeltaMovement().length());
+                80, 0f).withLightning(false).withGravity(2f), this.getBoundingBox().inflate(particleSize - 0.2), 40, 0.08 * getDeltaMovement().length());
         this.entityData.set(RELEASED, true);
         
         for (int i = 0; i < 20 * getDeltaMovement().length(); i++)
             if (getDeltaMovement().length() > random.nextDouble())
-                ParticleHelper.spawnParticleEntity(ParticleHelper.constructSimpleSpark(BURN_COLOR, (float) (0.7f + Math.sqrt(getSize() / 2)),
+                ParticleHelper.spawnParticleEntity(ParticleHelper.constructSimpleSpark(BURN_COLOR, (float) (0.7f + Math.sqrt(particleSize / 2)),
                         80, 0.95f).withLightning(true).withGravity(2f), this, 1, 0.08 * getDeltaMovement().length());
     }
     
@@ -177,7 +183,7 @@ public class MeteorEntity extends Entity {
     protected void dispel() {
         this.discard();
         ParticleHelper.spawnParticleAABB(level(), ParticleHelper.constructSmoke(GRAY_COLOR, 1f,
-                70, 0f).withLightning(false).withGravity(2f), this.getBoundingBox().inflate(getSize()), 50, 0.2);
+                70, 0f).withLightning(false).withGravity(2f), this.getBoundingBox().inflate(getParticleSize()), 50, 0.2);
     }
     
     @Override
@@ -199,6 +205,10 @@ public class MeteorEntity extends Entity {
         builder.define(SIZE, 0f);
         builder.define(RELEASED, false);
     }
+
+    public float getParticleSize() {
+        return 0.6f + getSize() / 2;
+    }
     
     public float getSize() {
         return level().isClientSide ? entityData.get(SIZE) : size;
@@ -213,6 +223,7 @@ public class MeteorEntity extends Entity {
     protected void readAdditionalSaveData(@NotNull CompoundTag compound) {
         setSize(compound.getFloat("damage"));
         this.ownerUUID = compound.getUUID("owner");
+        this.time = compound.getInt("time");
         this.owner = level().getPlayerByUUID(ownerUUID);
         if (compound.getBoolean("nullTarget"))
             this.target = (LivingEntity) level().getEntity(compound.getInt("target"));
@@ -222,6 +233,7 @@ public class MeteorEntity extends Entity {
     protected void addAdditionalSaveData(@NotNull CompoundTag compound) {
         compound.putFloat("damage", size);
         compound.putUUID("owner", ownerUUID);
+        compound.putInt("time", time);
         if (target != null)
             compound.putInt("target", target.getId());
         else

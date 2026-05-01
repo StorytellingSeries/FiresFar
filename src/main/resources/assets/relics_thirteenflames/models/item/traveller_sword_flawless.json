@@ -1,0 +1,72 @@
+{
+	"parent": "neoforge:item/default",
+	"base": {
+		"parent": "relics_thirteenflames:item/traveller_sword_3d_flawless"
+	},
+	"loader": "neoforge:separate_transforms",
+	"perspectives": {
+		"ground": {
+			"parent": "relics_thirteenflames:item/traveller_sword_2d_flawless"
+		},
+		"gui": {
+			"parent": "relics_thirteenflames:item/traveller_sword_2d_flawless"
+		},
+		"fixed": {
+			"parent": "relics_thirteenflames:item/traveller_sword_2d_flawless"
+		}
+	},
+	"overrides": [
+		{
+			"predicate": {
+				"alt": 1
+			},
+			"model": "relics_thirteenflames:item/traveller_sword_base_flawless"
+		},
+		{
+			"predicate": {
+				"alt": 0
+			},
+			"model": "relics_thirteenflames:item/traveller_sword_emissive_flawless"
+		}
+	],
+	"display": {
+		"thirdperson_righthand": {
+			"rotation": [20, 90, 0],
+			"translation": [0, 3, 0.5]
+		},
+		"thirdperson_lefthand": {
+			"rotation": [-20, -90, 0],
+			"translation": [0, 3, 0.5]
+		},
+		"firstperson_righthand": {
+			"rotation": [0, 90, 0],
+			"translation": [1.13, 3.2, 1.13],
+			"scale": [0.68, 0.68, 0.68]
+		},
+		"firstperson_lefthand": {
+			"rotation": [0, -90, 0],
+			"translation": [1.13, 3.2, 1.13],
+			"scale": [0.68, 0.68, 0.68]
+		},
+		"ground": {
+			"rotation": [90, 0, 0],
+			"translation": [0, -0.5, -3.5],
+			"scale": [0.5, 0.5, 0.5]
+		},
+		"gui": {
+			"rotation": [0, -180, 45],
+			"translation": [-1.75, -2.75, 0],
+			"scale": [0.55, 0.55, 0.55]
+		},
+		"head": {
+			"rotation": [0, 0, 90],
+			"translation": [8.75, 5, 0],
+			"scale": [1.51, 1.51, 1.51]
+		},
+		"fixed": {
+			"rotation": [0, 0, 45],
+			"translation": [2.75, -3.75, 0],
+			"scale": [0.75, 0.75, 0.75]
+		}
+	}
+}

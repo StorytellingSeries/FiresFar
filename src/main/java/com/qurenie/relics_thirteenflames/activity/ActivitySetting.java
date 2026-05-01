@@ -53,8 +53,10 @@ public class ActivitySetting implements IActivitySetting {
         if (!activities.activities().containsKey(name))
             return false;
 
+        int currentTime = (int) l.level().getGameTime();
         var a = activities.activities().get(name);
-        return getMaxCooldown(l, s) > a.recharge();
+
+        return a.remains(currentTime) > 0;
     }
 
     @Override

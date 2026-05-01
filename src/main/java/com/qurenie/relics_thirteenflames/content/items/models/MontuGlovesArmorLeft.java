@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 public class MontuGlovesArmorLeft<T extends LivingEntity> extends HumanoidModel<T> {
     // This layer location should be baked with EntityRendererProvider.Context in the entity renderer and passed into this model's constructor
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ThirteenFlames.rl("montu_gloves_armor_left"), "main");
-    private final ModelPart left_arm;
+    protected final ModelPart left_arm;
     
     public MontuGlovesArmorLeft(ModelPart root) {
         super(root);
@@ -47,5 +47,33 @@ public class MontuGlovesArmorLeft<T extends LivingEntity> extends HumanoidModel<
     @Override
     public void renderToBuffer(@NotNull PoseStack poseStack, @NotNull VertexConsumer buffer, int packedLight, int packedOverlay, int color) {
         left_arm.render(poseStack, buffer, packedLight, packedOverlay, color);
+    }
+
+    public static class Flawless<T extends LivingEntity> extends MontuGlovesArmorLeft<T> {
+
+        public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ThirteenFlames.rl("montu_gloves_armor_left_flawless"), "main");
+
+        public Flawless(ModelPart root) {
+            super(root);
+        }
+
+        public static LayerDefinition createBodyLayer() {
+            MeshDefinition meshdefinition = HumanoidModel.createMesh(new CubeDeformation(0.0F), 0);
+            PartDefinition partdefinition = meshdefinition.getRoot();
+
+            PartDefinition left_arm = partdefinition.addOrReplaceChild("left_arm", CubeListBuilder.create(), PartPose.offset(0.0F, 3.0F, 0.0F));
+            PartDefinition bipedLeftArm = left_arm.addOrReplaceChild("bipedLeftArm", CubeListBuilder.create(), PartPose.offset(-8.5F, 1.0F, 0.0F));
+
+            PartDefinition glove_left2 = bipedLeftArm.addOrReplaceChild("glove_left2", CubeListBuilder.create().texOffs(0, 0).addBox(8.37F, -4.3956F, -2.3559F, 6.0F, 10.0F, 6.0F, new CubeDeformation(0.0F))
+                    .texOffs(0, 19).addBox(7.37F, -1.3956F, -3.3559F, 9.0F, 3.0F, 8.0F, new CubeDeformation(0.0F))
+                    .texOffs(26, 17).addBox(12.37F, 1.6044F, -3.3559F, 4.0F, 2.0F, 8.0F, new CubeDeformation(0.0F))
+                    .texOffs(0, 30).addBox(11.37F, -3.3956F, -3.3559F, 5.0F, 2.0F, 8.0F, new CubeDeformation(0.0F))
+                    .texOffs(0, 40).addBox(13.37F, -5.3956F, -3.3559F, 3.0F, 2.0F, 8.0F, new CubeDeformation(0.0F))
+                    .texOffs(24, 1).addBox(7.37F, 3.6044F, -1.8559F, 6.0F, 4.0F, 5.0F, new CubeDeformation(0.0F)), PartPose.offset(-1.37F, 6.3956F, -0.6441F));
+
+            PartDefinition cube_r1 = glove_left2.addOrReplaceChild("cube_r1", CubeListBuilder.create().texOffs(43, 7).addBox(-2.98F, 4.8598F, -1.2754F, 3.0F, 4.0F, 3.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(11.37F, -3.3956F, 0.6441F, -0.3927F, 0.0F, 0.0F));
+
+            return LayerDefinition.create(meshdefinition, 64, 64);
+        }
     }
 }

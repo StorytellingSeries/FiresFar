@@ -18,13 +18,21 @@
   "overrides": [
     {
       "predicate": {
-        "alt": 0.5
+        "relics:flawless": 1
+      },
+      "model": "relics_thirteenflames:item/ronas_sword_flawless"
+    },
+    {
+      "predicate": {
+        "alt": 0.5,
+        "relics:flawless": 0
       },
       "model": "relics_thirteenflames:item/ronas_sword_inv"
     },
     {
       "predicate": {
-        "alt": 0.75
+        "alt": 0.75,
+        "relics:flawless": 0
       },
       "model": "relics_thirteenflames:item/ronas_sword_inv_emissive"
     }

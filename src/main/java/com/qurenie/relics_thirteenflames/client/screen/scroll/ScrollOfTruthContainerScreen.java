@@ -10,12 +10,14 @@ import com.qurenie.relics_thirteenflames.content.items.misc.ScrollColorMode;
 import com.qurenie.relics_thirteenflames.net.EnchantPacket;
 import com.qurenie.relics_thirteenflames.util.RenderTools;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -243,14 +245,39 @@ public class ScrollOfTruthContainerScreen extends DefaultMenuScreen<ScrollOfTrut
             b.render(guiGraphics, mx, my, pTicks);
         }
         Scissors.end();
-        
+
         if (!this.menu.scrollContainer.getItem(0).isEmpty()) {
             Player player = Minecraft.getInstance().player;
             int cost = ScrollOfTruthItem.getFullEnchantmentCost(player, menu.scroll, this.toEnchant.values());
             int level = player == null ? 0 : player.experienceLevel;
-            RenderTools.renderCenteredScaledText(guiGraphics, Component.translatable("tooltip.relics_thirteenflames.scroll_of_truth.gui.levelCost").getString() + " " + cost,
-                    relX + this.getScreenWidth() / 2, relY + 87, 0.95f, RenderTools.DEFAULT_SHADOW_COLOR, level >= cost ? RenderTools.DEFAULT_TEXT_COLOR : 0xdb1e10);
+
+            String text = Component.translatable("tooltip.relics_thirteenflames.scroll_of_truth.gui.levelCost").getString() + " " + cost;
+
+            Font font = Minecraft.getInstance().font;
+
+            // Разбиваем текст на строки с максимальной шириной 77 пикселей
+            List<FormattedCharSequence> lines = font.split(Component.literal(text), 87);
+
+            int centerX = relX + this.getScreenWidth() / 2;
+            int startY = relY + 87 - (lines.size() - 1) * 5;
+
+            int color = level >= cost ? RenderTools.DEFAULT_TEXT_COLOR : 0xdb1e10;
+
+            for (int i = 0; i < lines.size(); i++) {
+                var line = lines.get(i);
+
+                RenderTools.renderCenteredScaledText(
+                        guiGraphics,
+                        line,
+                        centerX,
+                        startY + i * 9,
+                        0.95f,
+                        RenderTools.DEFAULT_SHADOW_COLOR,
+                        color
+                );
+            }
         }
+
         this.renderTooltip(guiGraphics, mx, my);
         
         

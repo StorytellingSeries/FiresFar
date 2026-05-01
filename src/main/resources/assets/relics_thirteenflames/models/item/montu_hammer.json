@@ -1,5 +1,15 @@
 {
   "parent": "neoforge:item/default",
+
+  "overrides": [
+    {
+      "predicate": {
+        "relics:flawless": 1
+      },
+      "model": "relics_thirteenflames:item/montu_hammer_flawless"
+    }
+  ],
+
   "base": {
     "parent": "relics_thirteenflames:item/montu_hammer_3d"
   },

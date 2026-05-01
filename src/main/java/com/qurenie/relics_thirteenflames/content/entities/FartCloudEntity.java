@@ -3,6 +3,7 @@ package com.qurenie.relics_thirteenflames.content.entities;
 import com.qurenie.relics_thirteenflames.content.effects.PoisonEffectInstance;
 import com.qurenie.relics_thirteenflames.content.items.ItemRonasSword;
 import com.qurenie.relics_thirteenflames.init.EffectsRegistry;
+import com.qurenie.relics_thirteenflames.util.FlamesUtils;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import it.hurts.sskirillss.relics.api.relics.IRelicItem;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
@@ -26,16 +27,16 @@ import java.util.Random;
 public class FartCloudEntity extends Projectile {
 
 
-    
     Random rng = new Random();
     int dmgCD = 0;
+
     public FartCloudEntity(EntityType<? extends Projectile> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
     }
 
     private static final EntityDataAccessor<Integer> LIFETIME = SynchedEntityData.defineId(FartCloudEntity.class, EntityDataSerializers.INT);
 
-    public void setLifeTime(int lifetime){
+    public void setLifeTime(int lifetime) {
         this.getEntityData().set(LIFETIME, lifetime);
     }
 
@@ -45,7 +46,7 @@ public class FartCloudEntity extends Projectile {
 
     private static final EntityDataAccessor<Integer> MAX_AMP = SynchedEntityData.defineId(FartCloudEntity.class, EntityDataSerializers.INT);
 
-    public void setMaxAmp(int maxAmp){
+    public void setMaxAmp(int maxAmp) {
         this.getEntityData().set(MAX_AMP, maxAmp);
     }
 
@@ -55,13 +56,14 @@ public class FartCloudEntity extends Projectile {
 
     private static final EntityDataAccessor<Integer> DURATION = SynchedEntityData.defineId(FartCloudEntity.class, EntityDataSerializers.INT);
 
-    public void setDuration(int duration){
+    public void setDuration(int duration) {
         this.getEntityData().set(DURATION, duration);
     }
 
     public int getDuration() {
         return this.getEntityData().get(DURATION);
     }
+
     private static final EntityDataAccessor<Float> RADIUS = SynchedEntityData.defineId(FartCloudEntity.class, EntityDataSerializers.FLOAT);
 
     public float getRadius() {
@@ -74,12 +76,12 @@ public class FartCloudEntity extends Projectile {
 
     private ItemStack sword = ItemStack.EMPTY;
 
-    public void setSword(ItemStack swort){
+    public void setSword(ItemStack swort) {
         this.sword = swort;
     }
 
-    public ItemStack getSword(){
-        return  sword;
+    public ItemStack getSword() {
+        return sword;
     }
 
     @Override
@@ -90,17 +92,17 @@ public class FartCloudEntity extends Projectile {
     @Override
     public void tick() {
         super.tick();
-        if(this.tickCount > getLifeTime()) this.discard();
-        float radius = getRadius() * (1 - (float) this.tickCount / getLifeTime());
-        AABB box = new AABB(this.getPosition(1), this.getPosition(1)).inflate(radius);
-        if(this.level() instanceof ServerLevel) {
+        if (this.tickCount > getLifeTime()) this.discard();
+        float radius = getRadius() * (1 - this.tickCount / (float) getLifeTime() * 0.5f);
+        AABB box = getBoundingBox().inflate(radius);
+        if (this.level() instanceof ServerLevel) {
 
-            ParticleHelper.spawnParticleAABB(this.level(), ParticleHelper.constructSimpleSpark(new Color(55 + rng.nextInt(-50, 10), 175 - rng.nextInt(160), 0),
-                    radius / 6.2f + 0.15f, 80, 0.94F), box, Math.round(radius * radius * 2f) + 2, 0.01 * radius);
+            ParticleHelper.spawnParticleAABB(this.level(), ParticleHelper.constructSimpleSpark(FlamesUtils.fromRGBI(55 + rng.nextInt(-50, 10), 175 - rng.nextInt(160), 0),
+                    radius / 6.2f + 0.15f, 80, 0.94F), box.inflate(-radius * 0.2), Math.round(radius * radius * 2f) + 2, 0.01 * radius);
 
             if (this.tickCount % 2 == 0) ParticleHelper.spawnParticleAABB(this.level(),
-                    ParticleHelper.constructSimpleSpark(new Color(85 - rng.nextInt(80), 255 - rng.nextInt(160), 0), radius / 8.0f, 60, 0.94F),
-                    box, Math.round(radius * radius) + 1, 0);
+                    ParticleHelper.constructSimpleSpark(FlamesUtils.fromRGBI(85 - rng.nextInt(80), 255 - rng.nextInt(160), 0), radius / 8.0f, 60, 0.94F),
+                    box.inflate(-1), Math.round(radius * radius) + 1, 0);
 
 
             //AABB box = new AABB(this.getX(), this.getY(), this.getZ(),this.getX(), this.getY(), this.getZ()).inflate(radius);
@@ -109,22 +111,38 @@ public class FartCloudEntity extends Projectile {
             if (dmgCD == 0) {
                 for (LivingEntity e : entities) {
                     int invulTime = e.invulnerableTime;
-                    e.hurt(e.level().damageSources().magic(), (float) (2 + radius));
+                    e.hurt(e.level().damageSources().magic(), 2 + radius);
                     e.invulnerableTime = invulTime;
                     int maxAmp = getMaxAmp();
                     int duration = getDuration();
-                    if(getSword().getItem() instanceof ItemRonasSword relic) {
+                    if (getSword().getItem() instanceof ItemRonasSword relic) {
+                        if (this.getOwner() instanceof LivingEntity owner
+                                && relic.hasRangModifier(owner, getSword(), "fart", "upgrade")
+                                && level() instanceof ServerLevel serverLevel) {
+                            for (ItemStack armor : e.getArmorSlots()) {
+                                armor.hurtAndBreak(1, serverLevel, e, s -> {});
+                            }
+
+                            // ломаем предмет в руке
+                            ItemStack main = e.getMainHandItem();
+                            if (!main.isEmpty()) {
+                                main.hurtAndBreak(1, serverLevel, e, s -> {});
+                            }
+                        }
+
                         if (e.hasEffect(EffectsRegistry.POISSON)) {
                             int appliedAmplifier = e.getEffect(EffectsRegistry.POISSON).getAmplifier() + 1;
                             if (appliedAmplifier <= maxAmp) {
                                 e.addEffect(new PoisonEffectInstance(EffectsRegistry.POISSON, duration + appliedAmplifier * 20, appliedAmplifier, false, true, true, getSword()));
-                                if (rng.nextFloat() < 0.25f && this.getOwner() instanceof LivingEntity livin) relic.addExperience(livin, getSword(), 1);
+                                if (rng.nextFloat() < 0.25f && this.getOwner() instanceof LivingEntity livin)
+                                    relic.addExperience(livin, getSword(), 1);
                             } else {
                                 e.addEffect(new PoisonEffectInstance(EffectsRegistry.POISSON, duration + maxAmp * 20, maxAmp, false, true, true, getSword()));
                             }
                         } else {
                             e.addEffect(new PoisonEffectInstance(EffectsRegistry.POISSON, duration, 0, false, true, true, getSword()));
-                            if (rng.nextFloat() < 0.25f && this.getOwner() instanceof LivingEntity livin) relic.addExperience(livin, getSword(), 1);
+                            if (rng.nextFloat() < 0.25f && this.getOwner() instanceof LivingEntity livin)
+                                relic.addExperience(livin, getSword(), 1);
                         }
                     }
                 }

@@ -30,7 +30,6 @@ public class MontuGlovesScreen extends DefaultMenuScreen<MontuGlovesContainer> {
     
     public void onCraftStarted() {
         smithTicker = ANIMATION_LENGTH;
-        
     }
     
     @Override

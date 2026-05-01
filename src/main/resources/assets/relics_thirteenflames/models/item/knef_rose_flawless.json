@@ -1,0 +1,44 @@
+{
+  "parent": "neoforge:item/default",
+  "base": {
+    "parent": "relics_thirteenflames:item/knef_rose_3d_flawless"
+  },
+  "loader": "neoforge:separate_transforms",
+  "perspectives": {
+    "ground": {
+      "parent": "relics_thirteenflames:item/knef_rose_2d_flawless"
+    },
+    "gui": {
+      "parent": "relics_thirteenflames:item/knef_rose_2d_flawless"
+    },
+    "fixed": {
+      "parent": "relics_thirteenflames:item/knef_rose_2d_flawless"
+    }
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "alt": 3
+      },
+      "model": "relics_thirteenflames:item/knef_rose_inv_flawless"
+    },
+    {
+      "predicate": {
+        "alt": 2
+      },
+      "model": "relics_thirteenflames:item/knef_rose_emissive_flawless"
+    },
+    {
+      "predicate": {
+        "alt": 1
+      },
+      "model": "relics_thirteenflames:item/knef_rose_2d_base_flawless"
+    },
+    {
+      "predicate": {
+        "alt": 0
+      },
+      "model": "relics_thirteenflames:item/knef_rose_2d_souls_flawless"
+    }
+  ]
+}

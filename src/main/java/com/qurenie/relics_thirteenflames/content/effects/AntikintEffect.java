@@ -9,14 +9,13 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
 
-import static com.qurenie.relics_thirteenflames.content.items.ItemJodahMask.GOLD_COLOR;
-import static com.qurenie.relics_thirteenflames.content.items.ItemJodahMask.GRAY_COLOR;
+import static com.qurenie.relics_thirteenflames.style.ColorScheme.GRAY_COLOR;
 
 @EventBusSubscriber
 public class AntikintEffect extends MobEffect {
     
     public AntikintEffect() {
-        super(MobEffectCategory.HARMFUL, GRAY_COLOR.getRGB());
+        super(MobEffectCategory.HARMFUL, GRAY_COLOR.getARGB());
     }
     
     @SubscribeEvent
@@ -37,6 +36,7 @@ public class AntikintEffect extends MobEffect {
         
         int antiscint = expired.getEntity().getData(AttachmentsRegistry.ANTISKINT_DATA);
         FlamesUtils.addAntiskint(expired.getEntity(),  -1, antiscint);
+        expired.setCanceled(true);
     }
     
 }

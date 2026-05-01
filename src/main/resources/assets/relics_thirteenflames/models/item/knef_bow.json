@@ -18,6 +18,12 @@
   "overrides": [
     {
       "predicate": {
+        "relis:flawless": 1
+      },
+      "model": "relics_thirteenflames:item/knef_bow_flawless"
+    },
+    {
+      "predicate": {
         "alt": 11
       },
       "model": "relics_thirteenflames:item/knef_bow_2d_base"
@@ -43,8 +49,6 @@
       },
       "model": "relics_thirteenflames:item/knef_bow_2d_2"
     },
-
-
     {
       "predicate": {
         "alt": 7

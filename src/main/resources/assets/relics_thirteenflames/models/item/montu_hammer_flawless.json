@@ -1,0 +1,18 @@
+{
+  "parent": "neoforge:item/default",
+  "base": {
+    "parent": "relics_thirteenflames:item/montu_hammer_3d_flawless"
+  },
+  "loader": "neoforge:separate_transforms",
+  "perspectives": {
+    "ground": {
+      "parent": "relics_thirteenflames:item/montu_hammer_2d_flawless"
+    },
+    "gui": {
+      "parent": "relics_thirteenflames:item/montu_hammer_2d_flawless"
+    },
+    "fixed": {
+      "parent": "relics_thirteenflames:item/montu_hammer_2d_flawless"
+    }
+  }
+}

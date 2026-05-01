@@ -218,7 +218,10 @@ public class ActivityCallGui {
 
     private void renderCards(GuiGraphics gui, int cx, int cy, float pt) {
         for (CardGuiEntity cardGuiEntity : cards.values())
+            cardGuiEntity.preRender(gui, cx, cy, pt);
+        for (CardGuiEntity cardGuiEntity : cards.values()) {
             cardGuiEntity.render(gui, cx, cy, pt);
+        }
     }
 
 }

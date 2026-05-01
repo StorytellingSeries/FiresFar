@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.qurenie.relics_thirteenflames.ThirteenFlames;
 import com.qurenie.relics_thirteenflames.content.items.models.MontuGlovesArmorLeft;
 import com.qurenie.relics_thirteenflames.content.items.models.MontuGlovesArmorRight;
+import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -27,14 +28,20 @@ import java.util.Map;
 public class MontuGlovesRenderer implements ICurioRenderer {
 
     private static final ResourceLocation TEXTURE = ThirteenFlames.rl("textures/armor/montu_gloves.png");
+
     private static final ResourceLocation EMISSION = ThirteenFlames.rl("textures/armor/montu_gloves_emissive.png");
 
     private final MontuGlovesArmorRight<LivingEntity> right;
     private final MontuGlovesArmorLeft<LivingEntity> left;
 
+    private final MontuGlovesArmorRight<LivingEntity> right_flawless;
+    private final MontuGlovesArmorLeft<LivingEntity> left_flawless;
+
     public MontuGlovesRenderer() {
         this.right = new MontuGlovesArmorRight<>(Minecraft.getInstance().getEntityModels().bakeLayer(MontuGlovesArmorRight.LAYER_LOCATION));
         this.left = new MontuGlovesArmorLeft<>(Minecraft.getInstance().getEntityModels().bakeLayer(MontuGlovesArmorLeft.LAYER_LOCATION));
+        this.right_flawless = new MontuGlovesArmorRight.Flawless<>(Minecraft.getInstance().getEntityModels().bakeLayer(MontuGlovesArmorRight.Flawless.LAYER_LOCATION));
+        this.left_flawless = new MontuGlovesArmorLeft.Flawless<>(Minecraft.getInstance().getEntityModels().bakeLayer(MontuGlovesArmorLeft.Flawless.LAYER_LOCATION));
     }
 
     @Override
@@ -42,9 +49,12 @@ public class MontuGlovesRenderer implements ICurioRenderer {
                                                                           MultiBufferSource renderTypeBuffer, int light, float limbSwing, float limbSwingAmount, float partialTicks,
                                                                           float ageInTicks, float netHeadYaw, float headPitch) {
 
+        boolean flawless = ItemsRegistry.MONTU_GLOVES.getRelicData(slotContext.entity(), stack).isFlawless();
+        int tickCount = slotContext.entity().tickCount;
+
         for (var entry : List.of(
-                Map.entry(right, HumanoidArm.RIGHT),
-                Map.entry(left, HumanoidArm.LEFT)
+                Map.entry(flawless ? right_flawless : right, HumanoidArm.RIGHT),
+                Map.entry(flawless ? left_flawless : left, HumanoidArm.LEFT)
         )) {
             LivingEntity entity = slotContext.entity();
 
@@ -60,7 +70,8 @@ public class MontuGlovesRenderer implements ICurioRenderer {
             poseStack.pushPose();
 
             // base
-            VertexConsumer vc = ItemRenderer.getArmorFoilBuffer(renderTypeBuffer, RenderType.armorCutoutNoCull(TEXTURE), stack.hasFoil());
+            VertexConsumer vc = ItemRenderer.getArmorFoilBuffer(renderTypeBuffer,
+                    flawless ? RenderType.armorCutoutNoCull(getFlawlessLocation(tickCount / 2)) : RenderType.armorCutoutNoCull(TEXTURE), stack.hasFoil());
             model.renderToBuffer(poseStack, vc, light, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
 
             // emission
@@ -76,5 +87,9 @@ public class MontuGlovesRenderer implements ICurioRenderer {
         ItemStack used = reverse ? entity.getOffhandItem() : entity.getMainHandItem();
 
         return used.getItem() instanceof ShieldItem;
+    }
+
+    private ResourceLocation getFlawlessLocation(int tickCount) {
+        return ThirteenFlames.rl(String.format("textures/armor/montu_glove_upgraded%d.png", tickCount % 6 + 1));
     }
 }

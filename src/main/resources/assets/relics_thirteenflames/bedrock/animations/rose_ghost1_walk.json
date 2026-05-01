@@ -1,0 +1,32 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"rose_ghost1_walk": {
+			"loop": true,
+			"animation_length": 0.5,
+			"bones": {
+				"LeftArm": {
+					"rotation": ["-2.9492+math.sin(q.anim_time*360*2-15)*4", "-29.8095-math.cos(q.anim_time*360*2-15)*4", 8.5194],
+					"position": [0, 0, 1]
+				},
+				"LeftHand": {
+					"rotation": ["14.7022-math.sin(q.anim_time*360*2-15)*3", "9.5242+-math.sin(q.anim_time*360*2-45)*3", "4.6407-math.cos(q.anim_time*360*2-15)*4"]
+				},
+				"Head": {
+					"rotation": ["5-math.sin(q.anim_time*360*2)/2", "math.cos(q.anim_time*360*2-15)*1.4", "-math.sin(q.anim_time*360*2)"],
+					"position": ["math.cos(q.anim_time*360*2-15)/4", 0.25, -2.75]
+				},
+				"model": {
+					"position": [0, 0, -0.75]
+				},
+				"RightArm": {
+					"rotation": ["-2.9492+math.cos(q.anim_time*360*2-15)*4", "29.8095+math.sin(q.anim_time*360*2-15)*4", -8.5194],
+					"position": [0, 0, 1]
+				},
+				"RightHand": {
+					"rotation": ["14.7022-math.cos(q.anim_time*360*2-15)*3", "-9.5242-+math.cos(q.anim_time*360*2-45)*3", "-4.6407+math.sin(q.anim_time*360*2-15)*4"]
+				}
+			}
+		}
+	}
+}

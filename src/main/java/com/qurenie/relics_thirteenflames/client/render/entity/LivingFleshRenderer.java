@@ -11,30 +11,27 @@ import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
 public class LivingFleshRenderer
-		extends CommonRenderer<LivingFleshEntity>
-{
-	protected float scale;
-	
-	public LivingFleshRenderer(EntityRendererProvider.Context manager, RendererFactory.ModelConfiguration modelConfiguration, float shadowSize, ResourceLocation texture, float scale)
-	{
-		super(manager, modelConfiguration, shadowSize, texture);
-		this.scale = scale;
-	}
-	
-	protected float getScale(LivingFleshEntity entity)
-	{
-		return scale * entity.getScale();
-	}
-	
-	@Override
-	protected void renderNameTag(LivingFleshEntity p_114498_, Component p_114499_, PoseStack p_114500_, MultiBufferSource p_114501_, int p_114502_, float p_316698_) {
-	}
-	
-	@Override
-	protected void setupRotations(@NotNull LivingFleshEntity pEntityLiving, @NotNull PoseStack pMatrixStack, float pAgeInTicks, float pRotationYaw, float pPartialTicks, float p_320045_) {
-		float sc = getScale(pEntityLiving);
-		pMatrixStack.scale(sc, sc, sc);
-		super.setupRotations(pEntityLiving, pMatrixStack, pAgeInTicks, pRotationYaw, pPartialTicks, p_320045_);
-	}
+        extends CommonRenderer<LivingFleshEntity> {
+    protected float scale;
+
+    public LivingFleshRenderer(EntityRendererProvider.Context manager, RendererFactory.ModelConfiguration modelConfiguration, float shadowSize, ResourceLocation texture, float scale) {
+        super(manager, modelConfiguration, shadowSize, texture);
+        this.scale = scale;
+    }
+
+    protected float getScale(LivingFleshEntity entity) {
+        return (float) (scale * Math.pow(entity.getScale(), 1 / 8f));
+    }
+
+    @Override
+    protected void renderNameTag(LivingFleshEntity p_114498_, Component p_114499_, PoseStack p_114500_, MultiBufferSource p_114501_, int p_114502_, float p_316698_) {
+    }
+
+    @Override
+    protected void setupRotations(@NotNull LivingFleshEntity pEntityLiving, @NotNull PoseStack pMatrixStack, float pAgeInTicks, float pRotationYaw, float pPartialTicks, float p_320045_) {
+        float sc = getScale(pEntityLiving);
+        pMatrixStack.scale(sc, sc, sc);
+        super.setupRotations(pEntityLiving, pMatrixStack, pAgeInTicks, pRotationYaw, pPartialTicks, p_320045_);
+    }
 
 }

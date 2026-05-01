@@ -38,6 +38,41 @@ public class EntityRegistry {
             .setUpdateInterval(1)
             .updateInterval(1)
             .build("jodah_heal");
+
+    @RegistryName("jodah_mark")
+    public static final EntityType<JodahMarkEntity> JODAH_MARK = Builder.<JodahMarkEntity>of(JodahMarkEntity::new, MobCategory.MISC)
+            .sized(0.1F, 0.1F)
+            .setUpdateInterval(1)
+            .updateInterval(1)
+            .build("jodah_mark");
+
+    @RegistryName("wither_proj")
+    public static final EntityType<HomingWitherProjectile> WITHER_PROJ = Builder.<HomingWitherProjectile>of(HomingWitherProjectile::new, MobCategory.MISC)
+            .sized(0.1F, 0.1F)
+            .setUpdateInterval(1)
+            .updateInterval(1)
+            .build("wither_proj");
+
+    @RegistryName("soul_orb")
+    public static final EntityType<SoulOrbEntity> SOUL_ORB = Builder.<SoulOrbEntity>of(SoulOrbEntity::new, MobCategory.MISC)
+            .sized(0.1F, 0.1F)
+            .setUpdateInterval(1)
+            .updateInterval(1)
+            .build("soul_orb");
+
+    @RegistryName("soul_mob_carrier")
+    public static final EntityType<SoulSpawnCarrierEntity> MOB_CARRIER = Builder.<SoulSpawnCarrierEntity>of(SoulSpawnCarrierEntity::new, MobCategory.MISC)
+            .sized(0.1F, 0.1F)
+            .setUpdateInterval(1)
+            .updateInterval(1)
+            .build("soul_mob_carrier");
+
+    @RegistryName("wave")
+    public static final EntityType<WaveEntity> WAVE = Builder.<WaveEntity>of(WaveEntity::new, MobCategory.MISC)
+            .sized(0.1F, 0.1F)
+            .setUpdateInterval(1)
+            .updateInterval(1)
+            .build("wave");
     
     @RegistryName("traveller_cut")
     public static final EntityType<TravellerCutEntity> TRAVELLER_CUT = Builder.<TravellerCutEntity>of(TravellerCutEntity::new, MobCategory.MISC)
@@ -133,6 +168,16 @@ public class EntityRegistry {
     public static final EntityType<LivingFleshEntity> LIVING_FLESH = Builder.of(LivingFleshEntity::new, MobCategory.MISC)
             .sized(1F, 1F)
             .build("living_flesh");
+
+    @RegistryName("small_ghost")
+    public static final EntityType<GhostSmallEntity> SMALL_GHOST = Builder.of(GhostSmallEntity::new, MobCategory.MONSTER)
+            .sized(1F, 1F)
+            .build("small_ghost");
+
+    @RegistryName("big_ghost")
+    public static final EntityType<GhostBigEntity> BIG_GHOST = Builder.of(GhostBigEntity::new, MobCategory.MONSTER)
+            .sized(1F, 1F)
+            .build("big_ghost");
     
     @RegistryName("respawn_book")
     public static final EntityType<RespawnBookEntity> RESPAWN_BOOK = Builder.<RespawnBookEntity>of(RespawnBookEntity::new, MobCategory.MISC)

@@ -9,6 +9,10 @@ import com.qurenie.relics_thirteenflames.init.EntityRegistry;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
 import com.qurenie.relics_thirteenflames.net.RhonasSweepPacket;
 import com.qurenie.relics_thirteenflames.util.FlamesUtils;
+import com.qurenie.relics_thirteenflames.util.ParticleHelper;
+import it.hurts.sskirillss.relics.api.events.relic.base.RelicEvent;
+import it.hurts.sskirillss.relics.api.relics.abilities.ExperienceSourcesTemplate;
+import it.hurts.sskirillss.relics.items.misc.CreativeContentConstructor;
 import it.hurts.sskirillss.relics.items.relics.base.RelicItem;
 import it.hurts.sskirillss.relics.api.relics.RelicTemplate;
 import it.hurts.sskirillss.relics.api.relics.abilities.AbilitiesTemplate;
@@ -19,16 +23,20 @@ import it.hurts.sskirillss.relics.init.RelicsScalingModels;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.LevelingTemplate;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootTemplate;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootEntry;
+import it.hurts.sskirillss.relics.items.relics.base.data.research.ResearchTemplate;
 import it.hurts.sskirillss.relics.utils.MathUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
+import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -39,8 +47,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.level.ExplosionDamageCalculator;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.ItemAbilities;
 import net.neoforged.neoforge.common.ItemAbility;
@@ -67,7 +77,6 @@ public class ItemRonasSword extends RelicItem implements IExtRelicItem, IColored
 
     private static final Random RNG = new Random();
 
-
     @Override
     public @Nullable RelicAttributeModifier getRelicAttributeModifiers(LivingEntity entity, ItemStack stack) {
         float atkspd = (float) getStatValue(entity, stack, "anemia", "atkspd");
@@ -77,10 +86,14 @@ public class ItemRonasSword extends RelicItem implements IExtRelicItem, IColored
                 .attribute(new RelicAttributeModifier.Modifier(Attributes.ATTACK_SPEED, -2.6F + atkspd, AttributeModifier.Operation.ADD_VALUE))
                 .build();
     }
-    
+
     @Override
     public boolean canPerformAction(@NotNull ItemStack stack, @NotNull ItemAbility itemAbility) {
         return ItemAbilities.DEFAULT_SWORD_ACTIONS.contains(itemAbility);
+    }
+
+    @Override
+    public void gatherCreativeTabContent(CreativeContentConstructor constructor) {
     }
 
     @Override
@@ -110,10 +123,24 @@ public class ItemRonasSword extends RelicItem implements IExtRelicItem, IColored
                                         .formatValue(x -> (int) MathUtils.round(x, 1))
                                         .build()
                                 )
+                                .stat(AbilityStatTemplate.builder("explosion_damage")
+                                        .initialValue(0.75, 1.25)
+                                        .thresholdValue(0.75, 40)
+                                        .upgradeModifier(RelicsScalingModels.MULTIPLICATIVE_BASE.get(), 0.25)
+                                        .formatValue(x -> MathUtils.round(x, 1))
+                                        .build()
+                                )
+                                .rankModifier(1, "explosion")
+                                .experienceSources(ExperienceSourcesTemplate.builder()
+                                        .source("source_1")
+                                        .build())
                                 .build()
                         )
                         .ability(AbilityTemplate.builder("fart")
                                 .initialMaxLevel(3)
+                                .experienceSources(ExperienceSourcesTemplate.builder()
+                                        .source("source_1")
+                                        .build())
                                 .stat(AbilityStatTemplate.builder("radius")
                                         .initialValue(2.0, 3.5)
                                         .thresholdValue(2.0, 5.0)
@@ -135,6 +162,11 @@ public class ItemRonasSword extends RelicItem implements IExtRelicItem, IColored
                                         .formatValue(x -> MathUtils.round(x, 1))
                                         .build()
                                 )
+                                .rankModifier(1, "upgrade")
+                                .research(ResearchTemplate.builder()
+                                        .star(0, 7, 16).star(1, 7, 9).star(2, 15, 9).star(3, 15, 16).star(4, 10, 12).star(5, 12, 12).star(6, 12, 23).star(7, 8, 27).star(8, 12, 19)
+                                        .link(1, 4).link(4, 5).link(5, 2).link(0, 4).link(5, 3).link(8, 6).link(6, 7)
+                                        .build())
                                 .build()
                         )
                         .ability(AbilityTemplate.builder("anemia")
@@ -167,12 +199,6 @@ public class ItemRonasSword extends RelicItem implements IExtRelicItem, IColored
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, @NotNull TooltipContext context, List<net.minecraft.network.chat.Component> tooltip, TooltipFlag isAdvanced) {
-        tooltip.add(Component.translatable("tooltip.relics_thirteenflames.ronas_sword.lore").withStyle(ChatFormatting.GOLD).withStyle(ChatFormatting.ITALIC));
-        super.appendHoverText(stack, context, tooltip, isAdvanced);
-    }
-
-    @Override
     public boolean shouldCauseReequipAnimation(ItemStack oldStack, ItemStack newStack, boolean slotChanged) {
         return slotChanged;
     }
@@ -184,11 +210,18 @@ public class ItemRonasSword extends RelicItem implements IExtRelicItem, IColored
             pLevel.playSound(null, pPlayer, SoundEvents.SCULK_BLOCK_BREAK, SoundSource.MASTER, 1f, 1f);
             pLevel.playSound(null, pPlayer, SoundEvents.AZALEA_FALL, SoundSource.MASTER, 1f, 0.01f);
             ItemStack sword = pPlayer.getItemInHand(pUsedHand);
-            int lifetime = (int) getStatValue(pPlayer, sword, "fart", "duration") * 20;
+
             float radius = (float) getStatValue(pPlayer, sword, "fart", "radius");
+            float lifetime = (int) getStatValue(pPlayer, sword, "fart", "duration") * 20;
+
+            if (hasRangModifier(pPlayer, sword, "fart", "upgrade")) {
+                radius *= 1.25f;
+                lifetime *= 1.5f;
+            }
+
             FartCloudEntity cloud = new FartCloudEntity(EntityRegistry.FARTCLOUD, pLevel);
             cloud.setRadius(radius);
-            cloud.setLifeTime(lifetime);
+            cloud.setLifeTime((int) lifetime);
             cloud.setMaxAmp((int)Math.round(getStatValue(pPlayer, sword, "spit", "maxstacks") - 1));
             cloud.setDuration((int) Math.round(getStatValue(pPlayer, sword, "spit", "poisondur") * 20));
             cloud.setOwner(pPlayer);
@@ -312,13 +345,70 @@ public class ItemRonasSword extends RelicItem implements IExtRelicItem, IColored
     public static void onLivingDeath(LivingDeathEvent event) {
 
         if(event.getEntity().level().isClientSide()) return;
-        int stacks = event.getEntity().hasEffect(EffectsRegistry.POISSON) ? event.getEntity().getEffect(EffectsRegistry.POISSON).getAmplifier() + 1 : 0;
 
+        LivingEntity dead = event.getEntity();
 
-        if(event.getEntity().getEffect(EffectsRegistry.POISSON) instanceof PoisonEffectInstance pei && pei.getOriginSword().getItem() instanceof ItemRonasSword relic){
+        int stacks = dead.hasEffect(EffectsRegistry.POISSON)
+                ? dead.getEffect(EffectsRegistry.POISSON).getAmplifier() + 1
+                : 0;
+
+        if(dead.getEffect(EffectsRegistry.POISSON) instanceof PoisonEffectInstance pei
+                && pei.getOriginSword().getItem() instanceof ItemRonasSword relic) {
+
+            LivingEntity attacker = (LivingEntity) event.getSource().getEntity();
+            ItemStack sword = pei.getOriginSword();
 
             for (int i = 0; i < stacks; i++) {
-                relic.addExperience((LivingEntity) event.getSource().getEntity(), pei.getOriginSword(), RNG.nextInt(3) + 1);
+                relic.addExperience(attacker, sword, RNG.nextInt(3) + 1);
+            }
+
+            int maxAmp = (int) Math.round(relic.getStatValue(attacker, sword, "spit", "maxstacks") - 1);
+            if (!relic.hasRangModifier(attacker, sword, "spit", "explosion")) return;
+
+            float radius = 2.5f + stacks;
+            float damage = (float) (stacks * relic.getStatValue(attacker, sword, "spit", "explosion_damage"));
+
+            AABB box = dead.getBoundingBox().inflate(radius);
+
+            List<LivingEntity> targets = dead.level().getEntitiesOfClass(
+                    LivingEntity.class,
+                    box,
+                    e -> e != dead
+            );
+            var rng = dead.level().random;
+
+            dead.level().explode(dead, null, null, dead.position(), 0.75f, false, Level.ExplosionInteraction.NONE);
+            ParticleHelper.spawnParticleEntity(
+                    ParticleHelper.constructSmoke(FlamesUtils.fromRGBI(55 + rng.nextInt(-50, 10), 175 - rng.nextInt(160), 0), (float) (0.3 + 0.1f * stacks), 30 + rng.nextInt(10)).withGravity(0.7f),
+                    dead, 5 + 7 * stacks, 0.03 + stacks * 0.05
+            );
+
+            ParticleHelper.spawnParticleEntity(
+                    ParticleHelper.constructSimpleSpark(FlamesUtils.fromRGBI(85 - rng.nextInt(80), 255 - rng.nextInt(160), 0), 0.3f, 30 + rng.nextInt(10), 0.95f).withGravity(2),
+                    dead, 14 * stacks, 0.06 + stacks * 0.012
+            );
+
+            ParticleHelper.spawnParticleEntity(
+                    ParticleTypes.SMOKE,
+                    dead, 14 * stacks, 0.06 + stacks * 0.012
+            );
+
+            for (LivingEntity e : targets) {
+                e.hurt(e.damageSources().magic(), damage);
+                int spreadStacks = (int) Math.ceil(stacks / 2.0);
+
+                if (spreadStacks > 0) {
+                    var inst = e.getEffect(EffectsRegistry.POISSON);
+                    int before = inst == null ? -1 : inst.getAmplifier();
+                    int result = Math.min(maxAmp, before + spreadStacks);
+                    e.addEffect(new PoisonEffectInstance(
+                            EffectsRegistry.POISSON,
+                            100,
+                            result,
+                            false, true, true,
+                            sword
+                    ));
+                }
             }
         }
     }

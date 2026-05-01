@@ -35,6 +35,8 @@ import java.util.stream.Stream;
 
 import static com.qurenie.relics_thirteenflames.content.entities.AnimatedEntity.LAYER_ACTION;
 import static com.qurenie.relics_thirteenflames.content.entities.TravellerCutEntity.directionToYBodyRot;
+import static com.qurenie.relics_thirteenflames.style.ColorScheme.BURN_COLOR;
+import static com.qurenie.relics_thirteenflames.style.ColorScheme.CYAN_COLOR;
 
 public class TravellerSweepEntity extends NonLivingEntity implements IAnimatedEntity {
     
@@ -47,8 +49,6 @@ public class TravellerSweepEntity extends NonLivingEntity implements IAnimatedEn
     public static final String FIRE_ASPECT_TAG = "fire_aspect";
     public static final int ANIM_LENGTH = 8;
     public static final int SWORD_RANGE = 5;
-    private static final Color COLOR = new Color(30, 170, 170);
-    private static final Color BURN_COLOR = new Color(230, 90, 20);
     private static final EntityDataAccessor<Vector3f> DIRECTION = SynchedEntityData.defineId(TravellerSweepEntity.class, EntityDataSerializers.VECTOR3);
     private static final EntityDataAccessor<Float> COMPLETION = SynchedEntityData.defineId(TravellerSweepEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Integer> FIRE_ASPECT = SynchedEntityData.defineId(TravellerSweepEntity.class, EntityDataSerializers.INT);
@@ -114,12 +114,12 @@ public class TravellerSweepEntity extends NonLivingEntity implements IAnimatedEn
                     Vec3 end = position().add(direction.yRot(angle).normalize().scale(SWORD_RANGE)).add(0, 0.65, 0);
                     Vec3 start = position().add(direction.yRot(angle).normalize()).add(0, 0.65, 0);
                     if (getFireAspect() > 0) {
-                        ParticleHelper.spawnParticleLine(level(), ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(COLOR, getRandom()), 0.23f, 8 + random.nextInt(2), (float) (0.6f + random.nextDouble() * 0.1)),
+                        ParticleHelper.spawnParticleLine(level(), ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(CYAN_COLOR, getRandom()), 0.23f, 8 + random.nextInt(2), (float) (0.6f + random.nextDouble() * 0.1)),
                                 start, end, 3, 0.04, 0.1);
                         ParticleHelper.spawnParticleLine(level(), ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(BURN_COLOR, getRandom()), 0.23f, 8 + random.nextInt(2), (float) (0.6f + random.nextDouble() * 0.1)),
                                 start, end, 3, 0.04, 0.1);
                     } else
-                        ParticleHelper.spawnParticleLine(level(), ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(COLOR, getRandom()), 0.23f, 8 + random.nextInt(2), (float) (0.6f + random.nextDouble() * 0.1)),
+                        ParticleHelper.spawnParticleLine(level(), ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(CYAN_COLOR, getRandom()), 0.23f, 8 + random.nextInt(2), (float) (0.6f + random.nextDouble() * 0.1)),
                                 start, end, 4, 0.04, 0.1);
                 }
             

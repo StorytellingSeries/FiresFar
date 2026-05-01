@@ -11,12 +11,21 @@ public interface EntityModels {
 
     @RegistryName("seliaset_sun")
     IGeometryContainer SELIASET_SUN = create();
+
+    @RegistryName("seliaset_sun_flawless")
+    IGeometryContainer SELIASET_SUN_FLAWLESS = create();
     
     @RegistryName("jodah_staff_model")
     IGeometryContainer JODAH_STAFF_MODEL = create();
 
     @RegistryName("living_flesh")
     IGeometryContainer LIVING_FLESH = create();
+
+    @RegistryName("ghost_big")
+    IGeometryContainer GHOST_BIG = create();
+
+    @RegistryName("ghost_small")
+    IGeometryContainer GHOST_SMALL = create();
     
     @RegistryName("jodah_wings")
     IGeometryContainer JODAH_WINGS = create();

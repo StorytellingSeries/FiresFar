@@ -17,7 +17,11 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
 public class AttachmentsRegistry {
     
     public static final DeferredRegister<AttachmentType<?>> ATTACHMENT_TYPES = DeferredRegister.create(NeoForgeRegistries.ATTACHMENT_TYPES, ThirteenFlames.MODID);
-    
+
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<Float>> JODAH_SHEILD = ATTACHMENT_TYPES.register(
+            "jodah_shield", () -> AttachmentType.builder(() -> 0f).serialize(Codec.FLOAT).build()
+    );
+
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<Integer>> SKINT_DATA = ATTACHMENT_TYPES.register(
             "skint", () -> AttachmentType.builder(() -> 0).serialize(Codec.INT).build()
     );

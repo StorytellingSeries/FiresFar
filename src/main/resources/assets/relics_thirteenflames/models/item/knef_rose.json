@@ -18,6 +18,12 @@
   "overrides": [
     {
       "predicate": {
+        "relics:flawless": 1
+      },
+      "model": "relics_thirteenflames:item/knef_rose_flawless"
+    },
+    {
+      "predicate": {
         "alt": 3
       },
       "model": "relics_thirteenflames:item/knef_rose_inv"

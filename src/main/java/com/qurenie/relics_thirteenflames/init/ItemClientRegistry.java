@@ -10,7 +10,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 
-@EventBusSubscriber(bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber
 public class ItemClientRegistry {
     
     @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -20,6 +20,7 @@ public class ItemClientRegistry {
         event.registerItem(new CustomExtensionRenderer(KnefRoseItemRenderer::new), ItemsRegistry.KNEF_ROSE);
         event.registerItem(new RonasShieldExtension(RonasShieldItemRenderer::new) , ItemsRegistry.RONAS_SHIELD);
         event.registerItem(new CustomExtensionRenderer(EmissiveItemRenderer::new) , ItemsRegistry.RONAS_SWORD);
+        event.registerItem(new CustomExtensionRenderer(EmissiveItemRenderer::new) , ItemsRegistry.HETT_FEATHER);
         event.registerItem(new CustomExtensionRenderer(SeliasetHornItemRenderer::new), ItemsRegistry.SELIASET_HORN);
         event.registerItem(new CustomExtensionRenderer(SeliasetSunItemRenderer::new), ItemsRegistry.SELIASET_SUN);
         event.registerItem(new CustomExtensionRenderer(JodahStaffItemRenderer::new), ItemsRegistry.JODAH_STAFF);

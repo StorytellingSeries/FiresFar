@@ -18,6 +18,12 @@
   "overrides": [
     {
       "predicate": {
+        "relics:flawless": 1
+      },
+      "model": "relics_thirteenflames:item/ronas_shield_flawless"
+    },
+    {
+      "predicate": {
         "alt": 7
       },
       "model": "relics_thirteenflames:item/ronas_shield_base"

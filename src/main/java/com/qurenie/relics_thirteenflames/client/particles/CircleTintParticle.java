@@ -6,6 +6,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.qurenie.relics_thirteenflames.client.ThirteenRenderTypes;
 import com.qurenie.relics_thirteenflames.init.ParticlesRegistry;
 import io.netty.buffer.ByteBuf;
+import it.hurts.octostudios.octolib.util.OctoColor;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -29,10 +30,10 @@ public class CircleTintParticle extends TextureSheetParticle {
     int fadeInTime;
     protected float originalSize;
 
-    public CircleTintParticle(ClientLevel world, double x, double y, double z, double velocityX, double velocityY, double velocityZ, Color spark, float diameter, int fadeInTime, int lifeTime, float resizeSpeed, boolean shouldCollide) {
+    public CircleTintParticle(ClientLevel world, double x, double y, double z, double velocityX, double velocityY, double velocityZ, OctoColor spark, float diameter, int fadeInTime, int lifeTime, float resizeSpeed, boolean shouldCollide) {
         super(world, x, y, z, velocityX, velocityY, velocityZ);
         this.resizeSpeed = resizeSpeed;
-        this.setColor((float)spark.getRed() / 255.0F, (float)spark.getGreen() / 255.0F, (float)spark.getBlue() / 255.0F);
+        this.setColor(spark.r(), spark.g(), spark.b());
         this.setSize(diameter, diameter);
         this.fadeInTime = fadeInTime;
         this.lifetime = lifeTime;
@@ -125,7 +126,7 @@ public class CircleTintParticle extends TextureSheetParticle {
     public static class Options implements ParticleOptions {
         
         public static final MapCodec<Options> CODEC = RecordCodecBuilder.mapCodec((instance) -> instance.group(
-                Codec.INT.fieldOf("tint").forGetter((d) -> d.tint.getRGB()),
+                Codec.INT.fieldOf("tint").forGetter((d) -> d.tint.getARGB()),
                 Codec.FLOAT.fieldOf("diameter").forGetter(Options::getDiameter),
                 Codec.INT.fieldOf("fadein_time").forGetter(Options::getFadeInTime),
                 Codec.INT.fieldOf("life_time").forGetter(Options::getLifeTime),
@@ -134,7 +135,7 @@ public class CircleTintParticle extends TextureSheetParticle {
         ).apply(instance, Options::new));
         
         public static final StreamCodec<ByteBuf, Options> STREAM_CODEC = StreamCodec.composite(
-                ByteBufCodecs.INT, options -> options.getTint().getRGB(),
+                ByteBufCodecs.INT, options -> options.getTint().getARGB(),
                 ByteBufCodecs.FLOAT, Options::getDiameter,
                 ByteBufCodecs.INT, Options::getFadeInTime,
                 ByteBufCodecs.INT, Options::getLifeTime,
@@ -143,15 +144,15 @@ public class CircleTintParticle extends TextureSheetParticle {
                 Options::new
         );
         
-        private final Color tint;
+        private final OctoColor tint;
         private final float diameter;
         private final int fadeInTime;
         private final int lifeTime;
         private final float resizeSpeed;
         private final boolean shouldCollide;
         
-        private Options(int tintRGB, float diameter, int fadeInTime, int lifeTime, float resizeSpeed, boolean shouldCollide) {
-            this(new Color(tintRGB), validateDiameter(diameter), fadeInTime, lifeTime, resizeSpeed, shouldCollide);
+        private Options(int tintARGB, float diameter, int fadeInTime, int lifeTime, float resizeSpeed, boolean shouldCollide) {
+            this(new OctoColor(tintARGB), validateDiameter(diameter), fadeInTime, lifeTime, resizeSpeed, shouldCollide);
         }
         
         private static float validateDiameter(float diameter) {

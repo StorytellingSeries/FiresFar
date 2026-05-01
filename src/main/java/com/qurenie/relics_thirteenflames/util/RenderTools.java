@@ -8,6 +8,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FormattedCharSequence;
 import org.joml.Matrix4f;
 
 @UtilityClass
@@ -78,6 +79,18 @@ public class RenderTools {
     
     public static void renderCenteredScaledText(GuiGraphics guiGraphics, String text, int x, int y, float scale) {
         renderCenteredScaledText(guiGraphics, text, x, y, scale, DEFAULT_SHADOW_COLOR, DEFAULT_TEXT_COLOR);
+    }
+
+    public static void renderCenteredScaledText(GuiGraphics guiGraphics, FormattedCharSequence text, int x, int y, float scale, int shadowColor, int textColor) {
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().scale(scale, scale, 0);
+        int width = (int) (Minecraft.getInstance().font.width(text) * scale);
+        int rx = (int) ((x - width / 2) / scale);
+        int ry = (int) (y / scale);
+
+        guiGraphics.drawString(Minecraft.getInstance().font, text, rx, ry + 1, shadowColor, false);
+        guiGraphics.drawString(Minecraft.getInstance().font, text, rx, ry, textColor, false);
+        guiGraphics.pose().popPose();
     }
     
     public static void renderCenteredScaledText(GuiGraphics guiGraphics, String text, int x, int y, float scale, int shadowColor, int textColor) {

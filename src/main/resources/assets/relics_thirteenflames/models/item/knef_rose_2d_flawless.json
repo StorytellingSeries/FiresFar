@@ -1,0 +1,7 @@
+{
+  "render_type": "translucent",
+  "parent": "relics_thirteenflames:item/builtin/ister_item",
+  "textures": {
+    "layer0": "relics_thirteenflames:item/knef_rose_2d_1_flawless"
+  }
+}

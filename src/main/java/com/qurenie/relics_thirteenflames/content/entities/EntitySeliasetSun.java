@@ -37,18 +37,13 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.BoneMealItem;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
+import net.minecraft.world.item.*;
 import net.minecraft.world.item.crafting.AbstractCookingRecipe;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.BonemealableBlock;
+import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -69,6 +64,7 @@ import java.util.*;
 import java.util.stream.Stream;
 
 import static com.qurenie.relics_thirteenflames.init.ComponentRegistry.SELIASET_SUN_DATA;
+import static com.qurenie.relics_thirteenflames.style.ColorScheme.BURN_COLOR;
 import static net.neoforged.neoforge.common.NeoForge.EVENT_BUS;
 
 public class EntitySeliasetSun extends LivingEntity implements IAnimatedEntity {
@@ -78,6 +74,8 @@ public class EntitySeliasetSun extends LivingEntity implements IAnimatedEntity {
             Blocks.GRASS_BLOCK,
             Blocks.TALL_GRASS,
             Blocks.MOSS_BLOCK,
+            Blocks.SHORT_GRASS,
+            Blocks.ROSE_BUSH,
             Blocks.MOSS_CARPET,
             Blocks.AZALEA,
             Blocks.FLOWERING_AZALEA,
@@ -88,9 +86,13 @@ public class EntitySeliasetSun extends LivingEntity implements IAnimatedEntity {
             Blocks.SMALL_DRIPLEAF,
             Blocks.GLOW_LICHEN
     );
+
+    public static final Set<Item> BLOCKED_HEAT_BLOCKS = Set.of(
+            Items.REDSTONE
+    );
+
     private static final EntityDataAccessor<String> OWNER_UUID = SynchedEntityData.defineId(EntitySeliasetSun.class, EntityDataSerializers.STRING);
     private static final EntityDataAccessor<ItemStack> SUN_ITEM = SynchedEntityData.defineId(EntitySeliasetSun.class, EntityDataSerializers.ITEM_STACK);
-    private static final Color BURN_COLOR = new Color(230, 90, 20);
     public final AnimationSystem animations = AnimationSystem.create(this);
     private final RecipeManager.CachedCheck<SingleRecipeInput, ? extends AbstractCookingRecipe> quickCheck;
     public Tag serializedItem;
@@ -231,7 +233,7 @@ public class EntitySeliasetSun extends LivingEntity implements IAnimatedEntity {
                 growCooldown = speedStat;
             }
 
-            if (tickCount % 20 == 0 && !level().isClientSide()) {
+            if (tickCount % 20 == 0 && !level().isClientSide() && heatStat >= 0) {
                 AABB heatSpace = new AABB(blockPosition()).inflate(1.8).expandTowards(0, -15, 0);
                 final Object2IntMap<BlockPos> blockHeat$ = new Object2IntArrayMap<>();
                 final Int2IntArrayMap itemsHeat$ = new Int2IntArrayMap();
@@ -251,6 +253,9 @@ public class EntitySeliasetSun extends LivingEntity implements IAnimatedEntity {
                     if (stack.isEmpty())
                         continue;
 
+                    if (state.getBlock() instanceof CropBlock crop && crop.getAge(state) < crop.getMaxAge())
+                        continue;
+
                     var holderOpt = Suppliers.memoize(() -> quickCheck.getRecipeFor(new SingleRecipeInput(stack), level()));
 
                     if (blockHeat.containsKey(pos) || holderOpt.get().isPresent()) {
@@ -258,7 +263,7 @@ public class EntitySeliasetSun extends LivingEntity implements IAnimatedEntity {
                         int heatLevel = blockHeat.getOrDefault(pos, 0) + 1;
                         if (heatLevel >= limitHeat) {
                             var result = holderOpt.get().get().value().assemble(new SingleRecipeInput(stack), registryAccess());
-                            if (result.getCount() == 1 && result.getItem() instanceof BlockItem block) {
+                            if (result.getCount() == 1 && result.getItem() instanceof BlockItem block && !BLOCKED_HEAT_BLOCKS.contains(block)) {
                                 ParticleHelper.spawnParticleOutbox(level(), ParticleTypes.FLAME, pos, 5, 0.005);
                                 ParticleHelper.spawnParticleOutbox(level(), ParticleHelper.constructSimpleSpark(BURN_COLOR, 0.3f, 40, 0.95f), pos, 5, 0.005);
 
@@ -294,8 +299,8 @@ public class EntitySeliasetSun extends LivingEntity implements IAnimatedEntity {
                             if (holderOpt.get().isEmpty())
                                 continue;
 
-                            int toTransform = Math.min(stack.getCount(), heatStat);
-                            stack.shrink(heatStat);
+                            int toTransform = Math.min(stack.getCount(), heatStat + 1);
+                            stack.shrink(heatStat + 1);
                             fryEntity(item, (double) toTransform / 2);
                             if (stack.getCount() <= 0)
                                 item.discard();
@@ -306,7 +311,7 @@ public class EntitySeliasetSun extends LivingEntity implements IAnimatedEntity {
                             for (int i = 0; i < toTransform; i++) {
                                 var sun = getSunItem();
                                 if (sun.getItem() instanceof ItemSeliasetSun relic &&
-                                        level() instanceof ServerLevel sl)
+                                        level() instanceof ServerLevel)
                                     relic.addExperience(getOwner(), getSunItem(), 1);
                                 ItemEntity resultEntity = new ItemEntity(level(), item.getX(), item.getY(), item.getZ(), result.copy());
                                 level().addFreshEntity(resultEntity);
@@ -403,7 +408,8 @@ public class EntitySeliasetSun extends LivingEntity implements IAnimatedEntity {
     private int getHeatStatLevel() {
         ItemStack item = this.getSunItem();
         ItemSeliasetSun relic = (ItemSeliasetSun) item.getItem();
-        return relic.getAbilityLevel(getOwner(), item, "heat");
+        return relic.isAbilityUnlocked(getOwner(), item, "heat") ?
+                relic.getAbilityLevel(getOwner(), item, "heat")  : -1;
     }
 
     @Override

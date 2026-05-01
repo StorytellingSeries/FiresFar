@@ -1,0 +1,38 @@
+{
+	"render_type": "cutout",
+	"parent": "relics_thirteenflames:item/builtin/ister",
+	"textures": {
+		"particle": "relics_thirteenflames:item/ronas_sword_flawless"
+	},
+	"overrides": [
+		{
+			"predicate": {
+				"alt": 0.5
+			},
+			"model": "relics_thirteenflames:item/ronas_sword_inv_flawless"
+		},
+		{
+			"predicate": {
+				"alt": 0.75
+			},
+			"model": "relics_thirteenflames:item/ronas_sword_inv_emissive_flawless"
+		}
+	],
+	"display": {
+		"ground": {
+			"rotation": [90, 0, 0],
+			"translation": [0, 3, -4],
+			"scale": [0.5, 0.5, 0.5]
+		},
+		"gui": {
+			"rotation": [90, -45, 90],
+			"translation": [4.5, -5.6, 0],
+			"scale": [0.55, 0.55, 0.55]
+		},
+		"fixed": {
+			"rotation": [90, 45, -90],
+			"translation": [-5.5, -6.5, 0],
+			"scale": [0.65, 0.65, 0.65]
+		}
+	}
+}

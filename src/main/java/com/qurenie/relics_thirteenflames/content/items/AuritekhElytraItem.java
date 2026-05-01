@@ -8,8 +8,8 @@ import com.qurenie.relics_thirteenflames.init.ArmorMaterialRegistry;
 import com.qurenie.relics_thirteenflames.init.ComponentRegistry;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
 import com.qurenie.relics_thirteenflames.net.EntityPacket;
+import com.qurenie.relics_thirteenflames.util.FlamesUtils;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.Holder;
@@ -38,7 +38,6 @@ import org.zeith.hammerlib.api.fml.IRegisterListener;
 import org.zeith.hammerlib.net.Network;
 import org.zeith.hammerlib.net.PacketContext;
 
-import java.awt.*;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -86,12 +85,6 @@ public class AuritekhElytraItem extends ElytraItem implements IRegisterListener,
     }
     
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, @NotNull TooltipContext context, List<net.minecraft.network.chat.Component> tooltip, @NotNull TooltipFlag isAdvanced) {
-        tooltip.add(Component.translatable("tooltip.relics_thirteenflames.auritekh_elytra.ability").withStyle(ChatFormatting.DARK_AQUA).withStyle(ChatFormatting.ITALIC));
-        super.appendHoverText(stack, context, tooltip, isAdvanced);
-    }
-    
-    @Override
     public void inventoryTick(ItemStack stack, Level level, Entity entity, int slotId, boolean isSelected) {
         super.inventoryTick(stack, level, entity, slotId, isSelected);
         
@@ -106,7 +99,14 @@ public class AuritekhElytraItem extends ElytraItem implements IRegisterListener,
             return false;
         return super.supportsEnchantment(stack, enchantment);
     }
-    
+
+    @Override
+    public void appendHoverText(@NotNull ItemStack stack, @NotNull TooltipContext context, List<Component> tooltipComponents, @NotNull TooltipFlag tooltipFlag) {
+        tooltipComponents.add(Component.translatable("tooltip.relics_thirteenflames.auritekh_elytra.ability"));
+
+        super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
+    }
+
     @SubscribeEvent
     public void onClientTick(ClientTickEvent.Post event) {
         Minecraft mc = Minecraft.getInstance();
@@ -140,11 +140,11 @@ public class AuritekhElytraItem extends ElytraItem implements IRegisterListener,
                         Vec3 look = p.getLookAngle();
                         Vec3 boost = look.scale(0.8);
                         
-                        ParticleHelper.spawnParticles(p.level(), ParticleHelper.constructSimpleSpark(new Color(239, 215, 182), 0.4f, 60, 0.97f),
+                        ParticleHelper.spawnParticles(p.level(), ParticleHelper.constructSimpleSpark(FlamesUtils.fromRGBI(239, 215, 182), 0.4f, 60, 0.97f),
                                 p.getBoundingBox().getCenter(), 20, 0.15, 0.15, 0.15, 0.02);
-                        ParticleHelper.spawnParticles(p.level(), ParticleHelper.constructSimpleSpark(new Color(4,136,247), 0.35f, 50, 0.95f).withGravity(1.4f),
+                        ParticleHelper.spawnParticles(p.level(), ParticleHelper.constructSimpleSpark(FlamesUtils.fromRGBI(4,136,247), 0.35f, 50, 0.95f).withGravity(1.4f),
                                 p.getBoundingBox().getCenter(), 30, 0.1, 0.1, 0.1, 0.4);
-                        ParticleHelper.spawnParticles(p.level(), ParticleHelper.constructSmoke(new Color(4,136,247), 1f, 70, 0f),
+                        ParticleHelper.spawnParticles(p.level(), ParticleHelper.constructSmoke(FlamesUtils.fromRGBI(4,136,247), 1f, 70, 0f),
                                 p.getBoundingBox().getCenter(), 40, 0.1, 0.1, 0.1, 0.03);
                         
                         p.setDeltaMovement(p.getDeltaMovement().add(boost));

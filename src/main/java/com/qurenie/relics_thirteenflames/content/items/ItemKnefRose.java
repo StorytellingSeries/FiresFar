@@ -1,12 +1,16 @@
 package com.qurenie.relics_thirteenflames.content.items;
 
 import com.qurenie.api.IExtRelicItem;
-import com.qurenie.relics_thirteenflames.content.entities.LivingFleshEntity;
+import com.qurenie.relics_thirteenflames.content.entities.GhostBigEntity;
+import com.qurenie.relics_thirteenflames.content.entities.GhostSmallEntity;
+import com.qurenie.relics_thirteenflames.content.entities.SoulOrbEntity;
+import com.qurenie.relics_thirteenflames.content.entities.SoulSpawnCarrierEntity;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
-import com.qurenie.relics_thirteenflames.init.ParticlesRegistry;
+import com.qurenie.relics_thirteenflames.util.FlamesUtils;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import it.hurts.sskirillss.relics.api.events.utility.ContainerSlotClickEvent;
-import it.hurts.sskirillss.relics.api.relics.IRelicItem;
+import it.hurts.sskirillss.relics.api.relics.abilities.ExperienceSourcesTemplate;
+import it.hurts.sskirillss.relics.items.misc.CreativeContentConstructor;
 import it.hurts.sskirillss.relics.items.relics.base.RelicItem;
 import it.hurts.sskirillss.relics.api.relics.RelicTemplate;
 import it.hurts.sskirillss.relics.api.relics.abilities.AbilitiesTemplate;
@@ -16,29 +20,47 @@ import it.hurts.sskirillss.relics.init.RelicsScalingModels;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.LevelingTemplate;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootTemplate;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.misc.LootEntries;
+import it.hurts.sskirillss.relics.items.relics.base.data.research.ResearchTemplate;
 import it.hurts.sskirillss.relics.utils.MathUtils;
+import it.unimi.dsi.fastutil.Function;
+import it.unimi.dsi.fastutil.objects.Object2IntArrayMap;
 import lombok.Getter;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.util.random.WeightedRandomList;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ClickAction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.MobSpawnSettings;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.levelgen.structure.StructureSpawnOverride;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.common.Tags;
-import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.zeith.hammerlib.HammerLib;
@@ -48,9 +70,10 @@ import org.zeith.hammerlib.api.io.NBTSerializable;
 import org.zeith.hammerlib.api.items.IColoredFoilItem;
 import org.zeith.hammerlib.util.charging.ItemChargeHelper;
 
-import java.util.List;
+import java.util.*;
 
 import static com.qurenie.relics_thirteenflames.init.ComponentRegistry.*;
+import static com.qurenie.relics_thirteenflames.style.ColorScheme.SOUL_COLOR;
 import static net.neoforged.neoforge.common.NeoForge.EVENT_BUS;
 
 public class ItemKnefRose
@@ -60,7 +83,11 @@ public class ItemKnefRose
     public ItemKnefRose(Properties properties) {
         super(properties);
     }
-    
+
+    @Override
+    public void gatherCreativeTabContent(CreativeContentConstructor constructor) {
+    }
+
     @Override
     public RelicTemplate constructDefaultRelicTemplate() {
         return RelicTemplate.builder()
@@ -68,34 +95,42 @@ public class ItemKnefRose
                         .ability(AbilityTemplate.builder("undeath")
                                 .initialMaxLevel(5)
                                 .stat(AbilityStatTemplate.builder("max_bones")
-                                        .initialValue(7, 10)
-                                        .thresholdValue(7, 20)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 2)
+                                        .initialValue(15, 20)
+                                        .thresholdValue(15, 1000)
+                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), 0.31)
                                         .formatValue(x -> MathUtils.round(x, 0))
                                         .build()
                                 )
-                                .stat(AbilityStatTemplate.builder("damage_taken")
-                                        .initialValue(0.75, 1)
-                                        .thresholdValue(0.75, 2.0)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 0.2)
-                                        .formatValue(x -> MathUtils.round(x, 2))
+                                .stat(AbilityStatTemplate.builder("per_bone")
+                                        .initialValue(1, 2)
+                                        .thresholdValue(1, 20)
+                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), 0.32)
+                                        .formatValue(x -> MathUtils.round(x, 0))
+                                        .build())
+                                .stat(AbilityStatTemplate.builder("per_block")
+                                        .initialValue(0.6, 1)
+                                        .thresholdValue(1, 20)
+                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), 0.25)
+                                        .formatValue(x -> MathUtils.round(x, 0))
+                                        .build())
+                                .stat(AbilityStatTemplate.builder("max_health")
+                                        .initialValue(4, 6)
+                                        .thresholdValue(4, 1000)
+                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), 0.2785)
+                                        .formatValue(x -> MathUtils.round(x, 0))
                                         .build()
                                 )
-                                .stat(AbilityStatTemplate.builder("deterioration_rate")
-                                        .initialValue(800, 1200)
-                                        .thresholdValue(1, 24000)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 240)
-                                        .formatValue(x -> MathUtils.round(1200.0 / x, 2))
-                                        .build()
-                                )
+                                .experienceSources(ExperienceSourcesTemplate.builder()
+                                        .source("source_1")
+                                        .build())
                                 .build()
                         )
                         .ability(AbilityTemplate.builder("living_rot")
                                 .initialMaxLevel(10)
                                 .stat(AbilityStatTemplate.builder("chance")
                                         .initialValue(2.5, 7.5)
-                                        .thresholdValue(2.5, 40.0)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 2.5)
+                                        .thresholdValue(2.5, 100)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 3)
                                         .formatValue(x -> MathUtils.round(x, 1))
                                         .build()
                                 )
@@ -106,11 +141,28 @@ public class ItemKnefRose
                                         .formatValue(x -> MathUtils.round(x * 100, 0))
                                         .build()
                                 )
+                                .stat(AbilityStatTemplate.builder("big_chance")
+                                        .initialValue(20, 30)
+                                        .thresholdValue(20, 60)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 1.5)
+                                        .formatValue(x -> MathUtils.round(x, 1))
+                                        .build()
+                                )
+                                .experienceSources(ExperienceSourcesTemplate.builder()
+                                        .source("source_1")
+                                        .build())
+                                .research(ResearchTemplate.builder()
+                                        .star(0, 8, 5).star(1, 10, 10).star(2, 15, 13).star(3, 18, 5).star(4, 15, 19).star(5, 13, 24).star(6, 19, 25).star(7, 8, 21).star(8, 2, 22).star(9, 5, 15).star(10, 4, 11).star(11, 3, 5).star(12, 6, 26)
+                                        .link(11, 10).link(10, 1).link(1, 0).link(1, 3).link(1, 2).link(2, 4).link(4, 5).link(5, 6).link(5, 7).link(7, 9).link(9, 10).link(9, 8).link(12, 7)
+                                        .build())
                                 .build()
                         )
                         .ability(AbilityTemplate.builder("rot_split")
                                 .requiredLevel(10)
                                 .initialMaxLevel(5)
+                                .experienceSources(ExperienceSourcesTemplate.builder()
+                                        .source("source_1")
+                                        .build())
                                 .stat(AbilityStatTemplate.builder("chance")
                                         .initialValue(10.0, 15)
                                         .thresholdValue(10.0, 40.0)
@@ -144,13 +196,283 @@ public class ItemKnefRose
                 .loot(LootTemplate.builder().entry(LootEntries.THE_NETHER).build())
                 .build();
     }
-    
+
+    @EventBusSubscriber
+    public static class LeftClickHandler {
+
+        @SubscribeEvent
+        public static void onLeftClickBlock(PlayerInteractEvent.LeftClickBlock event) {
+            var player = event.getEntity();
+            var level = player.level();
+            ItemStack stack = player.getMainHandItem();
+
+            if (stack.getItem() instanceof ItemKnefRose item && player.isShiftKeyDown()) {
+                if (level.isClientSide) {
+                    event.setCanceled(true);
+                    return;
+                }
+                int max = (int) item.getStatValue(player, stack, "undeath", "max_bones");
+                double perOnce = item.getStatValue(player, stack, "undeath", "per_block");
+
+                int has = stack.getOrDefault(SOULS, 0);
+                int need = max - has;
+
+                BlockPos origin = event.getPos();
+
+                int radius = 6;
+                int total = 0;
+
+                Set<BlockPos> visited = new HashSet<>();
+                Queue<BlockPos> queue = new ArrayDeque<>();
+
+                queue.add(origin);
+                visited.add(origin);
+
+                while (!queue.isEmpty() && total < need) {
+                    BlockPos current = queue.poll();
+
+                    // проверка радиуса (манхэттен или обычная дистанция — выбери)
+                    if (current.distManhattan(origin) > radius)
+                        continue;
+
+                    if (!FlamesUtils.isSoulBlock(level, current))
+                        continue;
+
+                    double remainder = perOnce - (int) perOnce;
+                    int souls = (int) perOnce + (Math.random() < remainder ? 1 : 0);
+                    int value = Math.min(souls, need - total);
+
+                    if (value > 0) {
+                        SoulOrbEntity soul = new SoulOrbEntity(level, player, current, souls);
+                        level.addFreshEntity(soul);
+                    }
+
+                    level.setBlock(current, Blocks.SOUL_SOIL.defaultBlockState(), 3);
+                    ParticleHelper.spawnParticleOutbox(level, ParticleTypes.SOUL_FIRE_FLAME, current, 3, 0.005);
+                    ParticleHelper.spawnParticleOutbox(level, ParticleHelper.constructSmoke(SOUL_COLOR, 0.6f, 40, 0f), current, 3, 0.005);
+
+                    total += value;
+
+                    // добавляем соседей (6 направлений)
+                    for (var dir : Direction.values()) {
+                        BlockPos next = current.relative(dir);
+
+                        if (!visited.contains(next)) {
+                            visited.add(next);
+                            queue.add(next);
+                        }
+                    }
+                }
+
+                event.setCanceled(true);
+            }
+        }
+    }
+
+    private static final int DEFAULT_COOLDOWN_TICKS = 20 * 8;
+
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, @Nullable TooltipContext context, List<Component> tooltip, TooltipFlag isAdvanced) {
-        tooltip.add(Component.translatable("tooltip.relics_thirteenflames.knef_rose.lore").withStyle(ChatFormatting.GOLD).withStyle(ChatFormatting.ITALIC));
-        int bones = getBones(stack);
+    public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, @NotNull Player player, @NotNull InteractionHand usedHand) {
+        var stack = player.getItemInHand(usedHand);
+
+        if (!player.isShiftKeyDown()) return super.use(level, player, usedHand);
+
+        if (level.isClientSide) return InteractionResultHolder.success(stack);
+        if (player.getCooldowns().isOnCooldown(this)) return InteractionResultHolder.pass(stack);
+
+        int souls = this.getSouls(stack);
+        if (souls <= 0) return InteractionResultHolder.fail(stack);
+
+        int maxHp = Math.max(1, Math.round(this.getMaxMobHP(player, stack)));
+        BlockPos origin = player.blockPosition();
+
+        var server = (ServerLevel) level;
+        RandomSource random = player.getRandom();
+
+        List<SpawnChoice> pool = collectSpawnPool(server, origin, maxHp);
+
+        if (pool.isEmpty()) {
+            pool = trashPool();
+        }
+
+        List<SpawnChoice> chosen = buildSpawnPlan(pool, souls, random);
+
+        if (chosen.isEmpty()) return InteractionResultHolder.fail(stack);
+
+        setSouls(player, stack, 0);
+        player.getCooldowns().addCooldown(this, DEFAULT_COOLDOWN_TICKS);
+
+        Vec3 look = player.getLookAngle();
+
+        for (SpawnChoice choice : chosen) {
+            Vec3 start = player.position()
+                    .add(0, player.getEyeHeight() * 0.6, 0);
+
+            // случайное отклонение (конус)
+            Vec3 spread = new Vec3(
+                    (0.5 - Math.random()) * 3,
+                    0.1 + Math.random() * 0.3,
+                    (0.5 - Math.random()) * 3
+            );
+
+            look = new Vec3(look.x, Math.max(look.y, 0), look.z);
+            Vec3 dir = look.add(spread).normalize();
+
+            Vec3 motion = dir.scale(0.6 + random.nextDouble() * 0.4);
+
+            String mobId = BuiltInRegistries.ENTITY_TYPE.getKey(choice.type()).toString();
+            boolean noGravity = isFlyingMob(choice.type());
+
+            SoulSpawnCarrierEntity carrier = new SoulSpawnCarrierEntity(
+                    server,
+                    player,
+                    start,
+                    motion,
+                    mobId,
+                    choice.cost(),
+                    noGravity
+            );
+
+            server.addFreshEntity(carrier);
+        }
+
+        return super.use(level, player, usedHand);
+    }
+
+    private List<SpawnChoice> collectSpawnPool(ServerLevel level, BlockPos pos, int maxHp) {
+        List<SpawnChoice> out = new ArrayList<>();
+
+        // ---------- BIOME SPAWNS ----------
+
+        Biome biome = level.getBiome(pos).value();
+        MobSpawnSettings settings = biome.getMobSettings();
+
+        for (MobCategory category : MobCategory.values()) {
+            addFromList(level, settings.getMobs(category), maxHp, out);
+        }
+
+        // ---------- STRUCTURE OVERRIDES ----------
+
+        var structureManager = level.structureManager();
+
+        for (var structure : structureManager.startsForStructure(
+                new ChunkPos(pos),
+                s -> true
+        )) {
+            if (!structure.getBoundingBox().isInside(pos))
+                continue;
+
+            var overrides =
+                    structure.getStructure().spawnOverrides();
+
+            for (var entry : overrides.entrySet()) {
+                StructureSpawnOverride override = entry.getValue();
+
+                addFromList(
+                        level,
+                        override.spawns(),
+                        maxHp,
+                        out
+                );
+            }
+        }
+
+        // ---------- FALLBACK ----------
+
+        out.addAll(trashPool());
+
+        return out;
+    }
+
+    private void addFromList(Level level,
+                             WeightedRandomList<MobSpawnSettings.SpawnerData> list,
+                             int maxHp,
+                             List<SpawnChoice> out) {
+        if (list == null || list.isEmpty()) return;
+
+        for (var data : list.unwrap()) {
+            EntityType<?> rawType = data.type;
+            if (!(rawType.create(level) instanceof Mob mob)) continue;
+
+            float hp = mob.getMaxHealth();
+            if (hp > maxHp) continue;
+
+            int weight = Math.max(1, data.getWeight().asInt()); // если у тебя accessor другой, замени здесь
+            int cost = Math.max(1, Math.round(hp));
+
+            @SuppressWarnings("unchecked")
+            EntityType<? extends Mob> mobType = (EntityType<? extends Mob>) rawType;
+
+            out.add(new SpawnChoice(mobType, weight, cost, false));
+        }
+    }
+
+    private List<SpawnChoice> trashPool() {
+        List<SpawnChoice> out = new ArrayList<>();
+
+        out.add(new SpawnChoice(EntityType.BAT, 20, 3, true));
+        out.add(new SpawnChoice(EntityType.SILVERFISH, 12, 4, true));
+        out.add(new SpawnChoice(EntityType.ENDERMITE, 8, 5, true));
+
+        return out;
+    }
+
+    private List<SpawnChoice> buildSpawnPlan(List<SpawnChoice> pool, int bones, RandomSource random) {
+        List<SpawnChoice> result = new ArrayList<>();
+        Object2IntArrayMap<EntityType<?>> pickedTypes = new Object2IntArrayMap<>();
+        int remaining = bones;
+
+        pool.forEach(c -> pickedTypes.put(c.type, 0));
+        while (remaining > 0) {
+            List<SpawnChoice> affordable = new ArrayList<>();
+            for (SpawnChoice c : pool) {
+                if (c.trash() || c.cost() <= remaining) {
+                    affordable.add(c);
+                }
+            }
+
+            SpawnChoice picked = pickWeighted(affordable, random, pickedTypes);
+            if (picked == null) break;
+
+            int cost = Math.min(picked.cost(), remaining);
+            if (cost <= 0) break;
+
+            result.add(new SpawnChoice(picked.type(), picked.weight(), cost, picked.trash()));
+            pickedTypes.compute(picked.type, (t, i) -> i + 1);
+
+            remaining -= cost;
+        }
+
+        return result;
+    }
+
+    private static boolean isFlyingMob(EntityType<? extends Mob> type) {
+        return FlyingMob.class.isAssignableFrom(type.getBaseClass())
+                || type == EntityType.BAT
+                || type == EntityType.BLAZE
+                || type == EntityType.GHAST
+                || type == EntityType.ALLAY;
+    }
+
+    private SpawnChoice pickWeighted(List<SpawnChoice> pool, RandomSource random, Function<EntityType<?>, Integer> pickedTypes) {
+        float total = 0;
+        for (var c : pool) total += Math.max(1, c.weight() * (float)Math.pow(0.76f, pickedTypes.apply(c.type)));
+        if (total <= 0) return null;
+
+        float roll = random.nextFloat() * total;
+        for (var c : pool) {
+            roll -= Math.max(1, c.weight() * (float)Math.pow(0.76f, pickedTypes.apply(c.type)));
+            if (roll < 0) return c;
+        }
+
+        return pool.getLast();
+    }
+
+    @Override
+    public void appendHoverText(@NotNull ItemStack stack, @NotNull TooltipContext context, @NotNull List<Component> tooltip, @NotNull TooltipFlag isAdvanced) {
+        int bones = getSouls(stack);
         if (bones > 0)
-            tooltip.add(Component.literal("Костей: ").append(Integer.toUnsignedString(bones))
+            tooltip.add(Component.translatable("tooltip.relics_thirteenflames.knef_rose").append(Integer.toUnsignedString(bones))
                     .withStyle(ChatFormatting.GRAY));
         super.appendHoverText(stack, context, tooltip, isAdvanced);
     }
@@ -165,39 +487,20 @@ public class ItemKnefRose
         EVENT_BUS.register(this);
     }
     
-    @Override
-    public void inventoryTick(ItemStack stack, Level level, Entity entity, int slot, boolean isSelected) {
-        if (!level.isClientSide() && entity instanceof LivingEntity livingEntity) {
-            if (entity.level().dimension().equals(Level.NETHER)) {
-                int netherTicker = stack.getOrDefault(NETHER_TICKER, 0);
-                if (netherTicker++ >= 1200) {
-                    netherTicker = 0;
-                    this.addBones(livingEntity, stack, 1);
-                }
-                stack.set(NETHER_TICKER, netherTicker);
-            } else {
-                int deterioTicker = stack.getOrDefault(DETERIORATION_TICKER, 0);
-                if (this.getBones(stack) > 0 && deterioTicker++ >= this.getStatValue(livingEntity, stack, "undeath", "deterioration_rate")) {
-                    deterioTicker = 0;
-                    this.takeBones(livingEntity, stack, 1, false);
-                }
-                stack.set(DETERIORATION_TICKER, deterioTicker);
-            }
-        }
-        super.inventoryTick(stack, level, entity, slot, isSelected);
-    }
-    
     @SubscribeEvent
     public void slotClick(ContainerSlotClickEvent e) {
         if (e.getSlotStack().is(this) && e.getHeldStack().is(Tags.Items.BONES)) {
             var stack = e.getSlotStack();
             int bones = e.getHeldStack().getCount();
-            
+
+            int perBone = (int) getStatValue(e.getEntity(), stack, "undeath", "per_bone");
             // Limit to 1 bone per right click; No limit on left click.
             if (e.getAction() == ClickAction.SECONDARY) bones = Math.min(bones, 1);
-            bones = Math.min(bones, getMaxBones(e.getEntity(), stack) - getBones(stack));
-            addBones(e.getEntity(), stack, bones);
-            e.getHeldStack().shrink(bones);
+
+            int toAdd = Math.min(bones * perBone, getMaxSouls(e.getEntity(), stack) - getSouls(stack));
+
+            addSouls(e.getEntity(), stack, toAdd);
+            e.getHeldStack().shrink((int) Math.ceil(toAdd / (float) perBone));
             
             e.setCanceled(true);
         }
@@ -205,12 +508,15 @@ public class ItemKnefRose
     
     @SubscribeEvent
     public void livingDeath(LivingDeathEvent e) {
-        if (e.getSource().getEntity() instanceof LivingFleshEntity flesch) {
-            flesch.lifetime += (int) (e.getEntity().getMaxHealth() * 10);
+        if (e.getSource().getEntity() instanceof GhostSmallEntity flesch) {
+            flesch.lifetime += (int) (e.getEntity().getMaxHealth() * 6);
+        }
+
+        if (e.getSource().getEntity() instanceof GhostBigEntity flesch) {
+            flesch.lifetime += (int) (e.getEntity().getMaxHealth() * 6);
         }
         
-        
-        if (!(e.getEntity() instanceof Enemy)) return;
+        if (!(e.getEntity() instanceof Enemy) && !(e.getEntity() instanceof Animal)) return;
         if (!(e.getSource().getEntity() instanceof ServerPlayer sp)) return;
         
         var itr = ItemChargeHelper.listPlayerInventories(sp).iterator();
@@ -218,15 +524,11 @@ public class ItemKnefRose
             var ih = itr.next();
             for (int j = 0; j < ih.getSlots(); j++) {
                 var it = ih.getStackInSlot(j);
-                if (it.is(this)) {
+                if (it.is(this) && isAbilityUnlocked(sp, it, "living_rot")) {
                     var spawnChance = this.getStatValue(sp, it, "living_rot", "chance") / 100;
                     
                     if (sp.getRandom().nextFloat() < spawnChance) {
-                        LivingFleshEntity ent = new LivingFleshEntity(EntityRegistry.LIVING_FLESH, sp.level())
-                                .initPrimary(e.getEntity(), new RoseStats(sp, it));
-                        ent.moveTo(e.getEntity().position());
-                        ent.setOwnerUUID(sp.getStringUUID());
-                        ent.lifetime = (int) (e.getEntity().getMaxHealth() * 15);
+                        LivingEntity ent = createLiving(sp.level(), sp, e.getEntity(), it);
                         
                         HammerLib.PROXY.queueTask(sp.level(), 15, () -> sp.level().addFreshEntity(ent));
                         return;
@@ -235,76 +537,58 @@ public class ItemKnefRose
             }
         }
     }
-    
-    @SubscribeEvent
-    public void playerHurt(LivingDamageEvent.Pre e) {
-        if (e.getEntity() instanceof Player pl) {
-            var itr = ItemChargeHelper.listPlayerInventories(pl).iterator();
-            while (itr.hasNext()) {
-                var ih = itr.next();
-                for (int j = 0; j < ih.getSlots(); j++) {
-                    var it = ih.getStackInSlot(j);
-                    if (it.is(this) && getBones(it) > 0) {
-                        
-                        float newAmount = reduceDamage(pl, it, e.getNewDamage());
-                        if (newAmount == e.getNewDamage()) continue;
-                        
-                        e.setNewDamage(newAmount);
-                        ParticleHelper.spawnParticleEntity(ParticlesRegistry.DEATH_FLAME_PARTICLE.get(), pl, 16, 0.05);
-                        
-                        if (e.getNewDamage() <= 0F) {
-                            e.setNewDamage(0F);
-                            return;
-                        }
-                    }
-                }
-            }
+
+    private LivingEntity createLiving(Level level, Player player, LivingEntity living, ItemStack stack) {
+        var mutationChance = this.getStatValue(player, stack, "living_rot", "big_chance") / 100;
+
+        if (living.getMaxHealth() > 15 && player.getRandom().nextFloat() <= mutationChance) {
+            GhostBigEntity ent = new GhostBigEntity(EntityRegistry.BIG_GHOST, level)
+                    .initPrimary(living, new RoseStats(player, stack));
+            ent.moveTo(living.position());
+            ent.setOwnerUUID(player.getStringUUID());
+            ent.lifetime = (int) (40 + living.getMaxHealth() * 25);
+
+            return ent;
         }
+
+        GhostSmallEntity ent = new GhostSmallEntity(EntityRegistry.SMALL_GHOST, level)
+                .initPrimary(living, new RoseStats(player, stack));
+        ent.moveTo(living.position());
+        ent.setOwnerUUID(player.getStringUUID());
+        ent.lifetime = (int) (40 + living.getMaxHealth() * 15);
+        return ent;
     }
     
-    public float reduceDamage(LivingEntity pl, ItemStack stack, float damage) {
-        var damageReductionPerBone = this.getStatValue(pl, stack, "undeath", "damage_taken");
-        
-        // Do not deduce bones if the damage is negligible
-        if (damage < damageReductionPerBone) return damage;
-        
-        int neededBonesToNegateAllDamage = (int) Math.ceil(damage / damageReductionPerBone);
-        int bonesTaken = takeBones(pl, stack, neededBonesToNegateAllDamage, false);
-        
-        if (bonesTaken > 0) {//noinspection lossy-conversions
-            damage -= bonesTaken * damageReductionPerBone;
-            addExperience(pl, stack, bonesTaken);
-        }
-        
-        return Math.max(0F, damage);
+    public void addSouls(LivingEntity livingEntity, ItemStack stack, int bones) {
+        setSouls(livingEntity, stack, getSouls(stack) + bones);
     }
     
-    public void addBones(LivingEntity livingEntity, ItemStack stack, int bones) {
-        setBones(livingEntity, stack, getBones(stack) + bones);
-    }
-    
-    public int takeBones(LivingEntity livingEntity, ItemStack stack, int bones, boolean simulate) {
-        int avail = getBones(stack);
+    public int takeSouls(LivingEntity livingEntity, ItemStack stack, int bones, boolean simulate) {
+        int avail = getSouls(stack);
         bones = Math.min(bones, avail);
-        if (!simulate) setBones(livingEntity, stack, avail - bones);
+        if (!simulate) setSouls(livingEntity, stack, avail - bones);
         return bones;
     }
     
-    public void setBones(LivingEntity livingEntity, ItemStack stack, int bones) {
+    public void setSouls(LivingEntity livingEntity, ItemStack stack, int bones) {
         bones = Math.max(bones, 0);
-        bones = Math.min(bones, getMaxBones(livingEntity, stack));
+        bones = Math.min(bones, getMaxSouls(livingEntity, stack));
         
         if (bones == 0)
-            stack.remove(BONES);
+            stack.remove(SOULS);
         else
-            stack.set(BONES, bones);
+            stack.set(SOULS, bones);
+    }
+
+    public float getMaxMobHP(LivingEntity livingEntity, ItemStack stack) {
+        return (float) this.getStatValue(livingEntity, stack, "undeath", "max_health");
     }
     
-    public int getBones(ItemStack stack) {
-        return stack.getOrDefault(BONES, 0);
+    public int getSouls(ItemStack stack) {
+        return stack.getOrDefault(SOULS, 0);
     }
     
-    public int getMaxBones(LivingEntity livingEntity, ItemStack stack) {
+    public int getMaxSouls(LivingEntity livingEntity, ItemStack stack) {
         return (int) MathUtils.round(this.getStatValue(livingEntity, stack, "undeath", "max_bones"), 0);
     }
     
@@ -381,5 +665,12 @@ public class ItemKnefRose
         }
         
     }
+
+    private record SpawnChoice(
+            EntityType<? extends Mob> type,
+            int weight,
+            int cost,
+            boolean trash
+    ) {}
     
 }

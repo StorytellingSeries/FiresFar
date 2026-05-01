@@ -13,7 +13,10 @@ import com.qurenie.relics_thirteenflames.init.DamageSourceRegistry;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
 import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
+import com.qurenie.relics_thirteenflames.util.FlamesUtils;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
+import it.hurts.sskirillss.relics.api.relics.abilities.ExperienceSourcesTemplate;
+import it.hurts.sskirillss.relics.items.misc.CreativeContentConstructor;
 import it.hurts.sskirillss.relics.items.relics.base.RelicItem;
 import it.hurts.sskirillss.relics.api.relics.RelicTemplate;
 import it.hurts.sskirillss.relics.api.relics.abilities.AbilitiesTemplate;
@@ -23,6 +26,7 @@ import it.hurts.sskirillss.relics.init.RelicsScalingModels;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.LevelingTemplate;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootTemplate;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.misc.LootEntries;
+import it.hurts.sskirillss.relics.items.relics.base.data.research.ResearchTemplate;
 import it.hurts.sskirillss.relics.utils.MathUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
@@ -67,6 +71,10 @@ public class ItemKnefBow extends RelicItem implements IExtRelicItem, IColoredFoi
     RandomSource random = RandomSource.create();
 
     @Override
+    public void gatherCreativeTabContent(CreativeContentConstructor constructor) {
+    }
+
+    @Override
     public RelicTemplate constructDefaultRelicTemplate() {
         return RelicTemplate.builder()
                 .abilities(AbilitiesTemplate.builder()
@@ -74,14 +82,14 @@ public class ItemKnefBow extends RelicItem implements IExtRelicItem, IColoredFoi
                                 .initialMaxLevel(10)
                                 .stat(AbilityStatTemplate.builder("rays")
                                         .initialValue(3, 3)
-                                        .thresholdValue(3, 23)
+                                        .thresholdValue(3, 40)
                                         .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 2)
                                         .formatValue(x -> (int) MathUtils.round(x, 1))
                                         .build()
                                 )
                                 .stat(AbilityStatTemplate.builder("dmg")
                                         .initialValue(3, 4)
-                                        .thresholdValue(3, 5)
+                                        .thresholdValue(3, 20)
                                         .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 0.1)
                                         .formatValue(x -> MathUtils.round(x, 1))
                                         .build()
@@ -89,15 +97,23 @@ public class ItemKnefBow extends RelicItem implements IExtRelicItem, IColoredFoi
                                 .stat(AbilityStatTemplate.builder("drain")
                                         .initialValue(0.25, 0.2)
                                         .thresholdValue(0.05, 0.25)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), -0.015)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), -0.011)
                                         .formatValue(x -> MathUtils.round(x * 100, 1))
                                         .build()
                                 )
+                                .experienceSources(ExperienceSourcesTemplate.builder()
+                                        .source("source_1")
+                                        .build())
+                                .rankModifier(1, "bounce")
                                 .build()
                         )
                         .ability(AbilityTemplate.builder("swim")
                                 .initialMaxLevel(5)
                                 .modes("on", "off")
+                                .research(ResearchTemplate.builder()
+                                        .star(0, 3, 8).star(1, 12, 4).star(2, 18, 8).star(3, 10, 13).star(4, 6, 17).star(5, 15, 17).star(6, 18, 14).star(7, 9, 23).star(8, 11, 26).star(9, 3, 13).star(10, 8, 10).star(11, 11, 8)
+                                        .link(0, 1).link(1, 2).link(2, 3).link(3, 4).link(5, 6).link(5, 4).link(5, 7).link(7, 8).link(9, 4).link(0, 10).link(10, 11)
+                                        .build())
                                 .stat(AbilityStatTemplate.builder("speed")
                                         .initialValue(4, 6)
                                         .thresholdValue(4, 11)
@@ -145,6 +161,9 @@ public class ItemKnefBow extends RelicItem implements IExtRelicItem, IColoredFoi
                                         .formatValue(x -> MathUtils.round(x, 1))
                                         .build()
                                 )
+                                .experienceSources(ExperienceSourcesTemplate.builder()
+                                        .source("source_2")
+                                        .build())
                                 .build()
                         )
                         .build()
@@ -156,12 +175,6 @@ public class ItemKnefBow extends RelicItem implements IExtRelicItem, IColoredFoi
                         .build())
                 .loot(LootTemplate.builder().entry(LootEntries.AQUATIC).build())
                 .build();
-    }
-
-    @Override
-    public void appendHoverText(ItemStack stack, @Nullable TooltipContext context, List<Component> tooltip, TooltipFlag isAdvanced) {
-        tooltip.add(Component.translatable("tooltip.relics_thirteenflames.knef_bow.lore").withStyle(ChatFormatting.GOLD).withStyle(ChatFormatting.ITALIC));
-        super.appendHoverText(stack, context, tooltip, isAdvanced);
     }
 
     @Override
@@ -178,7 +191,7 @@ public class ItemKnefBow extends RelicItem implements IExtRelicItem, IColoredFoi
     public SettingsContainer<IActivitySetting> constructActivitySettings() {
         return SettingsContainer.<IActivitySetting>builder()
                 .setting(ActivitySetting.builder("storm")
-                        .maxCooldown(600)
+                        .maxCooldown(1200)
                         .build())
                 .build();
     }
@@ -243,6 +256,8 @@ public class ItemKnefBow extends RelicItem implements IExtRelicItem, IColoredFoi
                 proj.setPowerEnch(pStack.getEnchantmentLevel(pLevel.holderOrThrow(Enchantments.POWER)));
                 proj.setBow(pStack);
                 proj.shootFromRotation(pLivingEntity, pLivingEntity.getXRot(), pLivingEntity.getYRot(), 0.75f, 1f, 0);
+                proj.setBounce(ItemsRegistry.KNEF_BOW.hasRangModifier(pLivingEntity, pStack, "shot", "bounce"));
+                proj.setFree(true);
                 pLevel.addFreshEntity(proj);
             }
         } else if (delta > 19 && canCast(pLivingEntity, pStack, "storm")/* && !pLevel.isClientSide()*/) {
@@ -289,10 +304,10 @@ public class ItemKnefBow extends RelicItem implements IExtRelicItem, IColoredFoi
             proj.setOwner(pLivingEntity);
             proj.setOwnerUUID(pLivingEntity.getStringUUID());
             proj.setBaseDmg(baseDmg);
-            
+            proj.setBounce(ItemsRegistry.KNEF_BOW.hasRangModifier(pLivingEntity, pStack, "shot", "bounce"));
             proj.setPowerEnch(pStack.getEnchantmentLevel(pLevel.holderOrThrow(Enchantments.POWER)));
             proj.setBow(pStack);
-            proj.setFree(false);
+            proj.setFree(true);
             proj.shootFromRotation(pLivingEntity, pLivingEntity.getXRot(), pLivingEntity.getYRot(), 0.75f, 1f, 0);
             pLevel.addFreshEntity(proj);
         }
@@ -376,7 +391,7 @@ public class ItemKnefBow extends RelicItem implements IExtRelicItem, IColoredFoi
                     if (i % 4 == 0) pos = pos.subtract(luk.scale(0.8));
                 }
                 pos = pos.add(luk.scale(-0.4));
-                ParticleHelper.spawnDirectedParticle(living.level(), ParticleHelper.constructSimpleSpark(new Color(0, (int) (174 + Math.sin(p.tickCount / 6.0) * 30), (int) (105 - Math.sin(count / 6.0) * 20)), 0.35f, 60, 0.92f),
+                ParticleHelper.spawnDirectedParticle(living.level(), ParticleHelper.constructSimpleSpark(FlamesUtils.fromRGBI(0, (int) (174 + Math.sin(p.tickCount / 6.0) * 30), (int) (105 - Math.sin(count / 6.0) * 20)), 0.35f, 60, 0.92f),
                         pos.x(), pos.y(), pos.z(), 0, 0, 0);
             }
         } else if(living instanceof Player p){
