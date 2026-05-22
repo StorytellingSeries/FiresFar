@@ -72,8 +72,6 @@ public abstract class CardBehaviour {
             super.onSelect(card, other);
 
             card.setTarget(new CardTarget(new CardPosition(0, -80), 1.6f));
-            for (var c : other)
-                c.setBehaviour(IDLE);
         }
 
         @Override

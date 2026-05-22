@@ -1,0 +1,7 @@
+{
+	"parent": "relics_thirteenflames:item/ronas_shield_base_flawless",
+	"textures": {
+		"0": "relics_thirteenflames:item/ronas_shield0_flawless",
+		"particle": "relics_thirteenflames:item/ronas_shield0_flawless"
+	}
+}

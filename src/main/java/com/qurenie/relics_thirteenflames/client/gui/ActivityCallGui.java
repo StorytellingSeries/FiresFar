@@ -10,7 +10,9 @@ import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.neoforge.client.event.RenderGuiEvent;
+import org.apache.commons.compress.utils.Sets;
 
 import java.util.*;
 
@@ -41,12 +43,28 @@ public class ActivityCallGui {
         removeSelected();
     }
 
-    public void removeSelected() {
+    public void select(CardGuiEntity card) {
+        // TODO: some selected cards???
+        var selected = removeSelected();
+        // TODO: string set
+        ActivityCallLogic.INSTANCE.selectClient(card.getId(),
+                selected.isEmpty() ? null : selected.getFirst().getId());
+        setBehaviour(card, CardBehaviour.SELECTED);
+    }
+
+    public CardGuiEntity removeSelection(CardGuiEntity card) {
+        if (card.getBehaviour() == CardBehaviour.SELECTED)
+            card.setBehaviour(CardBehaviour.IDLE);
+
+        ActivityCallLogic.INSTANCE.removeSelected(card.getId());
+        return card;
+    }
+
+    public List<CardGuiEntity> removeSelected() {
         var shuffled = shuffled();
-        if (shuffled.containsKey(CardBehaviour.SELECTED.getName()))
-            for (CardGuiEntity card : shuffled().get(CardBehaviour.SELECTED.getName())) {
-                setBehaviour(card, CardBehaviour.IDLE);
-            }
+        var list = shuffled.getOrDefault(CardBehaviour.SELECTED.getName(), List.of());
+        list.forEach(this::removeSelection);
+        return list;
     }
 
     public void hide() {
@@ -71,7 +89,7 @@ public class ActivityCallGui {
     }
 
     public boolean onMouseClick(double mx, double my, int button, int action) {
-        if (isOpened())
+        if (isOpened()) {
             for (var entry : cards.entrySet()) {
                 var card = entry.getValue();
                 var input = entry.getKey();
@@ -85,11 +103,14 @@ public class ActivityCallGui {
                 }
 
                 if (button == 1 && action == 1 && selected) {
-                    setBehaviour(card, CardBehaviour.SELECTED);
+                    select(card);
 
                     return true;
                 }
             }
+
+            return true;
+        }
 
         if (button == 1 && action == 1) {
             var shuffled = shuffled();
@@ -187,6 +208,22 @@ public class ActivityCallGui {
     }
 
     private static boolean wasHolding = false;
+
+    @SubscribeEvent
+    public static void onMouseClick(InputEvent.MouseButton.Pre event) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) return;
+
+        var window = mc.getWindow();
+        double rawX = mc.mouseHandler.xpos();
+        double rawY = mc.mouseHandler.ypos();
+
+        double mx = rawX * (double) window.getGuiScaledWidth()  / (double) window.getScreenWidth();
+        double my = rawY * (double) window.getGuiScaledHeight() / (double) window.getScreenHeight();
+
+        if (mc.screen == null && ActivityCallGui.INSTANCE.onMouseClick(mx, my, event.getButton(), event.getAction()))
+            event.setCanceled(true);
+    }
 
     @SubscribeEvent
     public static void tickEvent(ClientTickEvent.Pre event) {

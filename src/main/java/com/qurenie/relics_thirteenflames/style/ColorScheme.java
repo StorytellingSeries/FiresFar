@@ -5,6 +5,7 @@ import it.hurts.octostudios.octolib.util.OctoColor;
 public interface ColorScheme {
 
     OctoColor HETT_COLOR = new OctoColor(239 / 255f, 215 / 255f, 182 / 255f, 1f);
+    OctoColor AIR_COLOR = new OctoColor(0xAAFFFFFF);
     OctoColor GOLD_COLOR = new OctoColor(200 / 255f, 150 / 255f, 20 / 255f, 1f);
     OctoColor GRAY_COLOR = new OctoColor(50 / 255f, 50 / 255f, 50 / 255f, 1f);
     OctoColor PURPLE_COLOR = new OctoColor(100 / 255f, 20 / 255f, 150 / 255f, 1f);
@@ -12,6 +13,7 @@ public interface ColorScheme {
     OctoColor BURN_COLOR = new OctoColor(230 / 255f, 90 / 255f, 20 / 255f, 1f);
     OctoColor CYAN_COLOR = new OctoColor(30 / 255f, 170 / 255f, 170 / 255f, 1f);
     OctoColor SOUL_COLOR = new OctoColor(0xFF00c0c6);
+    OctoColor MONTU_GREEN = new OctoColor(0xFF228822);
 
     // Bar colors
     OctoColor BAR_BLUE = new OctoColor(0xff337dff);

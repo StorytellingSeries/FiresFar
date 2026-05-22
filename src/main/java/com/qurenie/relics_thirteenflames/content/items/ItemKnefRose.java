@@ -6,6 +6,7 @@ import com.qurenie.relics_thirteenflames.content.entities.GhostSmallEntity;
 import com.qurenie.relics_thirteenflames.content.entities.SoulOrbEntity;
 import com.qurenie.relics_thirteenflames.content.entities.SoulSpawnCarrierEntity;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
+import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
 import com.qurenie.relics_thirteenflames.util.FlamesUtils;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import it.hurts.sskirillss.relics.api.events.utility.ContainerSlotClickEvent;
@@ -79,7 +80,7 @@ import static net.neoforged.neoforge.common.NeoForge.EVENT_BUS;
 public class ItemKnefRose
         extends RelicItem
         implements IExtRelicItem, IColoredFoilItem, IRegisterListener {
-    
+
     public ItemKnefRose(Properties properties) {
         super(properties);
     }
@@ -95,22 +96,22 @@ public class ItemKnefRose
                         .ability(AbilityTemplate.builder("undeath")
                                 .initialMaxLevel(5)
                                 .stat(AbilityStatTemplate.builder("max_bones")
-                                        .initialValue(15, 20)
+                                        .initialValue(15, 30)
                                         .thresholdValue(15, 1000)
-                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), 0.31)
+                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), 0.33)
                                         .formatValue(x -> MathUtils.round(x, 0))
                                         .build()
                                 )
                                 .stat(AbilityStatTemplate.builder("per_bone")
                                         .initialValue(1, 2)
                                         .thresholdValue(1, 20)
-                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), 0.32)
+                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), 0.2)
                                         .formatValue(x -> MathUtils.round(x, 0))
                                         .build())
                                 .stat(AbilityStatTemplate.builder("per_block")
                                         .initialValue(0.6, 1)
                                         .thresholdValue(1, 20)
-                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), 0.25)
+                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), 0.15)
                                         .formatValue(x -> MathUtils.round(x, 0))
                                         .build())
                                 .stat(AbilityStatTemplate.builder("max_health")
@@ -120,6 +121,21 @@ public class ItemKnefRose
                                         .formatValue(x -> MathUtils.round(x, 0))
                                         .build()
                                 )
+                                .stat(AbilityStatTemplate.builder("damage_bonus")
+                                        .initialValue(0.04, 0.07)
+                                        .thresholdValue(0, 1000)
+                                        .upgradeModifier(RelicsScalingModels.MULTIPLICATIVE_BASE.get(), 0.2785)
+                                        .formatValue(x -> MathUtils.round(x, 2))
+                                        .build()
+                                )
+                                .stat(AbilityStatTemplate.builder("lifetime_bonus")
+                                        .initialValue(0.08, 0.13)
+                                        .thresholdValue(0, 1000)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 0.05)
+                                        .formatValue(x -> MathUtils.round(x, 2))
+                                        .build()
+                                )
+                                .rankModifier(1, "bone_bonus")
                                 .experienceSources(ExperienceSourcesTemplate.builder()
                                         .source("source_1")
                                         .build())
@@ -148,6 +164,13 @@ public class ItemKnefRose
                                         .formatValue(x -> MathUtils.round(x, 1))
                                         .build()
                                 )
+                                .stat(AbilityStatTemplate.builder("new_one_chance")
+                                        .initialValue(20, 30)
+                                        .thresholdValue(0, 100)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 3)
+                                        .formatValue(x -> MathUtils.round(x, 1))
+                                        .build()
+                                )
                                 .experienceSources(ExperienceSourcesTemplate.builder()
                                         .source("source_1")
                                         .build())
@@ -155,6 +178,8 @@ public class ItemKnefRose
                                         .star(0, 8, 5).star(1, 10, 10).star(2, 15, 13).star(3, 18, 5).star(4, 15, 19).star(5, 13, 24).star(6, 19, 25).star(7, 8, 21).star(8, 2, 22).star(9, 5, 15).star(10, 4, 11).star(11, 3, 5).star(12, 6, 26)
                                         .link(11, 10).link(10, 1).link(1, 0).link(1, 3).link(1, 2).link(2, 4).link(4, 5).link(5, 6).link(5, 7).link(7, 9).link(9, 10).link(9, 8).link(12, 7)
                                         .build())
+                                .rankModifier(1, "homing_ghost")
+                                .rankModifier(2, "new_one")
                                 .build()
                         )
                         .ability(AbilityTemplate.builder("rot_split")
@@ -206,7 +231,8 @@ public class ItemKnefRose
             var level = player.level();
             ItemStack stack = player.getMainHandItem();
 
-            if (stack.getItem() instanceof ItemKnefRose item && player.isShiftKeyDown()) {
+            if (stack.getItem() instanceof ItemKnefRose item && player.isShiftKeyDown()
+                    && !player.getCooldowns().isOnCooldown(ItemsRegistry.KNEF_ROSE)) {
                 if (level.isClientSide) {
                     event.setCanceled(true);
                     return;
@@ -228,6 +254,7 @@ public class ItemKnefRose
                 queue.add(origin);
                 visited.add(origin);
 
+                boolean used = false;
                 while (!queue.isEmpty() && total < need) {
                     BlockPos current = queue.poll();
 
@@ -245,6 +272,8 @@ public class ItemKnefRose
                     if (value > 0) {
                         SoulOrbEntity soul = new SoulOrbEntity(level, player, current, souls);
                         level.addFreshEntity(soul);
+
+                        used = true;
                     }
 
                     level.setBlock(current, Blocks.SOUL_SOIL.defaultBlockState(), 3);
@@ -264,12 +293,16 @@ public class ItemKnefRose
                     }
                 }
 
+                if (used)
+                    player.getCooldowns().addCooldown(ItemsRegistry.KNEF_ROSE, SOULSAND_COOLDOWN_TICKS);
+
                 event.setCanceled(true);
             }
         }
     }
 
     private static final int DEFAULT_COOLDOWN_TICKS = 20 * 8;
+    private static final int SOULSAND_COOLDOWN_TICKS = 20 * 20;
 
     @Override
     public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, @NotNull Player player, @NotNull InteractionHand usedHand) {
@@ -456,12 +489,12 @@ public class ItemKnefRose
 
     private SpawnChoice pickWeighted(List<SpawnChoice> pool, RandomSource random, Function<EntityType<?>, Integer> pickedTypes) {
         float total = 0;
-        for (var c : pool) total += Math.max(1, c.weight() * (float)Math.pow(0.76f, pickedTypes.apply(c.type)));
+        for (var c : pool) total += Math.max(1, c.weight() * (float) Math.pow(0.76f, pickedTypes.apply(c.type)));
         if (total <= 0) return null;
 
         float roll = random.nextFloat() * total;
         for (var c : pool) {
-            roll -= Math.max(1, c.weight() * (float)Math.pow(0.76f, pickedTypes.apply(c.type)));
+            roll -= Math.max(1, c.weight() * (float) Math.pow(0.76f, pickedTypes.apply(c.type)));
             if (roll < 0) return c;
         }
 
@@ -476,17 +509,17 @@ public class ItemKnefRose
                     .withStyle(ChatFormatting.GRAY));
         super.appendHoverText(stack, context, tooltip, isAdvanced);
     }
-    
+
     @Override
     public int getFoilColor(@NotNull ItemStack stack) {
         return 0xCCA1CE | FULL_ALPHA;
     }
-    
+
     @Override
     public void onPostRegistered(ResourceLocation id) {
         EVENT_BUS.register(this);
     }
-    
+
     @SubscribeEvent
     public void slotClick(ContainerSlotClickEvent e) {
         if (e.getSlotStack().is(this) && e.getHeldStack().is(Tags.Items.BONES)) {
@@ -501,11 +534,12 @@ public class ItemKnefRose
 
             addSouls(e.getEntity(), stack, toAdd);
             e.getHeldStack().shrink((int) Math.ceil(toAdd / (float) perBone));
-            
-            e.setCanceled(true);
+
+            if (!e.getEntity().level().isClientSide)
+                e.setCanceled(true);
         }
     }
-    
+
     @SubscribeEvent
     public void livingDeath(LivingDeathEvent e) {
         if (e.getSource().getEntity() instanceof GhostSmallEntity flesch) {
@@ -515,10 +549,10 @@ public class ItemKnefRose
         if (e.getSource().getEntity() instanceof GhostBigEntity flesch) {
             flesch.lifetime += (int) (e.getEntity().getMaxHealth() * 6);
         }
-        
+
         if (!(e.getEntity() instanceof Enemy) && !(e.getEntity() instanceof Animal)) return;
         if (!(e.getSource().getEntity() instanceof ServerPlayer sp)) return;
-        
+
         var itr = ItemChargeHelper.listPlayerInventories(sp).iterator();
         while (itr.hasNext()) {
             var ih = itr.next();
@@ -526,10 +560,17 @@ public class ItemKnefRose
                 var it = ih.getStackInSlot(j);
                 if (it.is(this) && isAbilityUnlocked(sp, it, "living_rot")) {
                     var spawnChance = this.getStatValue(sp, it, "living_rot", "chance") / 100;
-                    
+
+                    var causing = e.getSource().getDirectEntity();
+                    if ((causing instanceof GhostSmallEntity || causing instanceof GhostBigEntity)) {
+                        double newOneChanceModifier = hasRangModifier(sp, it, "living_rot", "new_one")
+                                ? getStatValue(sp, it, "living_rot", "new_one_chance") : 0;
+                        spawnChance *= newOneChanceModifier;
+                    }
+
                     if (sp.getRandom().nextFloat() < spawnChance) {
                         LivingEntity ent = createLiving(sp.level(), sp, e.getEntity(), it);
-                        
+
                         HammerLib.PROXY.queueTask(sp.level(), 15, () -> sp.level().addFreshEntity(ent));
                         return;
                     }
@@ -548,6 +589,15 @@ public class ItemKnefRose
             ent.setOwnerUUID(player.getStringUUID());
             ent.lifetime = (int) (40 + living.getMaxHealth() * 25);
 
+            ent.setExplosiveBall(hasRangModifier(player, stack, "living_rot", "homing_ghost"));
+
+            if (hasRangModifier(player, stack, "undeath", "bone_bonus")) {
+                double damageBonus = getStatValue(player, stack, "undeath", "damage_bonus");
+                double lifetimebonus = getStatValue(player, stack, "undeath", "lifetime_bonus");
+
+                ent.upgradeWithSouls(stack.getOrDefault(SOULS, 0), damageBonus, lifetimebonus);
+            }
+
             return ent;
         }
 
@@ -556,24 +606,32 @@ public class ItemKnefRose
         ent.moveTo(living.position());
         ent.setOwnerUUID(player.getStringUUID());
         ent.lifetime = (int) (40 + living.getMaxHealth() * 15);
+
+        if (hasRangModifier(player, stack, "undeath", "bone_bonus")) {
+            double damageBonus = getStatValue(player, stack, "undeath", "damage_bonus");
+            double lifetimebonus = getStatValue(player, stack, "undeath", "lifetime_bonus");
+
+            ent.upgradeWithSouls(stack.getOrDefault(SOULS, 0), damageBonus, lifetimebonus);
+        }
+
         return ent;
     }
-    
+
     public void addSouls(LivingEntity livingEntity, ItemStack stack, int bones) {
         setSouls(livingEntity, stack, getSouls(stack) + bones);
     }
-    
+
     public int takeSouls(LivingEntity livingEntity, ItemStack stack, int bones, boolean simulate) {
         int avail = getSouls(stack);
         bones = Math.min(bones, avail);
         if (!simulate) setSouls(livingEntity, stack, avail - bones);
         return bones;
     }
-    
+
     public void setSouls(LivingEntity livingEntity, ItemStack stack, int bones) {
         bones = Math.max(bones, 0);
         bones = Math.min(bones, getMaxSouls(livingEntity, stack));
-        
+
         if (bones == 0)
             stack.remove(SOULS);
         else
@@ -583,26 +641,26 @@ public class ItemKnefRose
     public float getMaxMobHP(LivingEntity livingEntity, ItemStack stack) {
         return (float) this.getStatValue(livingEntity, stack, "undeath", "max_health");
     }
-    
+
     public int getSouls(ItemStack stack) {
         return stack.getOrDefault(SOULS, 0);
     }
-    
+
     public int getMaxSouls(LivingEntity livingEntity, ItemStack stack) {
         return (int) MathUtils.round(this.getStatValue(livingEntity, stack, "undeath", "max_bones"), 0);
     }
-    
+
     @Getter
     public static class RoseStats
             implements IAutoNBTSerializable {
-        
+
         public static final StreamCodec<RegistryFriendlyByteBuf, RoseStats> STREAM_CODEC = new StreamCodec<>() {
             @Override
             public RoseStats decode(RegistryFriendlyByteBuf buf) {
                 return new RoseStats(buf.readFloat(), buf.readFloat(), buf.readInt(), buf.readInt(), buf.readFloat(),
                         ItemStack.STREAM_CODEC.decode(buf));
             }
-            
+
             @Override
             public void encode(RegistryFriendlyByteBuf buf, RoseStats stats) {
                 buf.writeFloat(stats.splitChance);
@@ -613,25 +671,25 @@ public class ItemKnefRose
                 ItemStack.STREAM_CODEC.encode(buf, stats.rose);
             }
         };
-        
+
         @NBTSerializable
         public float splitChance = 10F;
-        
+
         @NBTSerializable
         public float splitScale = 30F;
-        
+
         @NBTSerializable
         public int maxSplits = 2;
-        
+
         @NBTSerializable
         public int counter;
-        
+
         @NBTSerializable
         public float hpRate = 0.3F;
-        
+
         @NBTSerializable
         public ItemStack rose;
-        
+
         private RoseStats(float splitChance, float splitScale, int maxSplits, int counter, float hpRate, ItemStack rose) {
             this.splitChance = splitChance;
             this.splitScale = splitScale;
@@ -640,30 +698,31 @@ public class ItemKnefRose
             this.hpRate = hpRate;
             this.rose = rose;
         }
-        
+
         public RoseStats(@Nullable LivingEntity livingEntity, ItemStack roseStack) {
-            if (livingEntity == null || roseStack.isEmpty() || !(roseStack.getItem() instanceof ItemKnefRose relic)) return;
+            if (livingEntity == null || roseStack.isEmpty() || !(roseStack.getItem() instanceof ItemKnefRose relic))
+                return;
             splitChance = relic.isAbilityUnlocked(livingEntity, roseStack, "rot_split") ? (float) relic.getStatValue(livingEntity, roseStack, "rot_split", "chance") : 0;
             splitScale = relic.isAbilityUnlocked(livingEntity, roseStack, "rot_split") ? (float) relic.getStatValue(livingEntity, roseStack, "rot_split", "split_size") : 0;
             maxSplits = relic.isAbilityUnlocked(livingEntity, roseStack, "rot_split") ? (int) relic.getStatValue(livingEntity, roseStack, "rot_split", "max_splits") : 0;
             hpRate = (float) relic.getStatValue(livingEntity, roseStack, "living_rot", "hp_rate");
             rose = roseStack;
         }
-        
+
         public RoseStats(HolderLookup.Provider lookup, CompoundTag nbt) {
             deserializeNBT(lookup, nbt);
         }
-        
+
         public int generateSplits(RandomSource src) {
             return 2 + (maxSplits > 2 ? src.nextInt(maxSplits - 1) : 0);
         }
-        
+
         public RoseStats split() {
             RoseStats roseStats = new RoseStats(splitChance, splitScale, maxSplits, counter, hpRate, rose.copy());
             roseStats.counter++;
             return roseStats;
         }
-        
+
     }
 
     private record SpawnChoice(
@@ -671,6 +730,7 @@ public class ItemKnefRose
             int weight,
             int cost,
             boolean trash
-    ) {}
-    
+    ) {
+    }
+
 }

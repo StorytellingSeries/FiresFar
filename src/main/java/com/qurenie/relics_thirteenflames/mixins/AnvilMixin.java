@@ -66,6 +66,7 @@ public class AnvilMixin {
     private void redirectSetItem(Container container, int slot, ItemStack stack, Player player, ItemStack result) {
         if (slot == 1 && stack.isEmpty()) {
             AnvilEnchantmentMergeEvent event = new AnvilEnchantmentMergeEvent(player, stack, result);
+            EVENT_BUS.post(event);
 
             if (!event.isBookTaken()) {
                 return;

@@ -30,6 +30,7 @@ import org.zeith.hammeranims.api.tile.IAnimatedEntity;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -47,11 +48,13 @@ public class TravellerSweepEntity extends NonLivingEntity implements IAnimatedEn
     public static final String ANGLE_Z = "dir_z";
     public static final String STACK_TAG = "sword";
     public static final String FIRE_ASPECT_TAG = "fire_aspect";
+    public static final String FULL_CIRCLE_TAG = "full_circle";
     public static final int ANIM_LENGTH = 8;
     public static final int SWORD_RANGE = 5;
     private static final EntityDataAccessor<Vector3f> DIRECTION = SynchedEntityData.defineId(TravellerSweepEntity.class, EntityDataSerializers.VECTOR3);
     private static final EntityDataAccessor<Float> COMPLETION = SynchedEntityData.defineId(TravellerSweepEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Integer> FIRE_ASPECT = SynchedEntityData.defineId(TravellerSweepEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Boolean> FULL_CIRCLE = SynchedEntityData.defineId(TravellerSweepEntity.class, EntityDataSerializers.BOOLEAN);
     AnimationSystem system = AnimationSystem.create(this);
     UUID ownerUUID;
     Player owner;
@@ -64,51 +67,68 @@ public class TravellerSweepEntity extends NonLivingEntity implements IAnimatedEn
         this.yBodyRot = -directionToYBodyRot(this.getSwordDirection());
     }
     
-    public TravellerSweepEntity(EntityType<? extends LivingEntity> entityType, Level level, Player owner, ItemStack stack, double damageMultiplier, int fireAspect) {
+    public TravellerSweepEntity(EntityType<? extends LivingEntity> entityType, Level level, Player owner, ItemStack stack, double damageMultiplier, int fireAspect, boolean fullCircle) {
         super(entityType, level);
         this.owner = owner;
         this.ownerUUID = owner.getUUID();
-        Vec3 direction = owner.getLookAngle();
+        Vec3 direction = owner.getLookAngle().multiply(1, 0, 1).add(0.0001f, 0, 0).normalize();
         setSwordDirection(new Vector3f((float) direction.x, 0f, (float) direction.z));
         this.noPhysics = true;
         this.damageMultiplier = damageMultiplier;
         this.stack = stack;
         detectTargets();
         setFireAspect(fireAspect);
+        setFullCircle(fullCircle);
         
         this.setYBodyRot(owner.yHeadRot);
         this.noPhysics = true;
         system.startAnimationAt(LAYER_ACTION, AnimationsRegistry.ADVENTURER_SWORD_BIG_RUN_PIERCE
-                .configure().transitionTime(0).speed(1.33f));
+                .configure().transitionTime(0).speed(fullCircle ? 0.88f : 1.33f));
+    }
+
+    private double getAnimationLength() {
+        return isFullCircle() ? ANIM_LENGTH * 1.33f / 0.88f : ANIM_LENGTH;
+    }
+
+    private double getFullRotationAngle() {
+        return isFullCircle() ? Math.PI * 2 : Math.PI;
     }
     
     private List<Float> getAngles() {
-        float angle = (float) (-Math.PI / 2 + Math.PI * getCompletion());
-        final float rot = 1f / ANIM_LENGTH;
-        final float damageRot = (float) (Math.PI / 60f);
+        double fullAngle = getFullRotationAngle();
+        double startAngle = -Math.PI / 2;
+        float angle = (float) (startAngle + fullAngle * getCompletion());
+        final float rot = (float) (getFullRotationAngle() / getAnimationLength());
+        final float damageRot = (float) (Math.PI / 2f / 60f);
         
-        return Stream.iterate((float) Math.max(-Math.PI / 2f, angle - rot - damageRot), f -> f <= Math.min(Math.PI / 2f, angle + rot + damageRot), f -> f + damageRot).toList();
+        return Stream.iterate((float) Math.max(startAngle, angle - rot - damageRot), f -> f <= Math.min(startAngle + fullAngle, angle + rot + damageRot), f -> f + damageRot)
+                .map(Mth::wrapDegrees).toList();
     }
     
     @Override
     public void tick() {
         system.tick();
+        system.sync();
         super.tick();
         
         if (!this.level().isClientSide && this.owner == null
-                || getCompletion() >= 2) {
+                || getCompletion() > 1) {
             this.discard();
             return;
         }
+
+        double fullAngle = getFullRotationAngle();
+        double startAngle = Math.PI / 2;
+        float rotAngle = (float) (startAngle + fullAngle * getCompletion());
         
-        final float rot = 1f / (ANIM_LENGTH);
+        final float rot = (float) (1f / getAnimationLength());
         final var angles = getAngles();
-        this.yBodyRot = directionToYBodyRot(this.getSwordDirection())
-                - Mth.wrapDegrees((float) Math.toDegrees(-Math.PI / 2 + Math.PI * getCompletion()));
+        this.yBodyRot = (float) (Math.toDegrees(startAngle + Math.PI / 4) + Mth.wrapDegrees(directionToYBodyRot(this.getSwordDirection())
+                        - (float) Math.toDegrees(rotAngle)));
         Vec3 direction = new Vec3(getSwordDirection().x, 0, getSwordDirection().z);
         
         if (level().isClientSide) {
-            if (getCompletion() < 0.95)
+            if (getCompletion() <= 1)
                 for (float angle : angles) {
                     angle -= 0.07f;
                     Vec3 end = position().add(direction.yRot(angle).normalize().scale(SWORD_RANGE)).add(0, 0.65, 0);
@@ -125,14 +145,15 @@ public class TravellerSweepEntity extends NonLivingEntity implements IAnimatedEn
             
             return;
         }
-        
-        this.setPos(owner.position().add(0, 0.5, 0).add(direction.normalize().scale(1))
+
+
+        this.setPos(owner.position().add(0, 0.5, 0).add(direction.normalize().scale(1).yRot(rotAngle))
                 .add(owner.getDeltaMovement().scale(2)));
         
         if (tickCount % 4 == 0)
             detectTargets();
         
-        if (getCompletion() < 1)
+        if (getCompletion() <= 1)
             targets.removeIf(target -> {
                 boolean intersects = getAngles().stream().anyMatch(angle -> {
                     Vec3 end = position().add(direction.yRot(angle).normalize().scale(SWORD_RANGE + 0.6));
@@ -186,6 +207,14 @@ public class TravellerSweepEntity extends NonLivingEntity implements IAnimatedEn
     private void setSwordDirection(Vector3f vector3f) {
         this.entityData.set(DIRECTION, vector3f);
     }
+
+    private boolean isFullCircle() {
+        return entityData.get(FULL_CIRCLE);
+    }
+
+    private void setFullCircle(boolean fullCircle) {
+        entityData.set(FULL_CIRCLE, fullCircle);
+    }
     
     @Override
     protected void defineSynchedData(SynchedEntityData.@NotNull Builder builder) {
@@ -193,6 +222,7 @@ public class TravellerSweepEntity extends NonLivingEntity implements IAnimatedEn
         builder.define(DIRECTION, new Vector3f());
         builder.define(COMPLETION, 0f);
         builder.define(FIRE_ASPECT, 0);
+        builder.define(FULL_CIRCLE, false);
     }
     
     private void detectTargets() {
@@ -206,12 +236,13 @@ public class TravellerSweepEntity extends NonLivingEntity implements IAnimatedEn
     @Override
     public void readAdditionalSaveData(@NotNull CompoundTag compound) {
         super.readAdditionalSaveData(compound);
+        setFullCircle(compound.getBoolean(FULL_CIRCLE_TAG));
         this.ownerUUID = compound.getUUID(OWNER_TAG);
         setFireAspect(compound.getInt(FIRE_ASPECT_TAG));
         setCompletion(compound.getFloat(COMPLETION_TAG));
         setSwordDirection(new Vector3f(compound.getFloat(ANGLE_X), 0, compound.getFloat(ANGLE_Z)));
         this.damageMultiplier = compound.getDouble(DAMAGE_TAG);
-        this.stack = ItemStack.parse(level().registryAccess(), compound.get(STACK_TAG)).orElse(ItemStack.EMPTY);
+        this.stack = ItemStack.parse(level().registryAccess(), Objects.requireNonNull(compound.get(STACK_TAG))).orElse(ItemStack.EMPTY);
         bindOwner();
     }
     
@@ -219,6 +250,7 @@ public class TravellerSweepEntity extends NonLivingEntity implements IAnimatedEn
     public void addAdditionalSaveData(@NotNull CompoundTag compound) {
         super.addAdditionalSaveData(compound);
         compound.putUUID(OWNER_TAG, ownerUUID);
+        compound.putBoolean(FULL_CIRCLE_TAG, isFullCircle());
         compound.putInt(FIRE_ASPECT_TAG, getFireAspect());
         compound.putFloat(COMPLETION_TAG, getCompletion());
         compound.putDouble(ANGLE_X, getSwordDirection().x);

@@ -1,6 +1,8 @@
 package com.qurenie.relics_thirteenflames.util;
 
 import com.qurenie.relics_thirteenflames.client.particles.ColoredRelicParticle;
+import com.qurenie.relics_thirteenflames.client.particles.RotateSettings;
+import com.qurenie.relics_thirteenflames.client.particles.RotatingColoredRelicParticle;
 import com.qurenie.relics_thirteenflames.client.particles.misc.RotationType;
 import com.qurenie.relics_thirteenflames.init.ParticlesRegistry;
 import com.qurenie.relics_thirteenflames.mixins.client.ParticleAccessor;
@@ -20,7 +22,6 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import org.zeith.hammerlib.net.Network;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -30,7 +31,11 @@ import java.util.function.Supplier;
 public class ParticleHelper {
     
     static Random rng = new Random();
-    
+
+    public static RotatingColoredRelicParticle.Options constructRotatedSpark(RotateSettings settings, OctoColor color, float diameter, int lifetime, float scaleModifier) {
+        return new RotatingColoredRelicParticle.Options(ColoredRelicParticle.Constructor.builder().color(color.getARGB()).diameter(diameter).lifetime(lifetime).scaleModifier(scaleModifier).visibleThroughWalls(false).physical(false).roll(0.5F).build(), settings);
+    }
+
     public static ColoredRelicParticle.Options constructSimpleSpark(OctoColor color, float diameter, int lifetime, float scaleModifier) {
         return new ColoredRelicParticle.Options(ColoredRelicParticle.Constructor.builder().color(color.getARGB()).diameter(diameter).lifetime(lifetime).scaleModifier(scaleModifier).visibleThroughWalls(false).physical(false).roll(0.5F).build());
     }
@@ -123,17 +128,17 @@ public class ParticleHelper {
         spawnParticleLine(level, particle, start, end, particleCount, speed, 0);
     }
     
-    public static void spawnParticleLine(Level level, ParticleOptions particle, Vec3 start, Vec3 end, int particleCount, Vec3 speed, double spread) {
-        spawnParticleLine(level, particle, start, end, particleCount, () -> speed, spread);
+    public static void spawnParticleLine(Level level, ParticleOptions particle, Vec3 start, Vec3 end, int particleCount, Vec3 motion, double spread) {
+        spawnParticleLine(level, particle, start, end, particleCount, () -> motion, spread);
     }
     
-    public static void spawnParticleLine(Level level, ParticleOptions particle, Vec3 start, Vec3 end, int particleCount, Supplier<Vec3> speed, double spread) {
+    public static void spawnParticleLine(Level level, ParticleOptions particle, Vec3 start, Vec3 end, int particleCount, Supplier<Vec3> motion, double spread) {
         Vec3 delta = end.subtract(start);
         Vec3 dir = delta.normalize();
         double len = delta.length();
         
         for (int i = 0; i < particleCount; ++i) {
-            Vec3 v = speed.get().scale(level.random.nextDouble());;
+            Vec3 v = motion.get().scale(level.random.nextDouble());;
             double progress = i * len / particleCount;
             spawnDirectedParticle(level, particle, start.x + dir.x * progress + rng.nextGaussian() * spread, start.y + dir.y * progress + rng.nextGaussian() * spread,
                     start.z + dir.z * progress + rng.nextGaussian() * spread, v.x, v.y, v.z);

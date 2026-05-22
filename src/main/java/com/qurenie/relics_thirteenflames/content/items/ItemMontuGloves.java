@@ -317,7 +317,7 @@ public class ItemMontuGloves extends WearableRelicItem implements IActivityConta
     public void forgeDoneEvent(AnvilRepairEvent updateEvent) {
         Player player = updateEvent.getEntity();
         
-        if (player.level().isClientSide || !(updateEvent.getEntity().containerMenu instanceof AnvilMenu menu))
+        if (!(updateEvent.getEntity().containerMenu instanceof AnvilMenu menu))
             return;
         
         var itr = ItemChargeHelper.listPlayerInventories(player).iterator();
@@ -338,7 +338,7 @@ public class ItemMontuGloves extends WearableRelicItem implements IActivityConta
     public void forgeRepairEvent(AnvilRepairPostCountEvent updateEvent) {
         Player player = updateEvent.getPlayer();
 
-        if (player.level().isClientSide || !(updateEvent.getPlayer().containerMenu instanceof AnvilMenu menu))
+        if (!(updateEvent.getPlayer().containerMenu instanceof AnvilMenu menu))
             return;
 
         var itr = ItemChargeHelper.listPlayerInventories(player).iterator();
@@ -361,7 +361,7 @@ public class ItemMontuGloves extends WearableRelicItem implements IActivityConta
     public void forgeEnchantEvent(AnvilEnchantmentMergeEvent updateEvent) {
         Player player = updateEvent.getPlayer();
 
-        if (player.level().isClientSide || !(updateEvent.getPlayer().containerMenu instanceof AnvilMenu menu))
+        if (!(updateEvent.getPlayer().containerMenu instanceof AnvilMenu menu))
             return;
 
         var itr = ItemChargeHelper.listPlayerInventories(player).iterator();

@@ -1,5 +1,6 @@
 package com.qurenie.relics_thirteenflames.activity.call.settings;
 
+import com.qurenie.relics_thirteenflames.activity.call.CallInput;
 import it.hurts.sskirillss.relics.Relics;
 import it.hurts.sskirillss.relics.api.relics.IRelicItem;
 import lombok.AllArgsConstructor;
@@ -8,6 +9,8 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import org.apache.logging.log4j.util.TriConsumer;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
@@ -22,6 +25,9 @@ public class RelicsActivityCallSettings implements IActivityCallSettings {
     @Builder.Default
     BiPredicate<LivingEntity, ItemStack> visibility = null;
     BiFunction<LivingEntity, ItemStack, ActivityResult> cast;
+    @Builder.Default
+    TriConsumer<LivingEntity, ItemStack, SelectionContext> selectionNotify = (e, s, context) -> {};
+
 
     public static RelicsActivityCallSettingsBuilder builder(String ability) {
         RelicsActivityCallSettingsBuilder b = new RelicsActivityCallSettingsBuilder();
@@ -61,6 +67,11 @@ public class RelicsActivityCallSettings implements IActivityCallSettings {
     @Override
     public InventoryType getInventoryType() {
         return inventoryType;
+    }
+
+    @Override
+    public void selectionNotify(LivingEntity entity, ItemStack itemStack, SelectionContext context) {
+        selectionNotify.accept(entity, itemStack, context);
     }
 
     public static class RelicsActivityCallSettingsBuilder {

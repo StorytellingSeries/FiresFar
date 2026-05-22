@@ -5,8 +5,10 @@ import com.qurenie.api.IExtRelicItem;
 import com.qurenie.api.SettingsContainer;
 import com.qurenie.relics_thirteenflames.activity.ActivitySetting;
 import com.qurenie.relics_thirteenflames.activity.IActivitySetting;
+import com.qurenie.relics_thirteenflames.content.entities.BookOrbEntity;
 import com.qurenie.relics_thirteenflames.content.entities.FeatherVortexEntity;
 import com.qurenie.relics_thirteenflames.content.entities.RespawnBookEntity;
+import com.qurenie.relics_thirteenflames.init.ComponentRegistry;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
 import com.qurenie.relics_thirteenflames.style.ColorScheme;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
@@ -23,9 +25,7 @@ import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootTemplate;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootEntry;
 import it.hurts.sskirillss.relics.items.relics.base.data.research.ResearchTemplate;
 import it.hurts.sskirillss.relics.utils.MathUtils;
-import net.minecraft.ChatFormatting;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
@@ -39,7 +39,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
@@ -51,8 +50,9 @@ import net.neoforged.neoforge.event.entity.player.PlayerXpEvent;
 import org.jetbrains.annotations.NotNull;
 import org.zeith.hammerlib.api.fml.IRegisterListener;
 import org.zeith.hammerlib.util.charging.ItemChargeHelper;
+import top.theillusivec4.curios.api.CuriosApi;
+import top.theillusivec4.curios.api.type.inventory.IDynamicStackHandler;
 
-import java.awt.*;
 import java.util.List;
 
 import static com.qurenie.relics_thirteenflames.init.ComponentRegistry.ENTITY_UUID;
@@ -102,14 +102,14 @@ public class ItemHettFeather extends RelicItem implements IExtRelicItem, IRegist
                                         .build())
                                 .stat(AbilityStatTemplate.builder("level")
                                         .initialValue(1, 1.75)
-                                        .thresholdValue(0, 3)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 0.5)
+                                        .thresholdValue(0, 6)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 0.45)
                                         .formatValue(Math::floor)
                                         .build()
                                 )
                                 .stat(AbilityStatTemplate.builder("max_health")
                                         .initialValue(1, 6)
-                                        .thresholdValue(1, 15)
+                                        .thresholdValue(1, 40)
                                         .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 3)
                                         .formatValue(d -> MathUtils.round(d, 1))
                                         .build()
@@ -117,14 +117,29 @@ public class ItemHettFeather extends RelicItem implements IExtRelicItem, IRegist
                                 .stat(AbilityStatTemplate.builder("recharge")
                                         .initialValue(600, 600)
                                         .thresholdValue(600, 600)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 0)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), -15)
                                         .formatValue(d -> MathUtils.round(d / 20, 1))
+                                        .build()
+                                )
+                                .stat(AbilityStatTemplate.builder("repairCount")
+                                        .initialValue(10, 20)
+                                        .thresholdValue(10, 600)
+                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), 0.2)
+                                        .formatValue(Math::floor)
+                                        .build()
+                                )
+                                .stat(AbilityStatTemplate.builder("maxSize")
+                                        .initialValue(1, 1.5)
+                                        .thresholdValue(1, 10)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 0.4)
+                                        .formatValue(Math::floor)
                                         .build()
                                 )
                                 .research(ResearchTemplate.builder()
                                         .star(0, 11, 14).star(1, 10, 21).star(2, 16, 14).star(3, 5, 14).star(4, 5, 20).star(5, 16, 20).star(6, 10, 5).star(7, 3, 6).star(8, 17, 6).star(9, 14, 17).star(10, 7, 17)
                                         .link(1, 4).link(1, 0).link(3, 0).link(0, 2).link(1, 5).link(0, 6).link(3, 7).link(2, 8).link(2, 9).link(4, 10)
                                         .build())
+                                .rankModifier(2, "imbalance")
                                 .build()
                         )
                         .ability(AbilityTemplate.builder("savepoint")
@@ -143,17 +158,25 @@ public class ItemHettFeather extends RelicItem implements IExtRelicItem, IRegist
                                 .stat(AbilityStatTemplate.builder("xp_consume")
                                         .initialValue(100, 90)
                                         .thresholdValue(30, 100)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), -20)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), -15)
                                         .formatValue(d -> MathUtils.round(d, 1))
                                         .build()
                                 )
                                 .stat(AbilityStatTemplate.builder("hp_consume")
                                         .initialValue(100, 90)
                                         .thresholdValue(50, 100)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), -15)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), -10)
                                         .formatValue(d -> MathUtils.round(d, 1))
                                         .build()
                                 )
+                                .stat(AbilityStatTemplate.builder("attackLevel")
+                                        .initialValue(1, 2)
+                                        .thresholdValue(1, 100)
+                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), 0.22)
+                                        .formatValue(d -> MathUtils.round(d * 0.25f, 1))
+                                        .build()
+                                )
+                                .rankModifier(1, "attack")
                                 .build()
                         )
                         .build()
@@ -205,6 +228,7 @@ public class ItemHettFeather extends RelicItem implements IExtRelicItem, IRegist
 
                 var position = ctx.getClickLocation();
                 RespawnBookEntity respawnBook = new RespawnBookEntity(ctx.getPlayer(), ctx.getItemInHand(), position.x, position.y, position.z);
+
                 ctx.getLevel().addFreshEntity(respawnBook);
                 ctx.getPlayer().getCooldowns().addCooldown(this, 1200);
                 ctx.getItemInHand().set(ENTITY_UUID, respawnBook.getUUID());
@@ -217,7 +241,7 @@ public class ItemHettFeather extends RelicItem implements IExtRelicItem, IRegist
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(Level level, Player player, @NotNull InteractionHand usedHand) {
+    public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, Player player, @NotNull InteractionHand usedHand) {
         ItemStack stack = player.getItemInHand(usedHand);
 
         if (canCast(player, stack, "book_slap")) {
@@ -252,8 +276,42 @@ public class ItemHettFeather extends RelicItem implements IExtRelicItem, IRegist
                     return super.use(level, player, usedHand);
                 }
 
-                FeatherVortexEntity vortexEntity = new FeatherVortexEntity(living, player.level(), (int) ItemsRegistry.HETT_FEATHER.getStatValue(player, stack, "book_slap", "level"));
-                player.level().addFreshEntity(vortexEntity);
+                int lvl = (int) ItemsRegistry.HETT_FEATHER.getStatValue(player, stack, "book_slap", "level");
+                int repairCount = (int) ItemsRegistry.HETT_FEATHER.getStatValue(player, stack, "book_slap", "repairCount");
+                int maxSize = (int) ItemsRegistry.HETT_FEATHER.getStatValue(player, stack, "book_slap", "maxSize");
+                if (!player.isShiftKeyDown()) {
+                    FeatherVortexEntity vortexEntity = new FeatherVortexEntity(living, player.level(), lvl, maxSize);
+                    player.level().addFreshEntity(vortexEntity);
+                } else if (hasRangModifier(player, stack, "book_slap", "imbalance")) {
+                    var book = CuriosApi.getCuriosInventory(player).map((handler) -> {
+                        IDynamicStackHandler stacks = handler.getCurios().get("charm").getStacks();
+                        for (int i = 0; i < stacks.getSlots(); i++) {
+                            ItemStack b = stacks.getStackInSlot(i);
+                            if (b.getItem() instanceof ItemHettFeatherBook bookItem) {
+                                int maxSize$ = b.getOrDefault(ComponentRegistry.SIZE, 1);
+                                int size$ = b.getOrDefault(ComponentRegistry.TARGET_TYPES, List.of()).size();
+                                if (bookItem.isCorrectEntityType(b, living.getType()) || size$ < maxSize$) {
+                                    stacks.setStackInSlot(i, ItemStack.EMPTY);
+                                    return b;
+                                }
+                            }
+                        }
+
+                        if (stacks.getSlots() == 0)
+                            return ItemStack.EMPTY;
+
+                        stacks.setStackInSlot(0, ItemStack.EMPTY);
+                        return stacks.getStackInSlot(0);
+                    }).orElse(ItemStack.EMPTY);
+
+                    if (!book.isEmpty()) {
+                        BookOrbEntity orb = new BookOrbEntity(level, living, player, book, lvl, true, maxSize, repairCount);
+                        level.addFreshEntity(orb);
+                    } else {
+                        FeatherVortexEntity vortexEntity = new FeatherVortexEntity(living, player.level(), lvl, maxSize);
+                        player.level().addFreshEntity(vortexEntity);
+                    }
+                }
 
                 ((ItemHettFeather) stack.getItem()).addExperience(living, stack, 10);
 
@@ -302,7 +360,7 @@ public class ItemHettFeather extends RelicItem implements IExtRelicItem, IRegist
     public SettingsContainer<IActivitySetting> constructActivitySettings() {
         return SettingsContainer.<IActivitySetting>builder()
                 .setting(ActivitySetting.builder("book_slap")
-                        .maxCooldown(600)
+                        .maxCooldown(0)
                         .color(ColorScheme.BAR_YELLOW)
                         .build())
                 .build();

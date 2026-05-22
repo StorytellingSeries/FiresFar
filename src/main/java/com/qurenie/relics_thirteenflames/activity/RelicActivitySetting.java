@@ -3,10 +3,9 @@ package com.qurenie.relics_thirteenflames.activity;
 import com.qurenie.relics_thirteenflames.activity.call.settings.IActivityCallSettings;
 import it.hurts.octostudios.octolib.util.OctoColor;
 import it.hurts.sskirillss.relics.api.relics.IRelicItem;
-import lombok.Builder;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.BiFunction;
@@ -17,8 +16,9 @@ public class RelicActivitySetting extends ActivitySetting {
     RelicActivitySetting(OctoColor color, String name, BiFunction<ItemStack, LivingEntity, Integer> maxCooldown,
                          BiPredicate<ItemStack, LivingEntity> castCondition,
                          BiPredicate<ItemStack, LivingEntity> showBar,
+                         BiPredicate<ItemStack, LivingEntity> shouldRestore,
                          @Nullable IActivityCallSettings callSettings) {
-        super(color, name, maxCooldown, castCondition, showBar, callSettings);
+        super(color, name, maxCooldown, castCondition, showBar, shouldRestore, callSettings);
     }
 
     public static RelicActivitySettingBuilder builderRelic(String ability, String stat) {
@@ -46,6 +46,7 @@ public class RelicActivitySetting extends ActivitySetting {
         private String name = "unspecified";
         private BiFunction<ItemStack, LivingEntity, Integer> maxCooldown = (s, p) -> 0;
         private BiPredicate<ItemStack, LivingEntity> castCondition = (s, p) -> true;
+        private BiPredicate<ItemStack, LivingEntity> shouldRestore = (s, p) -> true;
         private BiPredicate<ItemStack, LivingEntity> showBar = (s, p) -> true;
 
         public RelicActivitySettingBuilder color(@Nullable OctoColor color) {
@@ -92,18 +93,23 @@ public class RelicActivitySetting extends ActivitySetting {
 
         public RelicActivitySettingBuilder castCondition(BiPredicate<ItemStack, LivingEntity> castCondition) {
             if (castCondition == null) {
-                throw new IllegalArgumentException("castCondition cannot be null");
+                throw new IllegalArgumentException("predicate cannot be null");
             }
             this.castCondition = castCondition;
             return this;
         }
 
         public RelicActivitySettingBuilder showBar(BiPredicate<ItemStack, LivingEntity> predicate) {
-            if (showBar == null) {
-                throw new IllegalArgumentException("castCondition cannot be null");
+            if (predicate == null) {
+                throw new IllegalArgumentException("predicate cannot be null");
             }
             this.showBar = predicate;
             return this;
+        }
+
+        @ApiStatus.Internal
+        public RelicActivitySettingBuilder shouldRestore(BiPredicate<ItemStack, LivingEntity> predicate) {
+            throw new UnsupportedOperationException("Not implemented yet");
         }
 
         public RelicActivitySetting build() {
@@ -119,7 +125,7 @@ public class RelicActivitySetting extends ActivitySetting {
                     throw new IllegalArgumentException("Relic has not " + name + " ability.");
 
                 return abilityData.isUnlocked() && abilityData.getLevel() >= startingCastLevel;
-            }), showBar, callSettings);
+            }), showBar, shouldRestore, callSettings);
         }
     }
 }

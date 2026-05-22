@@ -1,20 +1,21 @@
 package com.qurenie.relics_thirteenflames.content.entities;
 
+import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.qurenie.relics_thirteenflames.client.AnimationsRegistry;
 import com.qurenie.api.event.BabySpawnCountEvent;
 import com.qurenie.relics_thirteenflames.content.items.ItemSeliasetSun;
+import com.qurenie.relics_thirteenflames.init.BlocksRegistry;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
+import com.qurenie.relics_thirteenflames.style.ColorScheme;
+import com.qurenie.relics_thirteenflames.util.FlamesUtils;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
-import it.hurts.sskirillss.relics.api.relics.IRelicItem;
 import it.unimi.dsi.fastutil.ints.Int2IntArrayMap;
 import it.unimi.dsi.fastutil.objects.Object2IntArrayMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import lombok.Getter;
-import lombok.Setter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -30,6 +31,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
@@ -49,6 +51,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.common.CommonHooks;
 import net.neoforged.neoforge.common.util.FakePlayerFactory;
 import net.neoforged.neoforge.fluids.FluidType;
 import org.jetbrains.annotations.NotNull;
@@ -58,7 +61,6 @@ import org.zeith.hammeranims.api.animsys.layer.AnimationLayer;
 import org.zeith.hammeranims.api.tile.IAnimatedEntity;
 import org.zeith.hammeranims.core.init.DefaultsHA;
 
-import java.awt.*;
 import java.util.List;
 import java.util.*;
 import java.util.stream.Stream;
@@ -85,6 +87,12 @@ public class EntitySeliasetSun extends LivingEntity implements IAnimatedEntity {
             Blocks.BIG_DRIPLEAF,
             Blocks.SMALL_DRIPLEAF,
             Blocks.GLOW_LICHEN
+    );
+
+    public static final Set<Block> RANDOM_TICK_BLOCKS = Set.of(
+            Blocks.SUGAR_CANE,
+            Blocks.NETHER_WART,
+            Blocks.CACTUS
     );
 
     public static final Set<Item> BLOCKED_HEAT_BLOCKS = Set.of(
@@ -126,6 +134,7 @@ public class EntitySeliasetSun extends LivingEntity implements IAnimatedEntity {
         if (!(world instanceof ServerLevel sl)) return;
 
         List<BlockPos> positions = new ArrayList<>();
+        List<BlockPos> randomTickPositions = new ArrayList<>();
 
         for (int x = -rad; x <= rad; ++x)
             for (int z = -rad; z <= rad; ++z)
@@ -133,7 +142,11 @@ public class EntitySeliasetSun extends LivingEntity implements IAnimatedEntity {
                     var pos = ent.blockPosition().offset(x, y, z);
                     var state = world.getBlockState(pos);
                     var b = state.getBlock();
-                    if (!(b instanceof BonemealableBlock gr)) continue;
+                    if (!(b instanceof BonemealableBlock gr)) {
+                        if (RANDOM_TICK_BLOCKS.contains(b) && CommonHooks.canCropGrow(world, pos, state, true))
+                            randomTickPositions.add(pos);
+                        continue;
+                    }
                     if (BLOCKED_BLOCKS.contains(b)) continue;
                     if (gr.isValidBonemealTarget(world, pos, state) && gr.isBonemealSuccess(world, world.random, pos, state))
                         positions.add(pos);
@@ -143,17 +156,29 @@ public class EntitySeliasetSun extends LivingEntity implements IAnimatedEntity {
         for (int i = 0; i < co; ++i) {
             BlockPos pos = positions.remove(ent.level().random.nextInt(positions.size()));
             if (BoneMealItem.applyBonemeal(Items.BONE_MEAL.getDefaultInstance(), world, pos, FakePlayerFactory.getMinecraft(sl))) {
-
                 world.levelEvent(2005, pos, 0);
                 if (sun.getItem() instanceof ItemSeliasetSun relic && ent instanceof EntitySeliasetSun ess)
                     relic.addExperience(ess.getOwner(), sun, 1);
             }
         }
+
+        co = Math.min(ent.level().random.nextInt(max - co), randomTickPositions.size());
+        for (int i = 0; i < co; ++i) {
+            BlockPos pos = randomTickPositions.remove(ent.level().random.nextInt(randomTickPositions.size()));
+            BlockState state = world.getBlockState(pos);
+
+            for (int j = 0; j < 4 + ent.level().random.nextInt(4); j++) {
+                state.randomTick((ServerLevel) world, pos, world.getRandom());
+            }
+
+            if (sun.getItem() instanceof ItemSeliasetSun relic && ent instanceof EntitySeliasetSun ess)
+                relic.addExperience(ess.getOwner(), sun, 1);
+        }
     }
 
     @NotNull
     private LivingEntity getOwner() {
-        var p = level().getPlayerByUUID(getUUID());
+        var p = level().getPlayerByUUID(UUID.fromString(getOwnerUUID()));
         return p == null ? this : p;
     }
 
@@ -163,7 +188,7 @@ public class EntitySeliasetSun extends LivingEntity implements IAnimatedEntity {
     }
 
     @Override
-    public boolean isPushedByFluid(FluidType type) {
+    public boolean isPushedByFluid(@NotNull FluidType type) {
         return false;
     }
 
@@ -187,12 +212,16 @@ public class EntitySeliasetSun extends LivingEntity implements IAnimatedEntity {
     }
 
     public int getMax() {
-        return 15 + 3 * getBlessedStatLevel();
+        return 15 + 3 * Math.min(getBlessedStatLevel(), 5);
     }
 
     public int getActivationSpeed() {
         return 1;
     }
+
+    private final Supplier<Boolean> hasMercy = Suppliers.memoize(() -> ItemsRegistry.SELIASET_SUN.hasRangModifier(null, getSunItem(), "heat", "mercy"));
+    private final Supplier<Boolean> hasParadise = Suppliers.memoize(() -> ItemsRegistry.SELIASET_SUN.hasRangModifier(null, getSunItem(), "blessed_light", "paradise"));
+    private final Supplier<Boolean> hasLightning = Suppliers.memoize(() -> ItemsRegistry.SELIASET_SUN.isAbilityUnlocked(null, getSunItem(), "lightning"));
 
     @Override
     public void tick() {
@@ -206,7 +235,6 @@ public class EntitySeliasetSun extends LivingEntity implements IAnimatedEntity {
 
         super.tick();
         if (this.isActive()) this.setDeltaMovement(Vec3.ZERO);
-
 
         if (getOwnerUUID().isEmpty()) this.discard();
 
@@ -224,8 +252,65 @@ public class EntitySeliasetSun extends LivingEntity implements IAnimatedEntity {
                 animations.sync();
 
             double radStat = getBlessedRadiusStat();
+            int frequency = getLightningFrequency();
             int speedStat = getSpeedStat();
             int heatStat = getHeatStatLevel();
+            int lightningRadius = getLightningRadius();
+
+            if (hasLightning.get() && tickCount % frequency == 0) {
+
+                LivingEntity owner = getOwner();
+
+                if (owner instanceof Player player) {
+
+                    if (player.distanceToSqr(this) <= lightningRadius * lightningRadius) {
+
+                        BlockPos playerPos = player.blockPosition();
+
+                        int blockLight = level().getBrightness(net.minecraft.world.level.LightLayer.BLOCK, playerPos);
+                        // Темно
+                        if (blockLight <= 6) {
+
+                            int placementRadius = 4;
+                            RandomSource random = level().random;
+
+                            // Случайная позиция вокруг игрока
+                            int offsetX = Mth.nextInt(random, -placementRadius, placementRadius);
+                            int offsetZ = Mth.nextInt(random, -placementRadius, placementRadius);
+
+                            BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos(
+                                    playerPos.getX() + offsetX,
+                                    playerPos.getY(),
+                                    playerPos.getZ() + offsetZ
+                            );
+
+                            // Ищем поверхность
+                            for (int y = 0; y <= placementRadius; y = -y + (y >= 0 ? -1 : 1)) {
+
+                                mutable.setY(playerPos.getY() + y);
+
+                                BlockPos floorPos = mutable.immutable();
+                                BlockPos placePos = floorPos.above();
+
+                                if (level().isEmptyBlock(placePos)) {
+
+                                    level().setBlock(
+                                            placePos,
+                                            BlocksRegistry.NITOR.defaultBlockState(),
+                                            3
+                                    );
+
+                                    ParticleHelper.spawnParticles(level(),
+                                            ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(BURN_COLOR, level().getRandom()), 0.3f, 60, 0.95f).withGravity(0.3f),
+                                            placePos.getCenter(), 20, 0.2, 0.2, 0.2, 0.05);
+
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
 
             if (--growCooldown < 0) {
                 growAround(this, (int) radStat, 2 + getBlessedStatLevel(), getSunItem());
@@ -325,8 +410,10 @@ public class EntitySeliasetSun extends LivingEntity implements IAnimatedEntity {
                 }
                 this.itemsHeat = itemsHeat$;
 
-                for (LivingEntity mob : this.level().getEntitiesOfClass(LivingEntity.class, heatSpace)) {
+                for (LivingEntity mob : this.level().getEntitiesOfClass(LivingEntity.class, heatSpace,
+                        e -> !hasMercy.get() || !e.getStringUUID().equals(getOwnerUUID()))) {
                     mob.hurt(damageSources().lava(), 1);
+
 
                     fryEntity(mob, 0.3);
                 }
@@ -345,6 +432,11 @@ public class EntitySeliasetSun extends LivingEntity implements IAnimatedEntity {
 
                     mon.setRemainingFireTicks(200);
                 }
+            }
+
+            if (tickCount % 20 == 0 && hasParadise.get()) {
+                for (AgeableMob mob : this.level().getEntitiesOfClass(AgeableMob.class, getBoundingBox().inflate(radStat)))
+                    mob.ageUp(getBlessedStatLevel() * 3);
             }
         } else {
             if (animations.startAnimationAt(CommonLayerNames.ACTION, DefaultsHA.NULL_ANIMATION.configure().transitionTime(getMax() / 20f)))
@@ -397,6 +489,18 @@ public class EntitySeliasetSun extends LivingEntity implements IAnimatedEntity {
         ItemStack item = this.getSunItem();
         ItemSeliasetSun relic = (ItemSeliasetSun) item.getItem();
         return (int) relic.getStatValue(getOwner(), item, "blessed_light", "speed");
+    }
+
+    private int getLightningFrequency() {
+        ItemStack item = this.getSunItem();
+        ItemSeliasetSun relic = (ItemSeliasetSun) item.getItem();
+        return (int) relic.getStatValue(getOwner(), item, "lightning", "frequency");
+    }
+
+    private int getLightningRadius() {
+        ItemStack item = this.getSunItem();
+        ItemSeliasetSun relic = (ItemSeliasetSun) item.getItem();
+        return (int) relic.getStatValue(getOwner(), item, "lightning", "radius");
     }
 
     private int getBlessedStatLevel() {

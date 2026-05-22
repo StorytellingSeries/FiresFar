@@ -2,6 +2,7 @@ package com.qurenie.relics_thirteenflames.client.render.item;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
+import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -61,13 +62,15 @@ public class RonasShieldItemRenderer
 
         int charges = stack.getOrDefault(RHONAS_CHARGES, 0);
 
-        pose.pushPose();
-        renderOverrride(overrides.get(7 - charges), transformType, pose, stack, bufferSource, RenderType.cutout(), uv2, overlay);
+        boolean isFlawless = ItemsRegistry.RONAS_SHIELD.getRelicData(null, stack).isFlawless();
 
-        //renderOverrride(overrides.get(3), transformType, pose, stack, bufferSource, null, lightmap, overlay);
+        pose.pushPose();
+        renderOverrride(overrides.get(isFlawless ? 7 - charges : 7 - charges), transformType, pose, stack, bufferSource, RenderType.cutout(), uv2, overlay);
+
+//        renderOverrride(overrides.get(3), transformType, pose, stack, bufferSource, null, lightmap, overlay);
         pose.popPose();
         pose.pushPose();
-        if(charges > 0) renderOverrride(overrides.get(3 - charges), transformType, pose, stack, bufferSource, null, lightmap, overlay);
+        if(charges > 0 || isFlawless) renderOverrride(overrides.get(isFlawless ?3 - charges : 3 - charges), transformType, pose, stack, bufferSource, null, lightmap, overlay);
         pose.popPose();
     }
 

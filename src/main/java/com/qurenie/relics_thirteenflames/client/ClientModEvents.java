@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.qurenie.api.IBarContainer;
 import com.qurenie.relics_thirteenflames.ThirteenFlames;
 import com.qurenie.relics_thirteenflames.client.bar.BarDecorator;
+import com.qurenie.relics_thirteenflames.client.gui.ActivityCallGui;
 import com.qurenie.relics_thirteenflames.client.render.entity.*;
 import com.qurenie.relics_thirteenflames.client.render.item.MontuGlovesRenderer;
 import com.qurenie.relics_thirteenflames.client.render.misc.AuritekhElytraLayer;
@@ -16,6 +17,7 @@ import com.qurenie.relics_thirteenflames.client.screen.scroll.ScrollOfTruthConta
 import com.qurenie.relics_thirteenflames.content.entities.*;
 import com.qurenie.relics_thirteenflames.content.items.ItemJodahMask;
 import com.qurenie.relics_thirteenflames.content.items.ItemRonasSword;
+import com.qurenie.relics_thirteenflames.content.items.misc.JodahTier;
 import com.qurenie.relics_thirteenflames.content.items.misc.MaskState;
 import com.qurenie.relics_thirteenflames.content.items.misc.ScintType;
 import com.qurenie.relics_thirteenflames.content.items.models.InterworlderMask;
@@ -24,6 +26,8 @@ import com.qurenie.relics_thirteenflames.content.items.models.MontuGlovesArmorRi
 import com.qurenie.relics_thirteenflames.init.*;
 import com.qurenie.relics_thirteenflames.init.register.RendererFactory;
 import it.hurts.sskirillss.relics.client.renderer.entities.NullRenderer;
+import lombok.Getter;
+import lombok.Setter;
 import net.minecraft.Util;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
@@ -49,7 +53,9 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.EntityHitResult;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -63,6 +69,7 @@ import top.theillusivec4.curios.api.client.CuriosRendererRegistry;
 import java.util.Map;
 
 import static com.qurenie.relics_thirteenflames.init.ItemsRegistry.JODAH_MASK;
+import static com.qurenie.relics_thirteenflames.init.ItemsRegistry.JODAH_STAFF;
 
 
 @EventBusSubscriber(modid = ThirteenFlames.MODID, value = Dist.CLIENT)
@@ -70,8 +77,14 @@ public class ClientModEvents {
 
     @SubscribeEvent
     public static void fmlClientSetup(FMLClientSetupEvent event) {
-        event.enqueueWork(() -> ItemProperties.register(JODAH_MASK, ThirteenFlames.rl("mask_state"),
-                (stack, level, entity, seed) -> stack.getOrDefault(ComponentRegistry.MASK_STATE, MaskState.NEUTRAL).ordinal()));
+        event.enqueueWork(() -> {
+            ItemProperties.register(JODAH_MASK, ThirteenFlames.rl("mask_state"),
+                    (stack, level, entity, seed) -> stack.getOrDefault(ComponentRegistry.MASK_STATE, MaskState.NEUTRAL).ordinal());
+            ItemProperties.register(JODAH_STAFF, ThirteenFlames.rl("active"),
+                    (stack, level, entity, seed) -> stack.getOrDefault(ComponentRegistry.ACTIVE_TICK, 0) > 0 ? 1 : 0);
+            ItemProperties.register(JODAH_STAFF, ThirteenFlames.rl("rank"),
+                    (stack, level, entity, seed) -> JodahTier.values().length - 1 - stack.getOrDefault(ComponentRegistry.JODAH_TIER, JodahTier.D ).ordinal());
+        });
     }
 
     @SubscribeEvent
@@ -96,10 +109,14 @@ public class ClientModEvents {
         e.registerEntityRenderer(EntityRegistry.DEATHCLOUD, NullRenderer::new);
         e.registerEntityRenderer(EntityRegistry.WAVE, NullRenderer::new);
         e.registerEntityRenderer(EntityRegistry.WITHER_PROJ, NullRenderer::new);
+        e.registerEntityRenderer(EntityRegistry.SHADOW_MASS, NullRenderer::new);
         e.registerEntityRenderer(EntityRegistry.SOUL_ORB, NullRenderer::new);
+        e.registerEntityRenderer(EntityRegistry.BOOK_ORB, NullRenderer::new);
         e.registerEntityRenderer(EntityRegistry.MOB_CARRIER, NullRenderer::new);
         e.registerEntityRenderer(EntityRegistry.POISONWAVE, NullRenderer::new);
         e.registerEntityRenderer(EntityRegistry.FEATHER_VORTEX_ENTITY, NullRenderer::new);
+        e.registerEntityRenderer(EntityRegistry.AIR_VORTEX_ENTITY, NullRenderer:: new);
+        e.registerEntityRenderer(EntityRegistry.MONTU_DRILL_ENTITY, NullRenderer::new);
         e.registerEntityRenderer(EntityRegistry.USABLE_FALLING, FallingRenderer::new);
         e.registerEntityRenderer(EntityRegistry.SELIASET_SUN, EntityRendererSeliasetSun::new);
         e.registerEntityRenderer(EntityRegistry.TRAVELLER_SWEEP, rendererProvider(
@@ -229,6 +246,7 @@ public class ClientModEvents {
                 ResourceLocation.fromNamespaceAndPath(ThirteenFlames.MODID, "poison_overlay"), new PoisonOverlay());
         event.registerAboveAll(ThirteenFlames.rl("jodah_mask_overlay"), new MaskOverlay());
         event.registerAboveAll(ThirteenFlames.rl("traveller_sword_overlay"), new TravellerOverlay());
+        event.registerAboveAll(ThirteenFlames.rl("meteor_overlay"), new MeteorOverlay());
         event.registerAboveAll(ThirteenFlames.rl("jodah_shield_overlay"), new JodahShieldOverlay());
     }
 
@@ -239,6 +257,7 @@ public class ClientModEvents {
         context.registerLayerDefinition(MontuGlovesArmorRight.LAYER_LOCATION, MontuGlovesArmorRight::createBodyLayer);
         context.registerLayerDefinition(MontuGlovesArmorRight.Flawless.LAYER_LOCATION, MontuGlovesArmorRight.Flawless::createBodyLayer);
         context.registerLayerDefinition(InterworlderMask.LAYER_LOCATION, InterworlderMask::createBodyLayer);
+        context.registerLayerDefinition(InterworlderMask.Flawless.LAYER_LOCATION, InterworlderMask.Flawless::createBodyLayer);
     }
 
     @SubscribeEvent
@@ -250,6 +269,51 @@ public class ClientModEvents {
                 playerRenderer.addLayer(new JodahMaskLayer<>(playerRenderer));
                 playerRenderer.addLayer(new AuritekhElytraLayer(playerRenderer));
             }
+        }
+    }
+
+    public static class MeteorOverlay implements LayeredDraw.Layer {
+
+        @Getter
+        @Setter
+        private static boolean isActive = false;
+
+        @Override
+        public void render(@NotNull GuiGraphics guiGraphics, @NotNull DeltaTracker tracker) {
+
+            Minecraft MC = Minecraft.getInstance();
+            LocalPlayer player = MC.player;
+
+            isActive &= player != null;
+
+            if (player == null || player.isSpectator() || MC.options.hideGui)
+                return;
+
+            if (!isActive)
+                return;
+
+            EntityHitResult entityResult = ProjectileUtil.getEntityHitResult(
+                    player.level(),
+                    player,
+                    player.getEyePosition(),
+                    player.getEyePosition().add(player.getLookAngle().scale(140)),
+                    player.getBoundingBox().inflate(2).expandTowards(player.getLookAngle().scale(140)),
+                    entity -> !entity.isSpectator() && entity.isPickable()
+                            && entity instanceof LivingEntity living && living.isAlive()
+            );
+
+            if (entityResult == null) {
+                return;
+            }
+
+            var texture = ResourceLocation.fromNamespaceAndPath("relics_thirteenflames", "textures/hud/jodah_mask/meteor_crosshair.png");
+            RenderSystem.setShaderColor(1F, 1F, 1F, 1.0F);
+            RenderSystem.setShaderTexture(0, texture);
+
+            int x = (int) Math.ceil(guiGraphics.guiWidth() / 2f);
+            int y = (int) Math.ceil(guiGraphics.guiHeight() / 2f);
+
+            guiGraphics.blit(texture, x - 8, y - 8, 15, 15, 0F, 0.0F, 15, 15, 15, 15);
         }
     }
 

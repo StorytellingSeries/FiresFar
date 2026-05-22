@@ -8,6 +8,8 @@ import net.minecraft.world.entity.MobCategory;
 import org.zeith.hammerlib.annotations.RegistryName;
 import org.zeith.hammerlib.annotations.SimplyRegister;
 
+import java.awt.print.Book;
+
 @SimplyRegister
 public class EntityRegistry {
     
@@ -24,6 +26,20 @@ public class EntityRegistry {
             .setUpdateInterval(1)
             .updateInterval(1)
             .build("feather_vortex");
+
+    @RegistryName("air_vortex")
+    public static final EntityType<AirVortexEntity> AIR_VORTEX_ENTITY = Builder.<AirVortexEntity>of(AirVortexEntity::new, MobCategory.MISC)
+            .sized(0.1F, 0.1F)
+            .setUpdateInterval(1)
+            .updateInterval(1)
+            .build("air_vortex");
+
+    @RegistryName("montu_drill")
+    public static final EntityType<MontuDrillEntity> MONTU_DRILL_ENTITY = Builder.<MontuDrillEntity>of(MontuDrillEntity::new, MobCategory.MISC)
+            .sized(0.1F, 0.1F)
+            .setUpdateInterval(1)
+            .updateInterval(1)
+            .build("montu_drill");
     
     @RegistryName("traveller_sweep")
     public static final EntityType<TravellerSweepEntity> TRAVELLER_SWEEP = Builder.<TravellerSweepEntity>of(TravellerSweepEntity::new, MobCategory.MISC)
@@ -53,12 +69,26 @@ public class EntityRegistry {
             .updateInterval(1)
             .build("wither_proj");
 
+    @RegistryName("shadow_mass")
+    public static final EntityType<ShadowMassEntity> SHADOW_MASS = Builder.<ShadowMassEntity>of(ShadowMassEntity::new, MobCategory.MISC)
+            .sized(0.1F, 0.1F)
+            .setUpdateInterval(1)
+            .updateInterval(1)
+            .build("shadow_mass");
+
     @RegistryName("soul_orb")
     public static final EntityType<SoulOrbEntity> SOUL_ORB = Builder.<SoulOrbEntity>of(SoulOrbEntity::new, MobCategory.MISC)
             .sized(0.1F, 0.1F)
             .setUpdateInterval(1)
             .updateInterval(1)
             .build("soul_orb");
+
+    @RegistryName("book_orb")
+    public static final EntityType<BookOrbEntity> BOOK_ORB = Builder.<BookOrbEntity>of(BookOrbEntity::new, MobCategory.MISC)
+            .sized(0.1F, 0.1F)
+            .setUpdateInterval(1)
+            .updateInterval(1)
+            .build("book_orb");
 
     @RegistryName("soul_mob_carrier")
     public static final EntityType<SoulSpawnCarrierEntity> MOB_CARRIER = Builder.<SoulSpawnCarrierEntity>of(SoulSpawnCarrierEntity::new, MobCategory.MISC)

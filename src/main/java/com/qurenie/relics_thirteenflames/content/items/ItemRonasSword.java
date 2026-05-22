@@ -42,6 +42,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.boss.enderdragon.EndCrystal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -49,6 +50,7 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.ExplosionDamageCalculator;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.BedBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -377,7 +379,57 @@ public class ItemRonasSword extends RelicItem implements IExtRelicItem, IColored
             );
             var rng = dead.level().random;
 
-            dead.level().explode(dead, null, null, dead.position(), 0.75f, false, Level.ExplosionInteraction.NONE);
+            dead.level().playSound(
+                    null,
+                    dead.blockPosition(),
+                    SoundEvents.GENERIC_EXPLODE.value(),
+                    SoundSource.PLAYERS,
+                    0.8f,
+                    1.4f
+            );
+
+            float interactionRadius = 3.5f;
+
+            AABB interactBox = dead.getBoundingBox().inflate(interactionRadius);
+
+// ==== END CRYSTALS ====
+            for (EndCrystal crystal : dead.level().getEntitiesOfClass(
+                    EndCrystal.class,
+                    interactBox
+            )) {
+                crystal.hurt(
+                        crystal.damageSources().explosion(dead, attacker),
+                        9999
+                );
+            }
+
+            BlockPos.betweenClosedStream(
+                    BlockPos.containing(dead.position()).offset(-3, -3, -3),
+                    BlockPos.containing(dead.position()).offset(3, 3, 3)
+            ).forEach(pos -> {
+
+                BlockState state = dead.level().getBlockState(pos);
+
+                if (state.getBlock() instanceof BedBlock bed) {
+
+                    // только в измерениях где кровати взрываются
+                    if (!bed.canSetSpawn(dead.level())) {
+
+                        dead.level().removeBlock(pos, false);
+
+                        dead.level().explode(
+                                dead,
+                                dead.damageSources().badRespawnPointExplosion(dead.position()),
+                                null,
+                                Vec3.atCenterOf(pos),
+                                5.0F,
+                                false,
+                                Level.ExplosionInteraction.NONE
+                        );
+                    }
+                }
+            });
+
             ParticleHelper.spawnParticleEntity(
                     ParticleHelper.constructSmoke(FlamesUtils.fromRGBI(55 + rng.nextInt(-50, 10), 175 - rng.nextInt(160), 0), (float) (0.3 + 0.1f * stacks), 30 + rng.nextInt(10)).withGravity(0.7f),
                     dead, 5 + 7 * stacks, 0.03 + stacks * 0.05
@@ -420,7 +472,14 @@ public class ItemRonasSword extends RelicItem implements IExtRelicItem, IColored
         Network.sendToServer(new RhonasSweepPacket(event.getItemStack()));
     }
 
+    @SubscribeEvent
+    public static void onHitBlock(PlayerInteractEvent.LeftClickBlock event) {
+        if(!event.getItemStack().is(ItemsRegistry.RONAS_SWORD)) return;
+        if (event.getAction() != PlayerInteractEvent.LeftClickBlock.Action.ABORT) return;
 
+        if (event.getEntity().level().isClientSide)
+            Network.sendToServer(new RhonasSweepPacket(event.getItemStack()));
+    }
 
     @Override
     public int getFoilColor(@NotNull ItemStack stack) {

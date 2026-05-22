@@ -6,12 +6,17 @@ import com.qurenie.api.SettingsContainer;
 import com.qurenie.relics_thirteenflames.activity.IActivitySetting;
 import com.qurenie.relics_thirteenflames.activity.RelicActivitySetting;
 import com.qurenie.relics_thirteenflames.content.blocks.BlockShaking;
+import com.qurenie.relics_thirteenflames.content.entities.MontuDrillEntity;
 import com.qurenie.relics_thirteenflames.content.entities.SkintClusterEntity;
 import com.qurenie.relics_thirteenflames.content.entities.UsableFallingBlockEntity;
+import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
 import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
+import com.qurenie.relics_thirteenflames.net.EntityPacket;
 import com.qurenie.relics_thirteenflames.net.HammerAOEChangePacket;
 import com.qurenie.relics_thirteenflames.net.PacketPlaySound;
+import com.qurenie.relics_thirteenflames.style.ColorScheme;
 import com.qurenie.relics_thirteenflames.util.FlamesUtils;
+import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import it.hurts.sskirillss.relics.api.relics.AbilityStatisticTemplate;
 import it.hurts.sskirillss.relics.api.relics.RelicStatisticTemplate;
 import it.hurts.sskirillss.relics.api.relics.abilities.ExperienceSourcesTemplate;
@@ -27,11 +32,11 @@ import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootTemplate;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.misc.LootEntries;
 import it.hurts.sskirillss.relics.items.relics.base.data.research.ResearchTemplate;
 import it.hurts.sskirillss.relics.utils.MathUtils;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
@@ -65,9 +70,13 @@ import net.neoforged.neoforge.common.ItemAbility;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.neoforge.common.Tags;
+import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.zeith.hammerlib.api.items.IColoredFoilItem;
 import org.zeith.hammerlib.net.Network;
+import org.zeith.hammerlib.net.PacketContext;
 import org.zeith.hammerlib.util.java.Cast;
 import org.zeith.hammerlib.util.java.tuples.Tuple2;
 import org.zeith.hammerlib.util.java.tuples.Tuples;
@@ -77,8 +86,8 @@ import java.util.List;
 import java.util.*;
 
 import static com.qurenie.relics_thirteenflames.ThirteenFlames.SCHEDULER;
-import static com.qurenie.relics_thirteenflames.init.ComponentRegistry.BLOCKS_MINED;
-import static com.qurenie.relics_thirteenflames.init.ComponentRegistry.MONTU_AOE;
+import static com.qurenie.relics_thirteenflames.init.ComponentRegistry.*;
+import static com.qurenie.relics_thirteenflames.style.ColorScheme.BURN_COLOR;
 
 public class ItemMontuHammer
         extends RelicItem implements IColoredFoilItem, IExtRelicItem, IActivityContainer {
@@ -195,9 +204,43 @@ public class ItemMontuHammer
                                         .formatValue(x -> (int) MathUtils.round(x + 1, 0))
                                         .build()
                                 )
+                                .stat(AbilityStatTemplate.builder("fire")
+                                        .initialValue(10, 20)
+                                        .thresholdValue(0.0, 100)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 7)
+                                        .formatValue(Math::floor)
+                                        .build()
+                                )
+                                .rankModifier(1, "fire")
                                 .experienceSources(ExperienceSourcesTemplate.builder()
                                         .source("source_2")
                                         .build())
+                                .build())
+                        .ability(AbilityTemplate.builder("drill")
+                                .initialMaxLevel(4)
+                                .requiredLevel(7)
+                                .statistic(AbilityStatisticTemplate.builder().build())
+                                .stat(AbilityStatTemplate.builder("recharge")
+                                        .initialValue(1200, 1100)
+                                        .thresholdValue(100, 1200)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), -100)
+                                        .formatValue(x -> MathUtils.round(x / 20, 1))
+                                        .build()
+                                )
+                                .stat(AbilityStatTemplate.builder("strength")
+                                        .initialValue(1, 2)
+                                        .thresholdValue(1, 20)
+                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), 0.5)
+                                        .formatValue(x -> MathUtils.round(x, 1))
+                                        .build()
+                                )
+                                .stat(AbilityStatTemplate.builder("capacity")
+                                        .initialValue(50, 75)
+                                        .thresholdValue(300, 10000)
+                                        .upgradeModifier(RelicsScalingModels.MULTIPLICATIVE_BASE.get(), 0.3)
+                                        .formatValue(Math::floor)
+                                        .build()
+                                )
                                 .build())
                         .build()
                 )
@@ -209,6 +252,41 @@ public class ItemMontuHammer
                         .build())
                 .loot(LootTemplate.builder().entry(LootEntries.MINESHAFT).build())
                 .build();
+    }
+
+    private double getMeltingChance(@Nullable LivingEntity entity, ItemStack stack) {
+        return ItemsRegistry.MONTU_HAMMER.getStatValue(entity, stack, "aoe", "fire");
+    }
+
+    private boolean hasMeltingRang(@Nullable LivingEntity entity, ItemStack stack) {
+        return ItemsRegistry.MONTU_HAMMER.hasRangModifier(entity, stack, "aoe", "fire");
+    }
+
+    private static ItemStack getSmeltResult(Level level, ItemStack input) {
+        if (input.isEmpty())
+            return ItemStack.EMPTY;
+
+        var recipeManager = level.getRecipeManager();
+
+        var recipe = recipeManager.getRecipeFor(
+                net.minecraft.world.item.crafting.RecipeType.SMELTING,
+                new net.minecraft.world.item.crafting.SingleRecipeInput(input),
+                level
+        );
+
+        if (recipe.isPresent()) {
+            ItemStack result = recipe.get()
+                    .value()
+                    .assemble(new net.minecraft.world.item.crafting.SingleRecipeInput(input),
+                            level.registryAccess());
+
+            if (!result.isEmpty()) {
+                result.setCount(input.getCount());
+                return result;
+            }
+        }
+
+        return ItemStack.EMPTY;
     }
     
     @Override
@@ -338,19 +416,24 @@ public class ItemMontuHammer
         stack.set(DataComponents.POTION_CONTENTS, new PotionContents(Potions.WATER));
         return stack;
     }
-    
+
+    private void burnBlock(Level level, BlockPos pos) {
+        ParticleHelper.spawnParticleAABB(level, ParticleTypes.FLAME, new AABB(pos), 3, 0.01);
+        ParticleHelper.spawnParticleAABB(level, ParticleHelper.constructSimpleSpark(BURN_COLOR, 0.3f, 40, 0.95f), new AABB(pos), 8, 0.01);
+    }
+
     @Override
-    public boolean mineBlock(ItemStack stack, @NotNull Level world, @NotNull BlockState state, @NotNull BlockPos pos, @NotNull LivingEntity miner)
-    {
+    public boolean mineBlock(ItemStack stack, @NotNull Level world, @NotNull BlockState state,
+                             @NotNull BlockPos pos, @NotNull LivingEntity miner) {
         int radius = stack.getComponents().getOrDefault(MONTU_AOE.get(), 0);
 
-        if(radius > getStatValue(miner, stack, "aoe", "radius")) {
+        if (radius > getStatValue(miner, stack, "aoe", "radius")) {
             radius = 0;
-            stack.set(MONTU_AOE.get(),  radius);
+            stack.set(MONTU_AOE.get(), radius);
         }
-        
+
         Player player = Cast.cast(miner, Player.class);
-        
+
         if (player == null
                 || player.isShiftKeyDown()
                 || !stack.canPerformAction(ItemAbilities.PICKAXE_DIG)
@@ -358,53 +441,119 @@ public class ItemMontuHammer
 
         Vec3 view = player.getViewVector(0);
         Vec3 look = player.getEyePosition(0);
-        
+
         var aoe = getMiningArea(pos,
-                world.clip(new ClipContext(look, look.add(view), ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, player))
+                world.clip(new ClipContext(look, look.add(view),
+                                ClipContext.Block.COLLIDER,
+                                ClipContext.Fluid.NONE,
+                                player))
                         .getDirection().get3DDataValue(),
                 radius, 0
         );
-        
-        var itr = BlockPos.betweenClosedStream(aoe.a(), aoe.b()).map(BlockPos::new).iterator();
-        
+
+        var itr = BlockPos.betweenClosedStream(aoe.a(), aoe.b())
+                .map(BlockPos::new)
+                .iterator();
+
         int blocksMined = stack.getOrDefault(BLOCKS_MINED, 0);
+
+        int fireAspect = stack.getEnchantmentLevel(
+                world.registryAccess().holderOrThrow(Enchantments.FIRE_ASPECT)
+        );
+
+        boolean canSmelt = hasMeltingRang(player, stack) && fireAspect > 0;
+
         while (itr.hasNext()) {
             BlockPos target = itr.next();
-            
-            if (world.isEmptyBlock(target) || target.equals(pos))
+
+            if (world.isEmptyBlock(target))
                 continue;
+
+            BlockState targetState = world.getBlockState(target);
+
+            if (!targetState.canHarvestBlock(world, target, player)
+                    || targetState.getDestroySpeed(world, target) < 0)
+                continue;
+
             blocksMined++;
-            state = world.getBlockState(target);
-            if (state.canHarvestBlock(world, target, player) && state.getDestroySpeed(world, pos) >= 0) {
-                state.getBlock().playerDestroy(world, player, target, state, world.getBlockEntity(target), stack);
-                
+
+            // ==== MELTING ====
+            boolean doSmelt = canSmelt
+                    && RNG.nextDouble() < (getMeltingChance(player, stack) * fireAspect / 100.0);
+
+            if (!world.isClientSide && doSmelt) {
+
+                List<ItemStack> drops = Block.getDrops(
+                        targetState,
+                        (net.minecraft.server.level.ServerLevel) world,
+                        target,
+                        world.getBlockEntity(target),
+                        player,
+                        stack
+                );
+
+                // Fortune automatically applies because stack is passed into Block.getDrops(...)
+                for (ItemStack drop : drops) {
+
+                    ItemStack result = getSmeltResult(world, drop);
+
+                    if (!result.isEmpty()) {
+                        Block.popResource(world, target, result.copy());
+                    } else {
+                        Block.popResource(world, target, drop.copy());
+                    }
+                }
+
+                targetState.spawnAfterBreak(
+                        (net.minecraft.server.level.ServerLevel) world,
+                        target,
+                        stack,
+                        true
+                );
+
+                world.removeBlock(target, false);
+                burnBlock(world, target);
+
+            } else {
+                // обычное ломание
+                targetState.getBlock().playerDestroy(
+                        world,
+                        player,
+                        target,
+                        targetState,
+                        world.getBlockEntity(target),
+                        stack
+                );
+
                 world.destroyBlock(target, false);
             }
         }
+
         blocksMined++;
+
         if (blocksMined >= 25) {
             addExperience(player, stack, blocksMined / 25);
             blocksMined %= 25;
         }
-        
+
         stack.set(BLOCKS_MINED, blocksMined);
-        return false;
+
+        return true;
     }
-    
     @Override
-    public float getDestroySpeed(ItemStack pStack, BlockState pState) {
+    public float getDestroySpeed(@NotNull ItemStack pStack, BlockState pState) {
         return pState.is(BlockTags.MINEABLE_WITH_PICKAXE) || pState.is(BlockTags.MINEABLE_WITH_SHOVEL)
                 ? this.speed
                 : 1.0F;
     }
     
     @Override
-    public @NotNull ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
+    public @NotNull ItemAttributeModifiers getDefaultAttributeModifiers(@NotNull ItemStack stack) {
         return defaultModifiers;
     }
     
     @Override
-    public boolean isCorrectToolForDrops(ItemStack stack, BlockState state) {
+    public boolean isCorrectToolForDrops(@NotNull ItemStack stack, @NotNull BlockState state) {
         return tool.isCorrectForDrops(state);
     }
     
@@ -445,7 +594,61 @@ public class ItemMontuHammer
     public SettingsContainer<IActivitySetting> constructActivitySettings() {
         return SettingsContainer.<IActivitySetting>builder()
                 .setting(RelicActivitySetting.builderRelic("slap", "recharge").build())
+                .setting(RelicActivitySetting.builderRelic("drill", "recharge").color(ColorScheme.BAR_GREEN).build())
                 .build();
+    }
+
+    @EventBusSubscriber
+    public static class LeftClickHandler {
+
+        @SubscribeEvent
+        public static void onLeftClickEmpty(PlayerInteractEvent.LeftClickEmpty event) {
+            Network.sendToServer(new EntityPacket(event.getEntity().getId()) {
+
+                @Override
+                public void serverExecute(PacketContext ctx) {
+                    if (getEntity(ctx.getLevel()) instanceof Player player)
+                        handle(player);
+                }
+            });
+        }
+
+        @SubscribeEvent
+        public static void onLeftClickBlock(PlayerInteractEvent.LeftClickBlock event) {
+            handle(event.getEntity());
+        }
+
+        @SubscribeEvent
+        public static void onLeftClickEntity(AttackEntityEvent event) {
+            handle(event.getEntity());
+        }
+
+        private static void handle(Player player) {
+            ItemStack stack = player.getMainHandItem();
+            Level level = player.level();
+
+            if (stack.getItem() instanceof ItemMontuHammer item) {
+
+                if (player.isShiftKeyDown() && item.canCast(player, stack, "drill")) {
+
+                    int fortune = stack.getEnchantmentLevel(level.registryAccess().holderOrThrow(Enchantments.FORTUNE));
+                    int silkTouch = stack.getEnchantmentLevel(level.registryAccess().holderOrThrow(Enchantments.SILK_TOUCH));
+
+                    double capacity = item.getStatValue(player, stack, "drill", "capacity");
+                    double strength = item.getStatValue(player, stack, "drill", "strength");
+
+                    if (!player.level().isClientSide) {
+                        MontuDrillEntity drillEntity = new MontuDrillEntity(player.level(),
+                                player.getEyePosition(), player.getLookAngle().normalize().scale(0.5), (int) capacity,
+                                fortune, silkTouch > 0, (float) strength, player);
+
+                        level.addFreshEntity(drillEntity);
+                        item.setMaxCooldown(player, stack, "drill");
+                    }
+
+                }
+            }
+        }
     }
 
     @EventBusSubscriber

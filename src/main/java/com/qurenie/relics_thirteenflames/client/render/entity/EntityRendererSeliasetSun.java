@@ -14,6 +14,7 @@ import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.inventory.InventoryMenu;
 import org.joml.Vector3f;
 import org.zeith.hammerlib.client.utils.RenderUtils;
@@ -115,7 +116,7 @@ public class EntityRendererSeliasetSun
 		pose.popPose();
 	}
 
-	public ResourceLocation getFlawlessTexture(EntitySeliasetSun pEntity, boolean emissive)
+	public ResourceLocation getFlawlessTexture(LivingEntity pEntity, boolean emissive)
 	{
 		return ThirteenFlames.rl(String.format("textures/item/seliaset_sun/seliaset_sun_upgraded%s%d.png",
 				emissive ? "_emissive" : "", (pEntity.tickCount / 2) % 8 + 1));

@@ -21,6 +21,10 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import org.jetbrains.annotations.NotNull;
 
 import static com.qurenie.relics_thirteenflames.content.entities.AnimatedEntity.LAYER_ACTION;
@@ -38,6 +42,55 @@ public class JodahWingsLayer <T extends LivingEntity, M extends EntityModel<T>> 
         this.wingsLayer = new SimpleBedrockModel<>(RendererFactory.ModelConfiguration.builder()
                 .model(EntityModels.JODAH_WINGS)
                 .build());
+
+        NeoForge.EVENT_BUS.register(this);
+    }
+
+    @SubscribeEvent
+    public void clientTick(PlayerTickEvent.Pre event) {
+        var player = event.getEntity();
+
+        int activeTicks = player.hasData(WINGS_LAYER_DATA) ? player.getData(WINGS_LAYER_DATA) : 0;
+        if (activeTicks == 0 || !player.level().isClientSide)
+            return;
+
+        if (livingWrapper == null || livingWrapper.getEntity() != player)
+            livingWrapper = new EntityAnimatedWrapper(player);
+
+        this.getParentModel().copyPropertiesTo((EntityModel<T>) wingsLayer);
+
+        if (activeTicks == ANIMATION_LENGTH) {
+//            livingWrapper.getAnimationSystem().stopAnimation(LAYER_ACTION, 0);
+            livingWrapper.getAnimationSystem().startAnimationAt(LAYER_ACTION, AnimationsRegistry.JODAH_WINGS_OPEN.configure().important().speed(0.8f));
+//            livingWrapper.getAnimationSystem().sync();
+        } else if (activeTicks == 50) {
+//            livingWrapper.getAnimationSystem().stopAnimation(LAYER_ACTION, 0);
+            livingWrapper.getAnimationSystem().startAnimationAt(LAYER_ACTION, AnimationsRegistry.JODAH_WINGS_OPEN
+                    .configure().reversed().important().speed(0.8f).startTime(1.2f).transitionTime(0.4f));
+        } else if (activeTicks == ANIMATION_LENGTH - 27) {
+            Vec3[] corners = getWingCorners(player);
+            double rad = Math.toRadians(player.yBodyRot);
+            Vec3 right = new Vec3(Math.cos(rad), 0, Math.sin(rad)).normalize().scale(0.2f);
+            Vec3 left = right.scale(-1).normalize().scale(0.2f);
+            var random = player.level().random;
+
+            ParticleHelper.spawnParticleTriangle(player.level(), new FeatherParticle.Options(0.3f, 50),
+                    corners[2], corners[2].add(left.normalize().scale(-1)).add(0, 0.7, 0), corners[0].add(0, 0.6, 0), 3, () -> right.add(random.nextGaussian() * 0.07, random.nextGaussian() * 0.1, random.nextGaussian() * 0.07).normalize().scale(0.15));
+            ParticleHelper.spawnParticleTriangle(player.level(), new FeatherParticle.Options(0.3f, 50),
+                    corners[3],  corners[3].add(right.normalize().scale(-1)).add(0, 0.7, 0), corners[1].add(0, 0.6, 0), 3, () -> left.add(random.nextGaussian() * 0.07, random.nextGaussian() * 0.1, random.nextGaussian() * 0.07).normalize().scale(0.15));
+        } else if (activeTicks == ANIMATION_LENGTH - 50) {
+            Vec3[] corners = getWingCorners(player);
+            double rad = Math.toRadians(player.yBodyRot);
+            Vec3 right = new Vec3(Math.cos(rad), 0, Math.sin(rad)).normalize().scale(0.2f);
+            Vec3 left = right.scale(-1).normalize().scale(0.2f);
+            var random = player.level().random;
+
+            ParticleHelper.spawnParticleTriangle(player.level(), new FeatherParticle.Options(0.3f, 125),
+                    corners[2], corners[2].add(left.normalize().scale(-1)).add(0, 1.4, 0), corners[0].add(0, 0.6, 0), 4, () -> right.add(random.nextGaussian() * 0.3, random.nextGaussian() * 0.14 + 0.5, random.nextGaussian() * 0.3).normalize().scale(0.15));
+            ParticleHelper.spawnParticleTriangle(player.level(), new FeatherParticle.Options(0.3f, 125),
+                    corners[3],  corners[3].add(right.normalize().scale(-1)).add(0, 1.4, 0), corners[1].add(0, 0.6, 0), 4, () -> left.add(random.nextGaussian() * 0.3, random.nextGaussian() * 0.14 + 0.5, random.nextGaussian() * 0.3).normalize().scale(0.15));
+        }
+
     }
     
     @Override
@@ -47,8 +100,6 @@ public class JodahWingsLayer <T extends LivingEntity, M extends EntityModel<T>> 
         int activeTicks = livingEntity.hasData(WINGS_LAYER_DATA) ? livingEntity.getData(WINGS_LAYER_DATA) : 0;
         if (activeTicks == 0)
             return;
-        if (livingWrapper == null || livingWrapper.getEntity() != livingEntity)
-            livingWrapper = new EntityAnimatedWrapper(livingEntity);
         poseStack.pushPose();
         
         poseStack.scale(1, -1, 1);
@@ -60,42 +111,8 @@ public class JodahWingsLayer <T extends LivingEntity, M extends EntityModel<T>> 
             poseStack.translate(0.0F, livingEntity.getBbHeight() * 0.5F, 0.0F);
             poseStack.mulPose(Axis.YP.rotationDegrees(-livingEntity.yBodyRot));
         }
-        
+
         wingsLayer.applyAnimations(livingWrapper.getAnimationSystem(), partialTick);
-        this.getParentModel().copyPropertiesTo((EntityModel<T>) wingsLayer);
-        
-        if (activeTicks == ANIMATION_LENGTH) {
-//            livingWrapper.getAnimationSystem().stopAnimation(LAYER_ACTION, 0);
-            livingWrapper.getAnimationSystem().startAnimationAt(LAYER_ACTION, AnimationsRegistry.JODAH_WINGS_OPEN.configure().important().speed(0.8f));
-//            livingWrapper.getAnimationSystem().sync();
-        } else if (activeTicks == 50) {
-//            livingWrapper.getAnimationSystem().stopAnimation(LAYER_ACTION, 0);
-            livingWrapper.getAnimationSystem().startAnimationAt(LAYER_ACTION, AnimationsRegistry.JODAH_WINGS_OPEN
-                    .configure().reversed().important().speed(0.8f).startTime(1.2f).transitionTime(0.4f));
-        } else if (activeTicks == ANIMATION_LENGTH - 27) {
-            Vec3[] corners = getWingCorners(livingEntity);
-            double rad = Math.toRadians(livingEntity.yBodyRot);
-            Vec3 right = new Vec3(Math.cos(rad), 0, Math.sin(rad)).normalize().scale(0.2f);
-            Vec3 left = right.scale(-1).normalize().scale(0.2f);
-            var random = livingEntity.level().random;
-            
-            ParticleHelper.spawnParticleTriangle(livingEntity.level(), new FeatherParticle.Options(0.3f, 50),
-                    corners[2], corners[2].add(left.normalize().scale(-1)).add(0, 0.7, 0), corners[0].add(0, 0.6, 0), 3, () -> right.add(random.nextGaussian() * 0.07, random.nextGaussian() * 0.1, random.nextGaussian() * 0.07).normalize().scale(0.15));
-            ParticleHelper.spawnParticleTriangle(livingEntity.level(), new FeatherParticle.Options(0.3f, 50),
-                    corners[3],  corners[3].add(right.normalize().scale(-1)).add(0, 0.7, 0), corners[1].add(0, 0.6, 0), 3, () -> left.add(random.nextGaussian() * 0.07, random.nextGaussian() * 0.1, random.nextGaussian() * 0.07).normalize().scale(0.15));
-        } else if (activeTicks == ANIMATION_LENGTH - 50) {
-            Vec3[] corners = getWingCorners(livingEntity);
-            double rad = Math.toRadians(livingEntity.yBodyRot);
-            Vec3 right = new Vec3(Math.cos(rad), 0, Math.sin(rad)).normalize().scale(0.2f);
-            Vec3 left = right.scale(-1).normalize().scale(0.2f);
-            var random = livingEntity.level().random;
-            
-            ParticleHelper.spawnParticleTriangle(livingEntity.level(), new FeatherParticle.Options(0.3f, 125),
-                    corners[2], corners[2].add(left.normalize().scale(-1)).add(0, 1.4, 0), corners[0].add(0, 0.6, 0), 4, () -> right.add(random.nextGaussian() * 0.3, random.nextGaussian() * 0.14 + 0.5, random.nextGaussian() * 0.3).normalize().scale(0.15));
-            ParticleHelper.spawnParticleTriangle(livingEntity.level(), new FeatherParticle.Options(0.3f, 125),
-                    corners[3],  corners[3].add(right.normalize().scale(-1)).add(0, 1.4, 0), corners[1].add(0, 0.6, 0), 4, () -> left.add(random.nextGaussian() * 0.3, random.nextGaussian() * 0.14 + 0.5, random.nextGaussian() * 0.3).normalize().scale(0.15));
-        }
-        
         wingsLayer.renderToBuffer(poseStack, bufferSource.getBuffer(RenderType.entityTranslucent(TEXTURE)),
                 packedLight, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF
         );

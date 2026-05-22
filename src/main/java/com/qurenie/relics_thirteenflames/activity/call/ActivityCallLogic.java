@@ -3,19 +3,21 @@ package com.qurenie.relics_thirteenflames.activity.call;
 import com.qurenie.api.IActivityContainer;
 import com.qurenie.relics_thirteenflames.activity.call.settings.ActivityResult;
 import com.qurenie.relics_thirteenflames.activity.call.settings.InventoryType;
+import com.qurenie.relics_thirteenflames.activity.call.settings.SelectionContext;
 import com.qurenie.relics_thirteenflames.client.gui.ActivityCallGui;
 import com.qurenie.relics_thirteenflames.data.ActivityState;
 import com.qurenie.relics_thirteenflames.net.ActivityCastPacket;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.player.Input;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.Nullable;
 import org.zeith.hammerlib.net.Network;
 import top.theillusivec4.curios.api.CuriosApi;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Optional;
 
 public class ActivityCallLogic {
 
@@ -30,6 +32,19 @@ public class ActivityCallLogic {
 
         var input = getInput(id);
         return input.container().getCooldown(mc.player, input.reference().getStack(mc.player), input.setting().getName());
+    }
+
+    public void selectClient(String id, @Nullable String prevOne) {
+        var call = ActivityState.getState().get(id);
+        var prevCall = Optional.ofNullable(prevOne).map(s -> ActivityState.getState().get(s)).orElse(null);
+        SelectionContext selectionContext = new SelectionContext(false, prevCall);
+        call.call().selectionNotify(Minecraft.getInstance().player, call.stack(), selectionContext);
+    }
+
+    public void removeSelected(String id) {
+        var call = ActivityState.getState().get(id);
+        SelectionContext selectionContext = new SelectionContext(true, null);
+        call.call().selectionNotify(Minecraft.getInstance().player, call.stack(), selectionContext);
     }
 
     public void clientCall(Player player, String id) {

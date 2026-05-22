@@ -1,5 +1,6 @@
 package com.qurenie.relics_thirteenflames.util;
 
+import com.qurenie.api.JodahMaskEvent;
 import com.qurenie.relics_thirteenflames.client.render.misc.JodahWingsLayer;
 import com.qurenie.relics_thirteenflames.init.AttachmentsRegistry;
 import com.qurenie.relics_thirteenflames.init.ComponentRegistry;
@@ -39,6 +40,7 @@ import java.util.function.Supplier;
 
 import static com.qurenie.relics_thirteenflames.content.entities.AnimatedEntity.LAYER_ACTION;
 import static com.qurenie.relics_thirteenflames.content.entities.AnimatedEntity.LAYER_WALKING;
+import static net.neoforged.neoforge.common.NeoForge.EVENT_BUS;
 
 
 @UtilityClass
@@ -178,6 +180,12 @@ public class FlamesUtils {
 
         int max = 5 + maxBonus;
 
+        var event = new JodahMaskEvent.AddAntiscint(entity, count, max);
+        EVENT_BUS.post(event);
+
+        max = event.getMaxValue();
+        count = event.getValue();
+
         if (!entity.hasData(AttachmentsRegistry.ANTISKINT_DATA))
             entity.setData(AttachmentsRegistry.ANTISKINT_DATA, 0);
 
@@ -205,6 +213,12 @@ public class FlamesUtils {
             return;
 
         int max = 5 + maxBonus;
+
+        var event = new JodahMaskEvent.AddScint(entity, count, max);
+        EVENT_BUS.post(event);
+
+        max = event.getMaxValue();
+        count = event.getValue();
 
         if (!entity.hasData(AttachmentsRegistry.SKINT_DATA))
             entity.setData(AttachmentsRegistry.SKINT_DATA, 0);

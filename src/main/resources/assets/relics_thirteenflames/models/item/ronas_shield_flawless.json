@@ -1,7 +1,7 @@
 {
   "parent": "neoforge:item/default",
   "base": {
-    "parent": "relics_thirteenflames:item/ronas_shield_3d"
+    "parent": "relics_thirteenflames:item/ronas_shield_3d_flawless"
   },
   "loader": "neoforge:separate_transforms",
   "perspectives": {
@@ -20,49 +20,49 @@
       "predicate": {
         "alt": 7
       },
-      "model": "relics_thirteenflames:item/ronas_shield_base"
+      "model": "relics_thirteenflames:item/ronas_shield_base_0_flawless"
     },
     {
       "predicate": {
         "alt": 6
       },
-      "model": "relics_thirteenflames:item/ronas_shield_base_1"
+      "model": "relics_thirteenflames:item/ronas_shield_base_1_flawless"
     },
     {
       "predicate": {
         "alt": 5
       },
-      "model": "relics_thirteenflames:item/ronas_shield_base_2"
+      "model": "relics_thirteenflames:item/ronas_shield_base_2_flawless"
     },
     {
       "predicate": {
         "alt": 4
       },
-      "model": "relics_thirteenflames:item/ronas_shield_base_3"
+      "model": "relics_thirteenflames:item/ronas_shield_base_3_flawless"
     },
     {
       "predicate": {
         "alt": 3
       },
-      "model": "relics_thirteenflames:item/ronas_shield_emissive"
+      "model": "relics_thirteenflames:item/ronas_shield_base_0_emissive_flawless"
     },
     {
       "predicate": {
         "alt": 2
       },
-      "model": "relics_thirteenflames:item/ronas_shield_barrier_1"
+      "model": "relics_thirteenflames:item/ronas_shield_base_1_emissive_flawless"
     },
     {
       "predicate": {
         "alt": 1
       },
-      "model": "relics_thirteenflames:item/ronas_shield_barrier_2"
+      "model": "relics_thirteenflames:item/ronas_shield_base_2_emissive_flawless"
     },
     {
       "predicate": {
         "alt": 0
       },
-      "model": "relics_thirteenflames:item/ronas_shield_barrier_3"
+      "model": "relics_thirteenflames:item/ronas_shield_base_3_emissive_flawless"
     }
 
   ],

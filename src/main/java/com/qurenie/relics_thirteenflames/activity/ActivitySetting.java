@@ -20,6 +20,8 @@ public class ActivitySetting implements IActivitySetting {
     protected BiFunction<ItemStack, LivingEntity, Integer> maxCooldown;
     @Builder.Default
     protected BiPredicate<ItemStack, LivingEntity> castCondition = (s, l) -> true;
+    @Builder.Default
+    protected BiPredicate<ItemStack, LivingEntity> shouldRestore = (s, l) -> true;
     protected BiPredicate<ItemStack, LivingEntity> showBar;
     @Nullable
     @Builder.Default
@@ -36,11 +38,13 @@ public class ActivitySetting implements IActivitySetting {
                            BiFunction<ItemStack, LivingEntity, Integer> maxCooldown,
                            BiPredicate<ItemStack, LivingEntity> castCondition,
                            BiPredicate<ItemStack, LivingEntity> showBar,
+                           BiPredicate<ItemStack, LivingEntity> shouldRestore,
                            @Nullable IActivityCallSettings callSettings) {
         this.name = name;
         this.maxCooldown = maxCooldown;
         this.castCondition = castCondition;
         this.color = color;
+        this.shouldRestore = shouldRestore;
         this.callSettings = callSettings;
         this.showBar = showBar == null ? this::defaultBarPredicate : showBar.and(this::defaultBarPredicate);
     }
@@ -72,6 +76,11 @@ public class ActivitySetting implements IActivitySetting {
     @Override
     public boolean castCondition(LivingEntity player, ItemStack stack) {
         return castCondition.test(stack, player);
+    }
+
+    @Override
+    public boolean shouldRestore(LivingEntity player, ItemStack stack) {
+        return shouldRestore.test(stack, player);
     }
 
     @Override
@@ -107,5 +116,8 @@ public class ActivitySetting implements IActivitySetting {
             return this;
         }
 
+        public ActivitySettingBuilder shouldRestore(BiPredicate<ItemStack, LivingEntity> maxCooldown) {
+            throw new UnsupportedOperationException("Not implemented yet");
+        }
     }
 }

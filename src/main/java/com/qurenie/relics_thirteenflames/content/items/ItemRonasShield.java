@@ -116,7 +116,6 @@ public class ItemRonasShield extends ShieldItem implements IExtRelicItem, IColor
 
             shit.addExperience(event.getEntity(), stack, (int) Math.min(blockedDmg, 15));
 
-
             charge += blockedDmg;
 
             if (charge > chargeRate) {
@@ -133,6 +132,80 @@ public class ItemRonasShield extends ShieldItem implements IExtRelicItem, IColor
             event.setBlockedDamage(blockedDmg);
             event.setShieldDamage(0);
 
+        }
+    }
+
+    @SubscribeEvent
+    public static void onExplosion(net.neoforged.neoforge.event.level.ExplosionEvent.Start event) {
+        Level level = event.getLevel();
+
+        for (Player player : level.players()) {
+
+            ItemStack stack = player.getUseItem();
+
+            if (!(stack.getItem() instanceof ItemRonasShield shield))
+                continue;
+
+            if (!player.isUsingItem())
+                continue;
+
+            if (!shield.hasRangModifier(player, stack, "block", "blastproof"))
+                continue;
+
+            int foodRequired = (int) shield.getStatValue(
+                    player,
+                    stack,
+                    "block",
+                    "explosionfood"
+            );
+
+            if (player.getFoodData().getFoodLevel() < foodRequired)
+                continue;
+
+            Vec3 explosionPos = event.getExplosion().center();
+
+            if (player.distanceToSqr(explosionPos) > 64)
+                continue;
+
+            Vec3 look = player.getLookAngle().normalize();
+
+            Vec3 dirToExplosion = explosionPos
+                    .subtract(player.position())
+                    .normalize();
+
+            double dot = look.dot(dirToExplosion);
+
+            // shield facing explosion
+            if (dot > 0.2) {
+
+                event.setCanceled(true);
+
+                for (int i = 0; i < 30; i++) {
+                    ParticleHelper.spawnDirectedParticle(player.level(), ParticleHelper.constructSimpleSpark(FlamesUtils.fromRGBI(255, RNG.nextInt(80 - 10), 0),
+                            0.3f, 80, 0.95F), explosionPos.add(
+                            RNG.nextGaussian() * 1,
+                            RNG.nextGaussian() * 1,
+                            RNG.nextGaussian() * 1
+                    ), player.getBoundingBox().getCenter().subtract(explosionPos).normalize().scale(0.06f));
+
+                }
+
+                level.playSound(
+                        null,
+                        player.blockPosition(),
+                        SoundEvents.SHIELD_BLOCK,
+                        SoundSource.PLAYERS,
+                        1f,
+                        0.7f
+                );
+
+                player.getFoodData().setFoodLevel(
+                        Math.max(
+                                0,
+                                player.getFoodData().getFoodLevel() - foodRequired
+                        )
+                );
+            }
         }
     }
 
@@ -203,9 +276,17 @@ public class ItemRonasShield extends ShieldItem implements IExtRelicItem, IColor
                                         .formatValue(x -> MathUtils.round(x, 1))
                                         .build()
                                 )
+                                .stat(AbilityStatTemplate.builder("explosionfood")
+                                        .initialValue(10, 9)
+                                        .thresholdValue(5, 10)
+                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), -1)
+                                        .formatValue(x -> (int) MathUtils.round(x, 0))
+                                        .build()
+                                )
                                 .experienceSources(ExperienceSourcesTemplate.builder()
                                         .source("source_1")
                                         .build())
+                                .rankModifier(1, "blastproof")
                                 .build()
                         )
                         .ability(AbilityTemplate.builder("rebuke")
@@ -232,6 +313,7 @@ public class ItemRonasShield extends ShieldItem implements IExtRelicItem, IColor
                                         .formatValue(x -> MathUtils.round(x, 1))
                                         .build()
                                 )
+                                .rankModifier(2, "flight")
                                 .experienceSources(ExperienceSourcesTemplate.builder()
                                         .source("source_1")
                                         .build())
@@ -314,8 +396,26 @@ public class ItemRonasShield extends ShieldItem implements IExtRelicItem, IColor
             if (living.tickCount % 3 == 0)
                 player.level().playSound(null, player.blockPosition(), SoundEvents.BLAZE_SHOOT, SoundSource.PLAYERS, 0.15f + RNG.nextFloat(0.2f), 0.05f + RNG.nextFloat(0.15f));
 
-            Vec3 push = Vec3.directionFromRotation(0, player.getYHeadRot()).scale(0.6);
-            player.setDeltaMovement(player.getDeltaMovement().add(push).scale(push.length()).x, player.getDeltaMovement().y, player.getDeltaMovement().add(push).scale(push.length()).z);
+            boolean flight = hasRangModifier(player, stack, "charge", "flight");
+
+            Vec3 push = flight
+                    ? player.getLookAngle().scale(0.72)
+                    : Vec3.directionFromRotation(0, player.getYHeadRot()).scale(0.6);
+
+            if (flight) {
+
+                player.setDeltaMovement(
+                        player.getDeltaMovement().add(push)
+                );
+
+            } else {
+
+                player.setDeltaMovement(
+                        player.getDeltaMovement().add(push).scale(push.length()).x,
+                        player.getDeltaMovement().y,
+                        player.getDeltaMovement().add(push).scale(push.length()).z
+                );
+            }
 
             double x, y, z;
 

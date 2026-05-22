@@ -4,6 +4,6 @@
   "textures": {
     "layer0": "relics_thirteenflames:item/knef_rose_2d_1_flawless",
     "layer1": "relics_thirteenflames:item/knef_rose_2d_2",
-    "layer2": "relics_thirteenflames:item/knef_rose_2d_3"
+    "layer2": "relics_thirteenflames:item/knef_rose_2d_3_flawless"
   }
 }

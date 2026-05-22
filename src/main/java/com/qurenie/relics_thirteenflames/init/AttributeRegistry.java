@@ -6,6 +6,7 @@ import com.qurenie.relics_thirteenflames.content.entities.LivingFleshEntity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -19,9 +20,11 @@ public class AttributeRegistry {
         event.put(EntityRegistry.SELIASET_SUN, EntitySeliasetSun.createLivingAttributes().build());
         event.put(EntityRegistry.LIVING_FLESH, LivingFleshEntity.createMobAttributes().build());
         event.put(EntityRegistry.SMALL_GHOST, LivingFleshEntity.createMobAttributes()
-                .add(Attributes.FLYING_SPEED, 1.4).build());
+                .add(Attributes.FLYING_SPEED, 1.4)
+                .add(Attributes.ATTACK_DAMAGE, 1).build());
         event.put(EntityRegistry.BIG_GHOST, LivingFleshEntity.createMobAttributes()
-                .add(Attributes.FLYING_SPEED, 1).build());
+                .add(Attributes.FLYING_SPEED, 1)
+                .add(Attributes.ATTACK_DAMAGE, 1).build());
         event.put(EntityRegistry.RESPAWN_BOOK, PathfinderMob.createMobAttributes().add(Attributes.MAX_HEALTH, 20).build());
         event.put(EntityRegistry.FEATHER_VORTEX_ENTITY, LivingEntity.createLivingAttributes().build());
         event.put(EntityRegistry.SKINT_CLUSTER, LivingEntity.createLivingAttributes().build());

@@ -27,11 +27,10 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 import static com.qurenie.relics_thirteenflames.content.items.feather.ItemHettFeather.BOOK_ACTIVE_MAX_LEVEL;
+import static com.qurenie.relics_thirteenflames.init.ComponentRegistry.*;
 
 @EventBusSubscriber
 public class ItemHettFeatherBook extends Item implements ICurioItem {
-    
-    private static final EntityType<?> DEFAULT_TYPE = EntityType.ZOMBIE;
     
     public ItemHettFeatherBook(Properties properties) {
         super(properties);
@@ -84,22 +83,50 @@ public class ItemHettFeatherBook extends Item implements ICurioItem {
             }
         });
     }
-    
+
+    private static final String[] ROMAN_NUMERALS = {
+            "", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX",
+            "X", "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX",
+            "XX", "XXI", "XXII", "XXIII", "XXIV", "XXV", "XXVI", "XXVII", "XXVIII", "XXIX",
+            "XXX", "XXXI", "XXXII", "XXXIII", "XXXIV", "XXXV", "XXXVI", "XXXVII", "XXXVIII", "XXXIX",
+            "XL", "XLI", "XLII", "XLIII", "XLIV", "XLV", "XLVI", "XLVII", "XLVIII", "XLIX",
+            "L", "LI", "LII", "LIII", "LIV", "LV", "LVI", "LVII", "LVIII", "LIX",
+            "LX", "LXI", "LXII", "LXIII", "LXIV", "LXV", "LXVI", "LXVII", "LXVIII", "LXIX",
+            "LXX", "LXXI", "LXXII", "LXXIII", "LXXIV", "LXXV", "LXXVI", "LXXVII", "LXXVIII", "LXXIX",
+            "LXXX", "LXXXI", "LXXXII", "LXXXIII", "LXXXIV", "LXXXV", "LXXXVI", "LXXXVII", "LXXXVIII", "LXXXIX",
+            "XC", "XCI", "XCII", "XCIII", "XCIV", "XCV", "XCVI", "XCVII", "XCVIII", "XCIX",
+            "C"
+    };
+
     @Override
     public @NotNull Component getName(@NotNull ItemStack stack) {
-        MutableComponent component = MutableComponent.create(super.getName(stack).getContents());
-        component.append(" " + switch (stack.getOrDefault(ComponentRegistry.LEVEL, 1)) {
-            case 1 -> "I";
-            case 2 -> "II";
-            default -> "III";
-        });
+        int level = stack.getOrDefault(ComponentRegistry.LEVEL, 1);
+
+        String numeral = level >= 0 && level <= 100
+                ? ROMAN_NUMERALS[level]
+                : Integer.toString(level);
+
+        MutableComponent component =
+                MutableComponent.create(super.getName(stack).getContents());
+
+        component.append(" ").append(numeral);
+
         return component;
     }
     
     @Override
     public void appendHoverText(@NotNull ItemStack stack, @NotNull TooltipContext context, @NotNull List<Component> tooltipComponents, @NotNull TooltipFlag tooltipFlag) {
-        EntityType<?> type = Optional.ofNullable(stack.get(ComponentRegistry.TARGET_TYPE)).flatMap(EntityType::byString).orElse(DEFAULT_TYPE);
-        tooltipComponents.add(MutableComponent.create(type.getDescription().getContents()).withStyle(ChatFormatting.DARK_GRAY).withStyle(ChatFormatting.ITALIC));
+        List<EntityType<?>> types = stack.getOrDefault(TARGET_TYPES, List.of());
+        int level = stack.getOrDefault(SIZE, 1);
+        int j = 0;
+        for (int i = 0; i < Math.min(level, types.size()); i++) {
+            var entityType = types.get(i);
+            tooltipComponents.add(MutableComponent.create(entityType.getDescription().getContents()).withStyle(ChatFormatting.DARK_GRAY).withStyle(ChatFormatting.ITALIC));
+            j++;
+        }
+        for (int i = j; i < level; i++) {
+            tooltipComponents.add(Component.literal("(???)").withStyle(ChatFormatting.DARK_GRAY).withStyle(ChatFormatting.ITALIC));
+        }
         super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
     }
     
@@ -116,8 +143,8 @@ public class ItemHettFeatherBook extends Item implements ICurioItem {
     }
     
     public boolean isCorrectEntityType(ItemStack stack, EntityType<?> type) {
-        String loc = stack.getOrDefault(ComponentRegistry.TARGET_TYPE, EntityType.getKey(DEFAULT_TYPE).toString());
-        return EntityType.getKey(type).toString().equals(loc);
+        List<EntityType<?>> types = stack.getOrDefault(TARGET_TYPES, List.of());
+        return types.contains(type);
     }
     
 }

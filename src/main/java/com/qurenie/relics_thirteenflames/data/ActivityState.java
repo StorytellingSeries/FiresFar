@@ -6,10 +6,12 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.event.server.ServerLifecycleEvent;
+import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 
 import java.util.*;
 
-@EventBusSubscriber(value = Dist.CLIENT)
+@EventBusSubscriber
 public class ActivityState {
 
     private static final LinkedHashMap<String, CallInput> CACHE = new LinkedHashMap<>();
@@ -18,6 +20,10 @@ public class ActivityState {
     public static void cache(LinkedHashMap<String, CallInput> map) {
         CACHE.clear();
         CACHE.putAll(map);
+    }
+
+    public static void cache(String id, CallInput input) {
+        CACHE.put(id, input);
     }
 
     public static Collection<CallInput> getInputs() {

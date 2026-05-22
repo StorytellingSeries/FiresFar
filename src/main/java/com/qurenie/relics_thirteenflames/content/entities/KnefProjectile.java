@@ -180,9 +180,9 @@ public class KnefProjectile extends ThrowableProjectile {
 
             if (result.getEntity().hurt(this.damageSources().thrown(this, owner), getBaseDmg() + getPowerEnch() / 2f)) {
 
-                ParticleHelper.spawnParticles(this.level(), new CircleTintParticle.Options(colors[rng.nextInt(colors.length)], 0.1f, 0, 11, 0.5f, false),
+                ParticleHelper.spawnParticles(this.level(), ParticleHelper.constructSimpleSpark(colors[rng.nextInt(colors.length)], 0.1f, 11, 0.8f),
                         this.getPosition(1), 10, 0, 0, 0, 0.08);
-                ParticleHelper.spawnParticles(this.level(), new CircleTintParticle.Options(colors[rng.nextInt(colors.length)], 0.1f, 0, 11, 0.5f, false),
+                ParticleHelper.spawnParticles(this.level(), ParticleHelper.constructSimpleSpark(colors[rng.nextInt(colors.length)], 0.1f, 11, 0.8f),
                         this.getPosition(1), 10, 0, 0, 0, 0.08);
 
                 if (this.bow.getItem() instanceof ItemKnefBow relic && owner instanceof LivingEntity livin) {
@@ -211,9 +211,9 @@ public class KnefProjectile extends ThrowableProjectile {
             ParticleHelper.spawnParticleLine(this.level(), ParticleHelper.constructSimpleSpark(color, 0.1f, 80, 0.9f),
                     this.position(), result.getLocation(), (int) Math.round(Math.sqrt(this.position().distanceToSqr(result.getLocation())) * 10), 0.001);
 
-            ParticleHelper.spawnParticles(this.level(), new CircleTintParticle.Options(colors[rng.nextInt(colors.length)], 0.1f, 0, 11, 0.5f, false),
+            ParticleHelper.spawnParticles(this.level(), ParticleHelper.constructSimpleSpark(colors[rng.nextInt(colors.length)], 0.1f, 11, 0.8f),
                     result.getLocation().x(), result.getLocation().y(), result.getLocation().z(), 10, 0, 0, 0, 0.08);
-            ParticleHelper.spawnParticles(this.level(), new CircleTintParticle.Options(colors[rng.nextInt(colors.length)], 0.1f, 0, 11, 0.5f, false),
+            ParticleHelper.spawnParticles(this.level(), ParticleHelper.constructSimpleSpark(colors[rng.nextInt(colors.length)], 0.1f, 11, 0.8f),
                     result.getLocation().x(), result.getLocation().y(), result.getLocation().z(), 10, 0, 0, 0, 0.08);
 
             Entity owner = ((ServerLevel) this.level()).getEntity(UUID.fromString(this.getOwnerUUID()));

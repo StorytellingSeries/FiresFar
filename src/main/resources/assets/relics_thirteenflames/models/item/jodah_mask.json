@@ -6,21 +6,38 @@
   "overrides": [
     {
       "predicate": {
+        "relics:flawless": 0,
         "relics_thirteenflames:mask_state": 1
       },
       "model": "relics_thirteenflames:item/jodah_mask_scint"
     },
     {
       "predicate": {
+        "relics:flawless": 0,
         "relics_thirteenflames:mask_state": 2
       },
       "model": "relics_thirteenflames:item/jodah_mask_scintonit"
     },
     {
       "predicate": {
-        "relics:flawless": 1
+        "relics:flawless": 1,
+        "relics_thirteenflames:mask_state": 0
       },
       "model": "relics_thirteenflames:item/jodah_mask_flawless"
+    },
+    {
+      "predicate": {
+        "relics:flawless": 1,
+        "relics_thirteenflames:mask_state": 1
+      },
+      "model": "relics_thirteenflames:item/jodah_mask_scint_flawless"
+    },
+    {
+      "predicate": {
+        "relics:flawless": 1,
+        "relics_thirteenflames:mask_state": 2
+      },
+      "model": "relics_thirteenflames:item/jodah_mask_scintonit_flawless"
     }
   ]
 }

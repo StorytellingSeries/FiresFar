@@ -17,7 +17,7 @@ import org.jetbrains.annotations.NotNull;
 public class InterworlderMask<T extends LivingEntity> extends HumanoidModel<T> {
 
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ThirteenFlames.rl("interworlder_mask"), "main");
-    private final ModelPart head;
+    protected final ModelPart head;
     
     public InterworlderMask(ModelPart root) {
         super(root);
@@ -38,5 +38,25 @@ public class InterworlderMask<T extends LivingEntity> extends HumanoidModel<T> {
     @Override
     public void renderToBuffer(@NotNull PoseStack poseStack, @NotNull VertexConsumer buffer, int packedLight, int packedOverlay, int color) {
         head.render(poseStack, buffer, packedLight, packedOverlay, color);
+    }
+
+    public static class Flawless<T extends LivingEntity> extends InterworlderMask<T> {
+
+        public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ThirteenFlames.rl("interworlder_mask_flawless"), "main");
+
+        public Flawless(ModelPart root) {
+            super(root);
+        }
+
+        public static @NotNull LayerDefinition createBodyLayer() {
+            MeshDefinition meshdefinition = HumanoidModel.createMesh(new CubeDeformation(0.0F), 0);
+            PartDefinition partdefinition = meshdefinition.getRoot();
+
+            PartDefinition head = partdefinition.addOrReplaceChild("head", CubeListBuilder.create(), PartPose.offset(0.0F, 0.0F, 0.0F));
+            PartDefinition model = head.addOrReplaceChild("model", CubeListBuilder.create().texOffs(0, 0).addBox(-4.0F, -4.0F, -4.0F, 8.0F, 10.0F, 8.0F, new CubeDeformation(0.6F))
+                    .texOffs(32, 1).addBox(-4.0F, -4.0F, -4.0F, 8.0F, 9.0F, 8.0F, new CubeDeformation(0.85F)), PartPose.offset(0.0F, -4.0F, 0.0F));
+
+            return LayerDefinition.create(meshdefinition, 128, 64);
+        }
     }
 }

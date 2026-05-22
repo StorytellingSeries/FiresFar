@@ -50,7 +50,7 @@ public class MeteorEntity extends Entity {
         this.owner = owner;
         this.ownerUUID = owner.getUUID();
         this.target = target;
-        this.time = time;
+        this.time = target == null ? time : (int) (time * 2.5 + 1);
         setSize(size);
 
 //        while (level.getBlockState(new BlockPos(pos.getX(), pos.getY() + (dy++), pos.getZ())).isAir() && dy <= size * 15)

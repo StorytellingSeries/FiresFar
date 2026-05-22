@@ -5,7 +5,6 @@ import com.qurenie.relics_thirteenflames.content.items.ItemKnefRose;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
 import com.qurenie.relics_thirteenflames.style.ColorScheme;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -13,7 +12,9 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.navigation.FlyingPathNavigation;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.monster.Enemy;
@@ -50,6 +51,13 @@ public class GhostSmallEntity
 
 	public void setOwnerUUID(String uuid){
 		this.getEntityData().set(OWNER_UUID, uuid);
+	}
+
+	double damageModifier = 0;
+
+	public void upgradeWithSouls(int souls, double damagePer, double lifetimePer) {
+		lifetime += (int) (((float) souls) * lifetimePer);
+		damageModifier = 1 + souls * damagePer;
 	}
 
 	@Override
@@ -89,7 +97,7 @@ public class GhostSmallEntity
 	
 	public float getDamage()
 	{
-		return 5 * getScale();
+		return (float) ((5 * getScale() * damageModifier) * getAttributeValue(Attributes.ATTACK_DAMAGE));
 	}
 	
 	@Override
@@ -141,7 +149,12 @@ public class GhostSmallEntity
 
 			setTarget(target);
 		}
-		
+
+		Player playerByUUID = this.level().getPlayerByUUID(UUID.fromString(getOwnerUUID()));
+
+		if (playerByUUID == null)
+			this.kill();
+
 		LivingEntity target = getTarget();
 		if(isAttacking() && tickCount % 5 == 0 && (target = getTarget()) != null)
 		{
@@ -158,7 +171,7 @@ public class GhostSmallEntity
 				{
 					attackCd = 20;
 					animationSystem.startAnimationAt(LAYER_ACTION, getAttackAnimation());
-					target.hurt(this.level().damageSources().mobAttack(this), getDamage());
+					target.hurt(this.level().damageSources().source(DamageTypes.WITHER, this, playerByUUID), getDamage());
 
 					Vec3 away = this.position().subtract(target.position()).normalize();
 
@@ -175,7 +188,8 @@ public class GhostSmallEntity
 					this.hasImpulse = true;
 
 					if(getStats().rose.getItem() instanceof ItemKnefRose relic) {
-						relic.addExperience(this.level().getPlayerByUUID(UUID.fromString(getOwnerUUID())), getStats().rose, 1);
+
+						relic.addExperience(playerByUUID, getStats().rose, 1);
 					}
 				}
 			}
@@ -193,7 +207,7 @@ public class GhostSmallEntity
 				idleTarget = getRandomFlyPos();
 			}
 
-			steerTo(idleTarget, 0.05, 0.92);
+			steerTo(idleTarget);
 		}
 		
 		tickWalking();
@@ -204,7 +218,7 @@ public class GhostSmallEntity
 		}
 	}
 
-	private void steerTo(Vec3 target, double turnRate, double drag) {
+	private void steerTo(Vec3 target) {
 		Vec3 to = target.subtract(this.position());
 
 		if (to.lengthSqr() < 0.0001) return;
@@ -212,7 +226,7 @@ public class GhostSmallEntity
 		Vec3 desiredDir = to.normalize();
 		Vec3 motion = this.getDeltaMovement();
 
-		double speed = motion.length();
+		double speed = motion.length() * getAttributeValue(Attributes.FLYING_SPEED);
 
 		// если почти стоим — задаём старт
 		if (speed < 0.05) {
@@ -224,10 +238,10 @@ public class GhostSmallEntity
 		Vec3 currentDir = motion.normalize();
 
 		// 🔥 ВАЖНО: плавный поворот, а не добавление
-		Vec3 newDir = currentDir.lerp(desiredDir, turnRate).normalize();
+		Vec3 newDir = currentDir.lerp(desiredDir, 0.05).normalize();
 
 		// сохраняем скорость (с лёгкой стабилизацией)
-		double newSpeed = Mth.clamp(speed * drag, 0.08, 0.25);
+		double newSpeed = Mth.clamp(speed * 0.92, 0.08, 0.25);
 
 		Vec3 newMotion = newDir.scale(newSpeed);
 
@@ -253,15 +267,16 @@ public class GhostSmallEntity
 		double sideOffset = (random.nextDouble() - 0.5) * 4; // -2..2
 		double verticalOffset = (random.nextDouble() - 0.5) * 2; // -1..1
 
-		Vec3 target = this.position()
-				.add(forward.scale(forwardDist))
-				.add(side.scale(sideOffset))
-				.add(up.scale(verticalOffset));
-
-		return target;
+        return this.position()
+                .add(forward.scale(forwardDist))
+                .add(side.scale(sideOffset))
+                .add(up.scale(verticalOffset));
 	}
 
 	public double targetPriority(Entity e){
+		if (e instanceof GhostBigEntity || e instanceof GhostSmallEntity)
+			return 0;
+
 		if(e instanceof LivingEntity lE
 				&& lE.getLastDamageSource() != null
 				&& lE.getLastDamageSource().getEntity() instanceof Player p
@@ -361,11 +376,10 @@ public class GhostSmallEntity
 		return this;
 	}
 	
-	private GhostSmallEntity setScale(float scale)
+	private void setScale(float scale)
 	{
 		entityData.set(DATA_SCALE, scale);
 		refreshDimensions();
-		return this;
 	}
 	
 	public GhostSmallEntity setStats(ItemKnefRose.RoseStats stats)
@@ -449,6 +463,7 @@ public class GhostSmallEntity
 	public void addAdditionalSaveData(CompoundTag pCompound)
 	{
 		pCompound.putFloat("Scale", getScale());
+		pCompound.putDouble("DamageModifier", damageModifier);
 		pCompound.put("Stats", getStats().serializeNBT(registryAccess()));
 		pCompound.putString("OwnerUUID", getOwnerUUID());
 		pCompound.putInt("Lifetime", lifetime);
@@ -459,6 +474,7 @@ public class GhostSmallEntity
 	public void readAdditionalSaveData(CompoundTag pCompound)
 	{
 		setScale(pCompound.getFloat("Scale"));
+		this.damageModifier = pCompound.getDouble("DamageModifier");
 		setStats(new ItemKnefRose.RoseStats(this.registryAccess(), pCompound.getCompound("Stats")));
 		setOwnerUUID(pCompound.getString("OwnerUUID"));
 		this.lifetime = pCompound.getInt("Lifetime");

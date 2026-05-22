@@ -17,6 +17,8 @@ public interface IActivitySetting {
 
     boolean showBar(LivingEntity player, ItemStack stack);
 
+    boolean shouldRestore(LivingEntity player, ItemStack stack);
+
     @Nullable
     OctoColor getColor();
 

@@ -7,6 +7,7 @@ import com.qurenie.relics_thirteenflames.client.screen.DefaultMenuScreen;
 import com.qurenie.relics_thirteenflames.content.container.ScrollOfTruthContainer;
 import com.qurenie.relics_thirteenflames.content.items.ScrollOfTruthItem;
 import com.qurenie.relics_thirteenflames.content.items.misc.ScrollColorMode;
+import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
 import com.qurenie.relics_thirteenflames.net.EnchantPacket;
 import com.qurenie.relics_thirteenflames.util.RenderTools;
 import net.minecraft.client.Minecraft;
@@ -99,7 +100,10 @@ public class ScrollOfTruthContainerScreen extends DefaultMenuScreen<ScrollOfTrut
                 if (menu.scroll.getItem() instanceof ScrollOfTruthItem sot) {
                     maxAllowedLevel = (int) (sot.getStatValue(Minecraft.getInstance().player, menu.scroll, "enchant", "maxLevel"));
                 }
-                if (instance.level < e.getMaxLevel() && instance.level < maxAllowedLevel) {
+
+                int maxLvl = Math.min(e.getMaxLevel(), maxAllowedLevel)
+                        + (ItemsRegistry.SCROLL_OF_TRUTH.hasRangModifier(minecraft.player, menu.scroll, "enchant", "maxup") ? 1 : 0);
+                if (instance.level < maxLvl) {
                     selectedEnchantButton.increment();
                     if (toEnchantButtons.contains(selectedEnchantButton))
                         toEnchant.put(selectedEnchantButton.getInst().enchantment, selectedEnchantButton.getInst());

@@ -5,9 +5,13 @@ import com.qurenie.api.IExtRelicItem;
 import com.qurenie.api.SettingsContainer;
 import com.qurenie.relics_thirteenflames.activity.IActivitySetting;
 import com.qurenie.relics_thirteenflames.activity.RelicActivitySetting;
+import com.qurenie.relics_thirteenflames.activity.call.settings.ActivityCallSettings;
+import com.qurenie.relics_thirteenflames.activity.call.settings.ActivityResult;
+import com.qurenie.relics_thirteenflames.activity.call.settings.InventoryType;
+import com.qurenie.relics_thirteenflames.activity.call.settings.RelicsActivityCallSettings;
+import com.qurenie.relics_thirteenflames.content.entities.AirVortexEntity;
 import com.qurenie.relics_thirteenflames.content.entities.EntitySeliasetSun;
 import com.qurenie.relics_thirteenflames.content.entities.WaveEntity;
-import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
 import com.qurenie.relics_thirteenflames.net.EntityPacket;
 import com.qurenie.relics_thirteenflames.net.PacketHornSounds;
 import com.qurenie.relics_thirteenflames.util.FlamesUtils;
@@ -26,7 +30,6 @@ import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootTemplate;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootEntry;
 import it.hurts.sskirillss.relics.items.relics.base.data.research.ResearchTemplate;
 import it.hurts.sskirillss.relics.utils.MathUtils;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.player.LocalPlayer;
@@ -34,22 +37,18 @@ import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.core.Holder;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
-import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
@@ -60,7 +59,6 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import org.jetbrains.annotations.NotNull;
@@ -72,7 +70,6 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 
-import static com.qurenie.relics_thirteenflames.ThirteenFlames.SCHEDULER;
 import static com.qurenie.relics_thirteenflames.init.ComponentRegistry.ACTIVE_TICK;
 
 public class ItemSeliasetHorn extends RelicItem implements IExtRelicItem, IColoredFoilItem, IActivityContainer {
@@ -261,8 +258,9 @@ public class ItemSeliasetHorn extends RelicItem implements IExtRelicItem, IColor
                 double efficiency = this.getStatValue(player, horn, "air_ray", "efficiency") / 20;
 
                 if (e instanceof LivingEntity living && living.getMaxHealth() > 50)
-                    efficiency = Mth.clamp(efficiency - (living.getMaxHealth() - 50.0) / 10.0, 0, efficiency);
+                    efficiency = Mth.clamp(efficiency - (Math.sqrt(living.getMaxHealth()) - 15.0) / 20.0, 0, efficiency);
 
+                efficiency = Math.max(efficiency, 0.008f);
                 Vec3 speed = b.normalize().multiply(efficiency, efficiency, efficiency);
                 if (player.isShiftKeyDown()) {
                     speed = speed.reverse();
@@ -304,10 +302,32 @@ public class ItemSeliasetHorn extends RelicItem implements IExtRelicItem, IColor
         return UseAnim.TOOT_HORN;
     }
 
+    public ActivityResult castAirVortex(LivingEntity living, ItemStack stack) {
+        double radius = getStatValue(living, stack, "air_vortex", "radius");
+        double maxAge = getStatValue(living, stack, "air_vortex", "maxAge");
+
+        if (living.level().isClientSide)
+            return ActivityResult.SUCCESS;
+
+        AirVortexEntity vortexEntity = new AirVortexEntity(living.level(), living.getEyePosition(),
+                living.getLookAngle().normalize().scale(0.8f), (float) radius, (int) maxAge, living);
+        living.level().addFreshEntity(vortexEntity);
+
+        setMaxCooldown(living, stack, "air_vortex");
+
+        return ActivityResult.SUCCESS;
+    }
+
     @Override
     public SettingsContainer<IActivitySetting> constructActivitySettings() {
         return SettingsContainer.<IActivitySetting>builder()
                 .setting(RelicActivitySetting.builderRelic("block").build())
+                .setting(RelicActivitySetting.builderRelic("air_vortex")
+                        .callSettings(RelicsActivityCallSettings.builder("air_vortex")
+                                .inventoryType(InventoryType.IN_HAND)
+                                .cast(this::castAirVortex)
+                                .build())
+                        .build())
                 .build();
     }
 
@@ -325,10 +345,11 @@ public class ItemSeliasetHorn extends RelicItem implements IExtRelicItem, IColor
                                         .build())
                                 .stat(AbilityStatTemplate.builder("efficiency")
                                         .thresholdValue(2, 5)
-                                        .initialValue(2.5, 3.5)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 0.3)
+                                        .initialValue(2.5, 100)
+                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), 0.13)
                                         .formatValue(x -> (int) MathUtils.round(x, 0))
                                         .build())
+                                .rankModifier(2, "imbalance")
                                 .build())
                         .ability(AbilityTemplate.builder("block")
                                 .initialMaxLevel(5)
@@ -358,6 +379,28 @@ public class ItemSeliasetHorn extends RelicItem implements IExtRelicItem, IColor
                                         .link(0, 1).link(0, 3).link(3, 2).link(4, 5).link(5, 6).link(6, 0).link(7, 4).link(1, 8).link(8, 2)
                                         .build())
                                 .build())
+                        .ability(AbilityTemplate.builder("air_vortex")
+                                .initialMaxLevel(3)
+                                .requiredLevel(11)
+                                .stat(AbilityStatTemplate.builder("recharge")
+                                        .initialValue(800, 600)
+                                        .thresholdValue(100, 1000)
+                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), -0.1)
+                                        .formatValue(x -> MathUtils.round(x / 20f, 1))
+                                        .build())
+                                .stat(AbilityStatTemplate.builder("maxAge")
+                                        .initialValue(60, 80)
+                                        .thresholdValue(50, 1000)
+                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), 0.23)
+                                        .formatValue(Math::floor)
+                                        .build())
+                                .stat(AbilityStatTemplate.builder("radius")
+                                        .initialValue(8, 14)
+                                        .thresholdValue(7, 1000)
+                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), 0.22)
+                                        .formatValue(x -> MathUtils.round(x, 1))
+                                        .build())
+                                .build())
                         .build())
                 .leveling(LevelingTemplate.builder()
                         .step(100)
@@ -385,107 +428,9 @@ public class ItemSeliasetHorn extends RelicItem implements IExtRelicItem, IColor
         super.inventoryTick(stack, level, entity, slot, isSelected);
     }
 
-    public void tickWave(Entity entity, ItemStack stack, int tick) {
-        if (tick <= 30) {
-            double radius = tick / 30f * 10;
-
-            List<Entity> targets = new ArrayList<>(entity.level().getEntitiesOfClass(LivingEntity.class, new AABB(
-                    -radius, -radius, -radius, radius, radius, radius
-            ).move(entity.position()), e -> e.getBoundingBox().distanceToSqr(entity.position()) <= radius * radius));
-
-            targets.addAll(entity.level().getEntitiesOfClass(ItemEntity.class, new AABB(
-                    -radius, -radius, -radius, radius, radius, radius
-            ).move(entity.position()), e -> e.getBoundingBox().distanceToSqr(entity.position()) <= radius * radius));
-
-            targets.addAll(entity.level().getEntitiesOfClass(ExperienceOrb.class, new AABB(
-                    -radius, -radius, -radius, radius, radius, radius
-            ).move(entity.position()), e -> e.getBoundingBox().distanceToSqr(entity.position()) <= radius * radius));
-
-            for (Entity le : targets) {
-                if (le instanceof LivingEntity && !le.isPushable())
-                    continue;
-
-                if (Objects.equals(le.getUUID(), entity.getUUID())) continue;
-                Vec3 b = le.position().subtract(entity.position());
-                Vec3 sp = b.normalize().multiply(2, 2, 2).add(0, 0.5, 0);
-                if (le instanceof ItemEntity || le instanceof ExperienceOrb)
-                    sp = sp.scale(0.2f);
-                le.setDeltaMovement(sp);
-
-                if (!(le instanceof LivingEntity living))
-                    return;
-
-                if (!living.hasEffect(MobEffects.MOVEMENT_SLOWDOWN) && entity instanceof LivingEntity livin)
-                    this.addExperience(livin, stack, 6);
-
-                if (entity instanceof LivingEntity livin)
-                    living.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, (int) Math.round(this.getStatValue(livin, stack, "block", "stunDuration") * 20), 3));
-            }
-        }
-    }
-
     public void releaseWave(Level level, LivingEntity entity) {
         WaveEntity wave = new WaveEntity(level, entity);
         level.addFreshEntity(wave);
-    }
-
-    public void releaseWaveParticles(Level level, Entity entity) {
-        double angle = Math.PI * 2 / 60;
-        for (float g = -0.5f; g <= 0.5; g += 0.25f) {
-            for (int i = 0; i <= 60; i++) {
-                double vangle = angle * i + (g * angle);
-                double x = Math.sin(vangle);
-                double y = Math.cos(vangle);
-
-
-                float md = (1 - 2.5f / Math.abs(g)) * 0.9f;
-                Vec3 dir = new Vec3(x * md, g, y * md);
-                Vec3 ppos = entity.position().add(dir.scale(0.3)).add(0, 0.2, 0);
-
-                Vec3 speed = dir.normalize().multiply(0.5, 0.5, 0.5);
-                for (int k = 0; k <= 3; k++) {
-                    Vec3 ppos1 = ppos.add(
-                            rng.nextFloat() * 0.5 - 0.25,
-                            rng.nextFloat() * 0.5 - 0.25,
-                            rng.nextFloat() * 0.5 - 0.25
-                    );
-                    ParticleHelper.spawnDirectedParticle(level, ParticleTypes.CLOUD, ppos1.x, ppos1.y, ppos1.z, speed.x, speed.y, speed.z);
-                }
-
-            }
-        }
-        Vec3 ePos = entity.position();
-        for (int i = 0; i < 14; i++) {
-            double r = 0.540 * i + 0.3;
-            int count = (int) Math.round(2 * Math.PI * r * 6);
-            double r2 = r + 0.270;
-            int count2 = (int) Math.round(2 * Math.PI * r2 * 6);
-            final float finalI = i;
-            SCHEDULER.schedule(i, () -> {
-                for (int j = 0; j < count; j++) {
-//                    level.addParticle(new CircleTintWithTrailData(new Color(255, 255, 255), 0.1f,0.2f,40,-1,false,true),
-//                            pos.x(), pos.y(), pos.z(), sped.x(), 0, sped.z());
-                    Vec3 pos = ePos.add(new Vec3(r, 0, 0).yRot((float) Math.toRadians(360.0 / count * j)));
-                    Vec3 sped = pos.subtract(ePos.add(new Vec3(0, 0.3, 0))).normalize().scale(0.11);
-//                    ParticleHelper.spawnDirectedParticle(level, ParticleHelper.constructSimpleSpark(new Color(42, 41, 26), 0.3f, (int) Math.round(10 + r * 2), -1),
-//                            pos.x, pos.y + 0.3, pos.z, sped.x, 0, sped.z);
-
-                    if (finalI == 13) ParticleHelper.spawnDirectedParticle(level, ParticleTypes.CLOUD,
-                            pos.x, pos.y, pos.z, sped.scale(2).x, 0, sped.scale(2).z);
-
-                }
-
-                for (int j = 0; j < count2; j++) {
-                    Vec3 pos = ePos.add(new Vec3(r2 + rng.nextDouble(0.1), 0, 0).yRot((float) Math.toRadians(360.0 / count2 * j)));
-                    Vec3 sped = pos.subtract(ePos.add(new Vec3(0, 0.3, 0))).normalize().scale(0.11 * (1 - finalI / 14) + rng.nextDouble(0.03));
-                    ParticleHelper.spawnDirectedParticle(level, ParticleHelper.constructSimpleSpark(FlamesUtils.fromRGBI(63, 60, 39), 0.3f + ((finalI / 14) * 0.2f), (int) Math.round(10 + r2 * 2), 0.9f),
-                            pos.x + rng.nextDouble(0.4) - 0.2, pos.y + 0.2 + rng.nextDouble(0.2), pos.z + rng.nextDouble(0.4) - 0.2, sped.x, 0, sped.z);
-
-                }
-            });
-
-        }
-
     }
 
     @Override

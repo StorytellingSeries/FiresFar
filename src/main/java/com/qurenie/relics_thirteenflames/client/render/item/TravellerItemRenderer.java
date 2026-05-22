@@ -14,6 +14,8 @@ public class TravellerItemRenderer extends EmissiveItemRenderer {
     
     @Override
     public void renderByItem(@NotNull ItemStack pStack, @NotNull ItemDisplayContext pTransformType, @NotNull PoseStack poseStack, @NotNull MultiBufferSource pBuffer, int pPackedLight, int pPackedOverlay) {
+        boolean isFlawless = ItemsRegistry.TRAVELLER_SWORD.getRelicData(null, pStack).isFlawless();
+
         if(pStack.is(ItemsRegistry.TRAVELLER_SWORD) && pStack.getOrDefault(ComponentRegistry.SPEED, 0f) >= 2) {
             if (pTransformType == ItemDisplayContext.THIRD_PERSON_LEFT_HAND) {
                 poseStack.translate(-0.35, 0.3, 0.5);

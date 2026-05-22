@@ -1,18 +1,20 @@
 package com.qurenie.relics_thirteenflames.content.items;
 
 import com.qurenie.api.IActivityContainer;
+import com.qurenie.api.IBarContainer;
 import com.qurenie.api.IExtRelicItem;
 import com.qurenie.api.SettingsContainer;
 import com.qurenie.relics_thirteenflames.activity.ActivitySetting;
 import com.qurenie.relics_thirteenflames.activity.IActivitySetting;
+import com.qurenie.relics_thirteenflames.activity.RelicActivitySetting;
+import com.qurenie.relics_thirteenflames.client.bar.BarSetting;
+import com.qurenie.relics_thirteenflames.client.bar.IBarSetting;
 import com.qurenie.relics_thirteenflames.content.entities.KnefProjCarrier;
 import com.qurenie.relics_thirteenflames.content.entities.KnefProjectile;
 import com.qurenie.relics_thirteenflames.content.entities.KnefProjectileSpecial;
 import com.qurenie.relics_thirteenflames.content.entities.KnefStormcaller;
-import com.qurenie.relics_thirteenflames.init.DamageSourceRegistry;
-import com.qurenie.relics_thirteenflames.init.EntityRegistry;
-import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
-import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
+import com.qurenie.relics_thirteenflames.init.*;
+import com.qurenie.relics_thirteenflames.style.ColorScheme;
 import com.qurenie.relics_thirteenflames.util.FlamesUtils;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import it.hurts.sskirillss.relics.api.relics.abilities.ExperienceSourcesTemplate;
@@ -28,9 +30,7 @@ import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootTemplate;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.misc.LootEntries;
 import it.hurts.sskirillss.relics.items.relics.base.data.research.ResearchTemplate;
 import it.hurts.sskirillss.relics.utils.MathUtils;
-import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
-import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
@@ -39,7 +39,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
@@ -50,21 +49,18 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingEntityUseItemEvent;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.zeith.hammerlib.api.items.IColoredFoilItem;
 import top.theillusivec4.curios.api.CuriosApi;
 
 import java.awt.*;
-import java.util.List;
+import java.util.Collections;
 
-import static com.qurenie.relics_thirteenflames.init.ComponentRegistry.PULL;
-import static com.qurenie.relics_thirteenflames.init.ComponentRegistry.SHIFTING;
+import static com.qurenie.relics_thirteenflames.init.ComponentRegistry.*;
 
-public class ItemKnefBow extends RelicItem implements IExtRelicItem, IColoredFoilItem, IActivityContainer {
-
+public class ItemKnefBow extends RelicItem implements IExtRelicItem, IColoredFoilItem, IActivityContainer, IBarContainer {
 
     public ItemKnefBow(Properties properties) {
-    
+
         super(properties);
     }
 
@@ -72,6 +68,19 @@ public class ItemKnefBow extends RelicItem implements IExtRelicItem, IColoredFoi
 
     @Override
     public void gatherCreativeTabContent(CreativeContentConstructor constructor) {
+    }
+
+    @Override
+    public SettingsContainer<IBarSetting> constructBarSettings() {
+        return SettingsContainer.<IBarSetting>builder()
+                .setting(BarSetting.builder()
+                        .color(ColorScheme.BAR_BLUE)
+                        .maxValue((stack, player) -> getStatValue(player, stack, "swim", "charge"))
+                        .value((s, p) -> Double.valueOf(s.getOrDefault(ComponentRegistry.ACTIVE_TICK, 0)))
+                        .inverse(true)
+                        .visibility((s, p) -> s.getOrDefault(ComponentRegistry.ACTIVE_TICK, 0) > 0)
+                        .build())
+                .build();
     }
 
     @Override
@@ -104,7 +113,7 @@ public class ItemKnefBow extends RelicItem implements IExtRelicItem, IColoredFoi
                                 .experienceSources(ExperienceSourcesTemplate.builder()
                                         .source("source_1")
                                         .build())
-                                .rankModifier(1, "bounce")
+                                .rankModifier(2, "bounce")
                                 .build()
                         )
                         .ability(AbilityTemplate.builder("swim")
@@ -128,6 +137,13 @@ public class ItemKnefBow extends RelicItem implements IExtRelicItem, IColoredFoi
                                         .formatValue(x -> MathUtils.round(x, 1))
                                         .build()
                                 )
+                                .stat(AbilityStatTemplate.builder("charge")
+                                        .initialValue(30, 50)
+                                        .thresholdValue(40, 2000)
+                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), 0.3)
+                                        .formatValue(x -> MathUtils.round(x / 20, 1))
+                                        .build())
+                                .rankModifier(1, "upgrade")
                                 .build()
                         )
                         .ability(AbilityTemplate.builder("storm")
@@ -178,12 +194,12 @@ public class ItemKnefBow extends RelicItem implements IExtRelicItem, IColoredFoi
     }
 
     @Override
-    public UseAnim getUseAnimation(@NotNull ItemStack pStack) {
+    public @NotNull UseAnim getUseAnimation(@NotNull ItemStack pStack) {
         return UseAnim.BOW;
     }
 
     @Override
-    public boolean canContinueUsing(ItemStack oldStack, ItemStack newStack) {
+    public boolean canContinueUsing(@NotNull ItemStack oldStack, @NotNull ItemStack newStack) {
         return true;
     }
 
@@ -199,12 +215,13 @@ public class ItemKnefBow extends RelicItem implements IExtRelicItem, IColoredFoi
 
     @Override
     public void releaseUsing(@NotNull ItemStack pStack, @NotNull Level pLevel, LivingEntity pLivingEntity, int pTimeCharged) {
-        if(!(pLivingEntity instanceof Player)|| (isModEnabled(pLivingEntity, pStack, "swim", "on") && pLivingEntity.isInWaterOrRain())) return;
+        if (!(pLivingEntity instanceof Player) || (isModEnabled(pLivingEntity, pStack, "swim", "on") && pLivingEntity.isInWaterOrRain()))
+            return;
 
         int delta = this.getUseDuration(pStack, pLivingEntity) - pTimeCharged;
         if (hasGloves(pLivingEntity))
             delta *= 2;
-        
+
         float baseDmg = (float) getStatValue(pLivingEntity, pStack, "shot", "dmg");
         boolean isShitting = pLivingEntity.isShiftKeyDown();
         if (!isShitting || !isAbilityUnlocked(pLivingEntity, pStack, "storm") || !canCast(pLivingEntity, pStack, "storm")) {
@@ -218,9 +235,9 @@ public class ItemKnefBow extends RelicItem implements IExtRelicItem, IColoredFoi
 
                 Vec3 pos = pLivingEntity.getEyePosition(1f).add(pLivingEntity.getLookAngle().scale(1.6))
                         .add(pLivingEntity.getLookAngle()
-                                .cross( (pLivingEntity.getLookAngle().x < 0.001 && pLivingEntity.getLookAngle().z < 0.001) ?
+                                .cross((pLivingEntity.getLookAngle().x < 0.001 && pLivingEntity.getLookAngle().z < 0.001) ?
                                         Vec3.directionFromRotation(0, pLivingEntity.getYHeadRot()).scale(pLivingEntity.getLookAngle().y > 0 ? -1 : 1).normalize() :
-                                        new Vec3(0,1,0)
+                                        new Vec3(0, 1, 0)
                                 ).normalize().scale(0.2)
                         )
                         .add(0, -0.13, 0).subtract(pLivingEntity.getLookAngle().scale(1.4));
@@ -242,9 +259,9 @@ public class ItemKnefBow extends RelicItem implements IExtRelicItem, IColoredFoi
                 }
                 Vec3 pos = pLivingEntity.getEyePosition(1f).add(pLivingEntity.getLookAngle().scale(1.6))
                         .add(pLivingEntity.getLookAngle()
-                                .cross( (pLivingEntity.getLookAngle().x < 0.001 && pLivingEntity.getLookAngle().z < 0.001) ?
+                                .cross((pLivingEntity.getLookAngle().x < 0.001 && pLivingEntity.getLookAngle().z < 0.001) ?
                                         Vec3.directionFromRotation(0, pLivingEntity.getYHeadRot()).scale(pLivingEntity.getLookAngle().y > 0 ? -1 : 1).normalize() :
-                                        new Vec3(0,1,0)
+                                        new Vec3(0, 1, 0)
                                 ).normalize().scale(0.2)
                         )
                         .add(0, -0.13, 0).subtract(pLivingEntity.getLookAngle().scale(1.4));
@@ -267,9 +284,9 @@ public class ItemKnefBow extends RelicItem implements IExtRelicItem, IColoredFoi
             KnefStormcaller stormcaller = new KnefStormcaller(EntityRegistry.KNEF_STORMCALLER, pLevel);
             Vec3 pos = pLivingEntity.getEyePosition(1f).add(pLivingEntity.getLookAngle().scale(1.6))
                     .add(pLivingEntity.getLookAngle()
-                            .cross( (pLivingEntity.getLookAngle().x < 0.001 && pLivingEntity.getLookAngle().z < 0.001) ?
+                            .cross((pLivingEntity.getLookAngle().x < 0.001 && pLivingEntity.getLookAngle().z < 0.001) ?
                                     Vec3.directionFromRotation(0, pLivingEntity.getYHeadRot()).scale(pLivingEntity.getLookAngle().y > 0 ? -1 : 1).normalize() :
-                                    new Vec3(0,1,0)
+                                    new Vec3(0, 1, 0)
                             ).normalize().scale(0.2)
                     )
                     .add(0, -0.13, 0).subtract(pLivingEntity.getLookAngle().scale(1.4));
@@ -293,9 +310,9 @@ public class ItemKnefBow extends RelicItem implements IExtRelicItem, IColoredFoi
             }
             Vec3 pos = pLivingEntity.getEyePosition(1f).add(pLivingEntity.getLookAngle().scale(1.6))
                     .add(pLivingEntity.getLookAngle()
-                            .cross( (pLivingEntity.getLookAngle().x < 0.001 && pLivingEntity.getLookAngle().z < 0.001) ?
+                            .cross((pLivingEntity.getLookAngle().x < 0.001 && pLivingEntity.getLookAngle().z < 0.001) ?
                                     Vec3.directionFromRotation(0, pLivingEntity.getYHeadRot()).scale(pLivingEntity.getLookAngle().y > 0 ? -1 : 1).normalize() :
-                                    new Vec3(0,1,0)
+                                    new Vec3(0, 1, 0)
                             ).normalize().scale(0.2)
                     )
                     .add(0, -0.13, 0).subtract(pLivingEntity.getLookAngle().scale(1.4));
@@ -313,7 +330,7 @@ public class ItemKnefBow extends RelicItem implements IExtRelicItem, IColoredFoi
         }
         pStack.set(SHIFTING, false);
     }
-    
+
     private static boolean hasGloves(Entity entity) {
         return entity instanceof LivingEntity living && CuriosApi.getCuriosInventory(living).map(handler -> {
             var stacks = handler.getCurios().get("hands").getStacks();
@@ -324,9 +341,18 @@ public class ItemKnefBow extends RelicItem implements IExtRelicItem, IColoredFoi
     @Override
     public void inventoryTick(@NotNull ItemStack stack, Level level, @NotNull Entity entity, int slot, boolean isSelected) {
         boolean hasGloves = hasGloves(entity);
-        if(!level.isClientSide() && entity instanceof LivingEntity l
-        && stack.getOrDefault(PULL, 0f) != (l.getUseItem() == stack ? (float) (stack.getUseDuration(l) - l.getUseItemRemainingTicks()) / (hasGloves ? 10.0f : 20.0F) : 0))
-            stack.set( PULL, l.getUseItem() == stack ? (float) (stack.getUseDuration(l) - l.getUseItemRemainingTicks()) / (hasGloves ? 10.0f : 20.0F) : 0);
+        if (!level.isClientSide() && entity instanceof LivingEntity l
+                && stack.getOrDefault(PULL, 0f) != (l.getUseItem() == stack ? (float) (stack.getUseDuration(l) - l.getUseItemRemainingTicks()) / (hasGloves ? 10.0f : 20.0F) : 0))
+            stack.set(PULL, l.getUseItem() == stack ? (float) (stack.getUseDuration(l) - l.getUseItemRemainingTicks()) / (hasGloves ? 10.0f : 20.0F) : 0);
+
+        int cooldown = stack.getOrDefault(COOLDOWN, 0);
+
+        int activeTick = stack.getOrDefault(ACTIVE_TICK, 0);
+        if (cooldown == 0) {
+            stack.set(ACTIVE_TICK, Math.max(activeTick - 3, 0));
+        } else
+            stack.set(COOLDOWN, cooldown - 1);
+
         super.inventoryTick(stack, level, entity, slot, isSelected);
     }
 
@@ -342,14 +368,25 @@ public class ItemKnefBow extends RelicItem implements IExtRelicItem, IColoredFoi
 
 
     @Override
-    public void onUseTick(@NotNull Level level, @NotNull LivingEntity living, @NotNull ItemStack stack, int count) {
-        if ( isModEnabled(living, stack, "swim", "on") && living.isInWaterOrRain() && living instanceof Player p) {
+    public void onUseTick(@NotNull Level level, final @NotNull LivingEntity living, @NotNull ItemStack stack, int count) {
+
+        if (isModEnabled(living, stack, "swim", "on") && living.isInWaterOrRain() && living instanceof Player p) {
+
+            int activeTick = stack.getOrDefault(ACTIVE_TICK, 0);
+            var maxCharge = getStatValue(living, stack, "swim", "charge");
+
+            if (activeTick >= maxCharge)
+                return;
+
+            stack.set(ACTIVE_TICK, activeTick + 1);
+            stack.set(COOLDOWN, 50);
 
             if (!p.isCreative()) {
                 if (living.getHealth() > 1)
                     living.hurt(DamageSourceRegistry.SUCC, living.getMaxHealth() * (float) getStatValue(living, stack, "shot", "drain") * 0.02f);
                 else living.kill();
             }
+
             living.hurtTime = 0;
             living.hurtDuration = 0;
 
@@ -366,9 +403,85 @@ public class ItemKnefBow extends RelicItem implements IExtRelicItem, IColoredFoi
                 target.push(awayctor.x() * 1 / awayctor.length(), awayctor.y() * 1 / awayctor.length(), awayctor.z() * 1 / awayctor.length());
             }
 
-            p.setDeltaMovement(0,0,0);
+            var aabb = aoe.inflate(10);
+            var entities = living.level().getEntitiesOfClass(
+                    LivingEntity.class,
+                    aabb,
+                    e -> !e.getUUID().equals(living.getUUID())
+            );
+            Collections.shuffle(entities);
+
+            if (ItemsRegistry.KNEF_BOW.hasRangModifier(living, stack, "swim", "upgrade")
+                && living.tickCount % 7 == 0)
+                entities.stream().limit(Math.max(3, entities.size())).forEach(target -> {
+                    // upgrade modifier
+
+                    long gameTime = level.getGameTime();
+                    long lastShot = target.getPersistentData().getLong("knef_swim_proj");
+
+                    // anti-spam
+                    if (gameTime - lastShot >= 8) {
+
+                        target.getPersistentData().putLong("knef_swim_proj", gameTime);
+
+                        Vec3 from = living.getEyePosition();
+                        Vec3 to = target.getBoundingBox().getCenter();
+
+                        Vec3 dir = to.subtract(from).normalize();
+
+                        KnefProjectile proj = new KnefProjectile(
+                                EntityRegistry.KNEF_PROJECTILE,
+                                level
+                        );
+
+                        proj.setPos(
+                                from.x + dir.x * 1.2,
+                                from.y + dir.y * 1.2,
+                                from.z + dir.z * 1.2
+                        );
+
+                        proj.setOwner(living);
+                        proj.setOwnerUUID(living.getStringUUID());
+
+                        proj.setBaseDmg(
+                                (float) getStatValue(living, stack, "shot", "dmg")
+                        );
+
+                        proj.setPowerEnch(
+                                stack.getEnchantmentLevel(
+                                        level.holderOrThrow(Enchantments.POWER)
+                                )
+                        );
+
+                        proj.setBow(stack);
+
+                        proj.setBounce(
+                                ItemsRegistry.KNEF_BOW.hasRangModifier(
+                                        living,
+                                        stack,
+                                        "shot",
+                                        "bounce"
+                                )
+                        );
+
+                        proj.setFree(true);
+
+                        proj.shoot(
+                                dir.x,
+                                dir.y,
+                                dir.z,
+                                1.6f,
+                                0f
+                        );
+
+                        level.addFreshEntity(proj);
+                    }
+
+                });
+
+            p.setDeltaMovement(0, 0, 0);
             p.push(luk.x() * speedd, luk.y() * speedd, luk.z() * speedd);
-            p.startAutoSpinAttack(2, (float) getStatValue(living, stack, "swim", "dmg") ,stack);
+            p.startAutoSpinAttack(2, (float) getStatValue(living, stack, "swim", "dmg"), stack);
             p.fallDistance = 0;
             for (int i = 0; i < 12; i++) {
 
@@ -379,7 +492,7 @@ public class ItemKnefBow extends RelicItem implements IExtRelicItem, IColoredFoi
                     radius += 1.4;
                 }
 
-                Vec3 x = !( motion.normalize().x < 0.001 && motion.normalize().z < 0.001 ) ? motion.normalize().cross(new Vec3(0, 1, 0)).normalize().scale(radius) : motion.normalize().cross(new Vec3(1, 0, 0)).normalize().scale(radius);
+                Vec3 x = !(motion.normalize().x < 0.001 && motion.normalize().z < 0.001) ? motion.normalize().cross(new Vec3(0, 1, 0)).normalize().scale(radius) : motion.normalize().cross(new Vec3(1, 0, 0)).normalize().scale(radius);
                 Vec3 z = motion.normalize().cross(x).normalize().scale(radius);
 
                 Vec3 pos = living.getPosition(1F)
@@ -394,15 +507,14 @@ public class ItemKnefBow extends RelicItem implements IExtRelicItem, IColoredFoi
                 ParticleHelper.spawnDirectedParticle(living.level(), ParticleHelper.constructSimpleSpark(FlamesUtils.fromRGBI(0, (int) (174 + Math.sin(p.tickCount / 6.0) * 30), (int) (105 - Math.sin(count / 6.0) * 20)), 0.35f, 60, 0.92f),
                         pos.x(), pos.y(), pos.z(), 0, 0, 0);
             }
-        } else if(living instanceof Player p){
+        } else if (living instanceof Player p) {
             boolean hasGloves = hasGloves(living);
             if (this.getUseDuration(stack, p) - count < (hasGloves ? 19 : 9)) {
                 if (!p.isCreative()) {
                     if (living.getHealth() > 1) {
                         boolean isShitting = stack.getOrDefault(SHIFTING, false);
                         living.hurt(DamageSourceRegistry.SUCC, living.getMaxHealth() * (float) getStatValue(living, stack, "shot", "drain") * (isShitting ? 0.1f : 0.05f) * (hasGloves ? 1.5f : 1));
-                    }
-                    else living.kill();
+                    } else living.kill();
                 }
                 living.hurtTime = 0;
                 living.hurtDuration = 0;
@@ -411,6 +523,7 @@ public class ItemKnefBow extends RelicItem implements IExtRelicItem, IColoredFoi
         }
     }
 
+
     @Override
     public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level pLevel, Player pPlayer, @NotNull InteractionHand pHand) {
         ItemStack itemstack = pPlayer.getItemInHand(pHand);
@@ -418,17 +531,17 @@ public class ItemKnefBow extends RelicItem implements IExtRelicItem, IColoredFoi
         pPlayer.startUsingItem(pHand);
         return InteractionResultHolder.consume(itemstack);
     }
-    
+
     @Override
     public boolean isPrimaryItemFor(@NotNull ItemStack stack, Holder<Enchantment> enchantment) {
         return enchantment.is(Enchantments.POWER);
     }
-    
+
     @Override
     public boolean supportsEnchantment(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
         return isPrimaryItemFor(stack, enchantment);
     }
-    
+
     @Override
     public int getEnchantmentValue(ItemStack stack) {
         return 20;
@@ -446,7 +559,7 @@ public class ItemKnefBow extends RelicItem implements IExtRelicItem, IColoredFoi
 
     @EventBusSubscriber
     public static class EventHandler {
-        
+
         @SubscribeEvent
         public static void onItemUseEvent(LivingEntityUseItemEvent.Tick event) {
             if (event.getItem().is(ItemsRegistry.KNEF_BOW)
@@ -456,7 +569,7 @@ public class ItemKnefBow extends RelicItem implements IExtRelicItem, IColoredFoi
                 event.setDuration(event.getItem().getUseDuration(event.getEntity()));
             }
         }
-        
+
     }
 
 }

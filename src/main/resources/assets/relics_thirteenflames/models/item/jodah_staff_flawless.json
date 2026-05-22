@@ -1,7 +1,7 @@
 {
 	"parent": "neoforge:item/default",
 	"base": {
-		"parent": "relics_thirteenflames:item/jodah_staff_3d"
+		"parent": "relics_thirteenflames:item/builtin/ister"
 	},
 	"loader": "neoforge:separate_transforms",
 	"perspectives": {
@@ -13,6 +13,101 @@
 		},
 		"fixed": {
 			"parent": "relics_thirteenflames:item/jodah_staff_2d_flawless"
+		}
+	},
+
+	"overrides": [
+		{
+			"predicate": {
+				"relics_thirteenflames:rank": 0,
+				"relics_thirteenflames:active": 0
+			},
+			"model": "relics_thirteenflames:item/jodah_staff_0_flawless"
+		},
+		{
+			"predicate": {
+				"relics_thirteenflames:rank": 1,
+				"relics_thirteenflames:active": 0
+			},
+			"model": "relics_thirteenflames:item/jodah_staff_1_flawless"
+		},
+		{
+			"predicate": {
+				"relics_thirteenflames:rank": 2,
+				"relics_thirteenflames:active": 0
+			},
+			"model": "relics_thirteenflames:item/jodah_staff_2_flawless"
+		},
+		{
+			"predicate": {
+				"relics_thirteenflames:rank": 3,
+				"relics_thirteenflames:active": 0
+			},
+			"model": "relics_thirteenflames:item/jodah_staff_3_flawless"
+		},
+		{
+			"predicate": {
+				"relics_thirteenflames:rank": 0,
+				"relics_thirteenflames:active": 1
+			},
+			"model": "relics_thirteenflames:item/jodah_staff_0_active_flawless"
+		},
+		{
+			"predicate": {
+				"relics_thirteenflames:rank": 1,
+				"relics_thirteenflames:active": 1
+			},
+			"model": "relics_thirteenflames:item/jodah_staff_1_active_flawless"
+		},
+		{
+			"predicate": {
+				"relics_thirteenflames:rank": 2,
+				"relics_thirteenflames:active": 1
+			},
+			"model": "relics_thirteenflames:item/jodah_staff_2_active_flawless"
+		},
+		{
+			"predicate": {
+				"relics_thirteenflames:rank": 3,
+				"relics_thirteenflames:active": 1
+			},
+			"model": "relics_thirteenflames:item/jodah_staff_3_active_flawless"
+		}
+	],
+
+	"display": {
+		"thirdperson_righthand": {
+			"translation": [0, -6.75, 2.25],
+			"scale": [1.6, 1.6, 1.6]
+		},
+		"thirdperson_lefthand": {
+			"translation": [0, -6.75, 2.25],
+			"scale": [1.6, 1.6, 1.6]
+		},
+		"firstperson_righthand": {
+			"rotation": [7, -33, 0],
+			"translation": [2.63, 1.2, 1.13]
+		},
+		"firstperson_lefthand": {
+			"rotation": [7, -33, 0],
+			"translation": [2.63, 1.2, 1.13]
+		},
+		"ground": {
+			"translation": [0, 3, 0],
+			"scale": [0.25, 0.25, 0.25]
+		},
+		"gui": {
+			"rotation": [30, -135, 0],
+			"translation": [0, -3.25, 0],
+			"scale": [0.54, 0.54, 0.54]
+		},
+		"head": {
+			"scale": [1.51, 1.51, 1.51]
+		},
+		"fixed": {
+			"rotation": [0, -90, 0],
+			"translation": [0, -5.25, 0],
+			"scale": [0.7, 0.7, 0.7]
 		}
 	}
 }

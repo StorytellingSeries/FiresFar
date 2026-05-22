@@ -43,18 +43,18 @@ public class ColoredRelicParticle extends BasicColoredParticle {
         private RotationType rotationType = RotationType.PLANE;
         float gravity;
         boolean lightningEffect = true;
-        private Supplier<? extends ParticleType<Options>> type = ParticlesRegistry.COLORED_RELIC_PARTICLE;
+        private Supplier<? extends ParticleType<? extends Options>> type = ParticlesRegistry.COLORED_RELIC_PARTICLE;
         
         public Options(Constructor data) {
             this.data = data;
         }
         
-        public Options(Supplier<? extends ParticleType<Options>> type, Constructor data) {
+        public Options(Supplier<? extends ParticleType<? extends Options>> type, Constructor data) {
             this.data = data;
             this.type = type;
         }
         
-        private Options(ParticleType<Options> type, Constructor data) {
+        protected Options(ParticleType<? extends Options> type, Constructor data) {
             this.data = data;
             this.type = () -> type;
         }
@@ -76,11 +76,11 @@ public class ColoredRelicParticle extends BasicColoredParticle {
         
         @Nonnull
         @Override
-        public ParticleType<Options> getType() {
+        public ParticleType<? extends Options> getType() {
             return type.get();
         }
         
-        public static MapCodec<Options> codec(ParticleType<Options> type) {
+        private static MapCodec<Options> codec(ParticleType<Options> type) {
             return RecordCodecBuilder.mapCodec(instance -> instance
                     .group(ConstructorCodecs.CONSTRUCTOR.fieldOf("data").forGetter(Options::getData),
                             Codec.FLOAT.fieldOf("gravity").forGetter(Options::getGravity),
@@ -90,8 +90,8 @@ public class ColoredRelicParticle extends BasicColoredParticle {
                     .apply(instance, (data, gravity, l, rotationType) -> new Options(type, data).withGravity(gravity).withLightning(l).withRotType(rotationType))
             );
         }
-        
-        public static StreamCodec<ByteBuf, Options> streamCodec(ParticleType<Options> type) {
+
+        private static StreamCodec<ByteBuf, Options> streamCodec(ParticleType<Options> type) {
             return StreamCodec.composite(
                     ConstructorCodecs.STREAM_CODEC, Options::getData,
                     ByteBufCodecs.FLOAT, Options::getGravity,

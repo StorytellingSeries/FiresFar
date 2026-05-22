@@ -16,6 +16,7 @@ import it.hurts.sskirillss.relics.items.relics.base.data.loot.misc.LootEntries;
 import it.hurts.sskirillss.relics.items.relics.base.data.research.ResearchTemplate;
 import it.hurts.sskirillss.relics.utils.MathUtils;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -25,8 +26,14 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.AirBlock;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
 import org.zeith.hammerlib.api.items.IColoredFoilItem;
 
@@ -75,6 +82,7 @@ public class ItemSeliasetSun extends RelicItem implements IExtRelicItem, IColore
 				.abilities(AbilitiesTemplate.builder()
 						.ability(AbilityTemplate.builder("blessed_light")
 								.initialMaxLevel(5)
+								.rankModifier(2, "paradise")
 								.experienceSources(ExperienceSourcesTemplate.builder()
 										.source("source_1")
 										.build())
@@ -124,6 +132,21 @@ public class ItemSeliasetSun extends RelicItem implements IExtRelicItem, IColore
 										.upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 3F)
 										.formatValue(x -> (int) MathUtils.round(x, 1))
 										.build())
+								.rankModifier(1, "mercy")
+								.build())
+						.ability(AbilityTemplate.builder("lightning")
+								.initialMaxLevel(3)
+								.requiredLevel(10)
+								.stat(AbilityStatTemplate.builder("frequency")
+										.initialValue(200, 120)
+										.upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), -0.135)
+										.formatValue(x -> MathUtils.round(x / 20f, 1))
+										.build())
+								.stat(AbilityStatTemplate.builder("radius")
+										.initialValue(10, 20)
+										.upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), 0.4)
+										.formatValue(x -> MathUtils.round(x, 1))
+										.build())
 								.build())
 						.build())
 				.leveling(LevelingTemplate.builder()
@@ -137,8 +160,6 @@ public class ItemSeliasetSun extends RelicItem implements IExtRelicItem, IColore
 						.build())
 				.build();
 	}
-
-
 
 	@Override
 	public int getFoilColor(@NotNull ItemStack itemStack) {

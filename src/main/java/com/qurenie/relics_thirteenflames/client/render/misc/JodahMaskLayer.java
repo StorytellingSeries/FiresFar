@@ -23,43 +23,54 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import top.theillusivec4.curios.api.client.ICurioRenderer;
 
-public class JodahMaskLayer <T extends Player, M extends EntityModel<T>> extends RenderLayer<T, M> {
-    
+public class JodahMaskLayer<T extends Player, M extends EntityModel<T>> extends RenderLayer<T, M> {
+
     private static final ResourceLocation EMISSION = ThirteenFlames.rl("textures/armor/interworlder_head_emissive.png");
+    private static final ResourceLocation EMISSION_FLAWLESS = ThirteenFlames.rl("textures/armor/interworlder_head_emissive_flawless.png");
     private final InterworlderMask<LivingEntity> mask;
-    
+    private final InterworlderMask<LivingEntity> maskFlawless;
+
     public JodahMaskLayer(RenderLayerParent<T, M> renderer) {
         super(renderer);
         this.mask = new InterworlderMask<>(Minecraft.getInstance().getEntityModels().bakeLayer(InterworlderMask.LAYER_LOCATION));
+        this.maskFlawless = new InterworlderMask.Flawless<>(Minecraft.getInstance().getEntityModels().bakeLayer(InterworlderMask.Flawless.LAYER_LOCATION));
     }
-    
+
     @Override
     public void render(@NotNull PoseStack poseStack, @NotNull MultiBufferSource bufferSource, int packedLight, @NotNull T entity, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
         ItemStack stack = entity.getItemBySlot(EquipmentSlot.HEAD);
-        
-        if (stack.getItem() instanceof ItemJodahMask) {
+
+        if (stack.getItem() instanceof ItemJodahMask item) {
+            boolean isFlawless = item.getRelicData(null, stack).isFlawless();
+            int tickCount = entity.tickCount;
+
             MaskState state = stack.getOrDefault(ComponentRegistry.MASK_STATE, MaskState.NEUTRAL);
-            
+
             ResourceLocation loc = ThirteenFlames.rl(String.format("textures/armor/interworlder_head%s.png", state.getTexturePostfix()));
-            
+
+            if (isFlawless)
+                loc = ThirteenFlames.rl(String.format("textures/armor/interworlder_head_upgraded%s%d.png", state.getTexturePostfix(), (tickCount / 4) % 7 + 1));
+
+            var mask = isFlawless ? this.maskFlawless : this.mask;
+
+            poseStack.pushPose();
+
             mask.prepareMobModel(entity, limbSwing, limbSwingAmount, partialTicks);
             ICurioRenderer.followBodyRotations(entity, mask);
             mask.setupAnim(entity, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
-            
-            poseStack.pushPose();
-            
+
             // base
             VertexConsumer vc = ItemRenderer.getArmorFoilBuffer(bufferSource, RenderType.armorCutoutNoCull(loc), stack.hasFoil());
             mask.renderToBuffer(poseStack, vc, packedLight, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
-            
+
             // emission
             poseStack.pushPose();
-            vc = ItemRenderer.getArmorFoilBuffer(bufferSource, RenderType.armorCutoutNoCull(EMISSION), stack.hasFoil());
-            this.mask.renderToBuffer(poseStack, vc, 16711935, OverlayTexture.NO_OVERLAY, state.getEyesColor());
+            vc = ItemRenderer.getArmorFoilBuffer(bufferSource, RenderType.armorCutoutNoCull(isFlawless ? EMISSION_FLAWLESS : EMISSION), stack.hasFoil());
+            mask.renderToBuffer(poseStack, vc, 16711935, OverlayTexture.NO_OVERLAY, state.getEyesColor());
             poseStack.popPose();
-            
+
             poseStack.popPose();
         }
     }
-    
+
 }

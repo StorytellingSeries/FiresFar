@@ -47,6 +47,7 @@ import org.zeith.hammeranims.api.tile.IAnimatedEntity;
 import org.zeith.hammerlib.net.Network;
 
 import java.awt.*;
+import java.util.Comparator;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -57,39 +58,49 @@ import static net.neoforged.neoforge.common.NeoForge.EVENT_BUS;
 
 @Getter
 public class RespawnBookEntity extends Mob implements IAnimatedEntity {
-    
+
     private static final EntityDataAccessor<Integer> RADIUS = SynchedEntityData.defineId(RespawnBookEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> START_DEATH_TICK = SynchedEntityData.defineId(RespawnBookEntity.class, EntityDataSerializers.INT);
-    
+    private static final EntityDataAccessor<Float> ATTACK_LEVEL = SynchedEntityData.defineId(RespawnBookEntity.class, EntityDataSerializers.FLOAT);
+
     private static final int DEATH_ANIM_LENGTH = 60;
-    
+
+    private static final int ATTACK_COOLDOWN = 25;
+    private static final double ATTACK_RADIUS = 5.5;
+
+    private int attackCooldown;
+
     AnimationSystem system = AnimationSystem.create(this);
-    
+
     @Setter
     private UUID ownerUUID;
     private double xpConsume;
     private double hpConsume;
-    
+
     public RespawnBookEntity(EntityType<RespawnBookEntity> type, Level world) {
         super(type, world);
         this.system.startAnimationAt(LAYER_ACTION, AnimationsRegistry.RESPAWN_BOOK_OPEN.configure().transitionTime(0));
         this.system.startAnimationAt("ANIMATION_1", AnimationsRegistry.RESPAWN_BOOK_IDLE.configure().transitionTime(0));
     }
-    
+
     public RespawnBookEntity(LivingEntity owner, ItemStack feather, double x, double y, double z) {
         this(EntityRegistry.RESPAWN_BOOK, owner.level());
         setOwnerUUID(owner.getUUID());
         setPos(x, y, z);
-        
+
         ItemHettFeather item = (ItemHettFeather) feather.getItem();
         setRadius((int) item.getStatValue(owner, feather, "savepoint", "radius"));
         this.xpConsume = item.getStatValue(owner, feather, "savepoint", "xp_consume") / 100d;
         this.hpConsume = item.getStatValue(owner, feather, "savepoint", "hp_consume") / 100d;
-        
+
+        if (item.hasRangModifier(owner, feather, "savepoint", "attack")) {
+            setAttackLevel((float) item.getStatValue(owner, feather, "savepoint", "attackLevel"));
+        }
+
         this.system.startAnimationAt(LAYER_ACTION, AnimationsRegistry.RESPAWN_BOOK_OPEN.configure().transitionTime(0));
         this.system.startAnimationAt("ANIMATION_1", AnimationsRegistry.RESPAWN_BOOK_IDLE.configure().transitionTime(0));
     }
-    
+
     @Override
     public void readAdditionalSaveData(@NotNull CompoundTag pCompound) {
         super.readAdditionalSaveData(pCompound);
@@ -97,8 +108,10 @@ public class RespawnBookEntity extends Mob implements IAnimatedEntity {
         this.hpConsume = pCompound.getDouble("hp_consume");
         setOwnerUUID(pCompound.getUUID("ownerUUID"));
         setRadius(pCompound.getInt("radius"));
+
+        setAttackLevel(pCompound.getFloat("attack_level"));
     }
-    
+
     @Override
     public void addAdditionalSaveData(@NotNull CompoundTag pCompound) {
         super.addAdditionalSaveData(pCompound);
@@ -106,13 +119,39 @@ public class RespawnBookEntity extends Mob implements IAnimatedEntity {
         pCompound.putDouble("hp_consume", hpConsume);
         pCompound.putUUID("ownerUUID", getOwnerUUID());
         pCompound.putInt("radius", getRadius());
+
+        pCompound.putFloat("attack_level", getAttackLevel());
     }
-    
+
+    public float getAttackLevel() {
+        return this.entityData.get(ATTACK_LEVEL);
+    }
+
+    public void setAttackLevel(float level) {
+        this.entityData.set(ATTACK_LEVEL, level);
+    }
+
     @Override
     public void tick() {
         super.tick();
         system.tick();
-        
+
+        if (tickCount % 40 == 0 && getHealth() < getMaxHealth() && getAttackLevel() > 0) {
+            if (!level().isClientSide)
+                heal(getAttackLevel() * 0.25F);
+            else
+                for (int j = 0; j < 4; j++) {
+                    double r = (0.8 + random.nextGaussian() * 0.1);
+
+                    double x = (0.5 - Math.random()) * r * 2;
+                    double z = Math.sqrt(r * r - x * x) * (random.nextBoolean() ? 1 : -1);
+                    Vec3 spawn = position().add(x, 0.1, z);
+
+                    ParticleHelper.spawnDirectedParticle(level(), ParticleHelper.constructHeal(HETT_COLOR, 0.4f, 50, 0.945f).withGravity(-0.2f),
+                            spawn, new Vec3(0, 0, 0));
+                }
+        }
+
         if (tickCount % 40 == 0) {
             AABB dangerousArea = this.getBoundingBox().inflate(20);
             for (Monster monster : level().getEntitiesOfClass(Monster.class, dangerousArea,
@@ -120,35 +159,35 @@ public class RespawnBookEntity extends Mob implements IAnimatedEntity {
                 monster.setTarget(this);
             }
         }
-        
+
         if (!level().isClientSide && tickCount % 3 == 0)
             for (Entity e : this.getPassengers())
                 if (e instanceof LivingEntity living)
                     living.heal(1);
-        
+
         int deathTick = getDeathTick();
         if (level().isClientSide) {
             if (this.getPassengers().isEmpty())
                 for (int j = 0; j < 2; j++) {
                     if (random.nextBoolean()) {
                         double r = 0.6;
-                        
+
                         double x = (0.5 - Math.random()) * r * 2;
                         double z = Math.sqrt(r * r - x * x) * (0.5 - Math.random()) * 2;
                         Vec3 spawn = position().add(x, 1.3 + random.nextGaussian() * 0.2, z);
-                        
+
                         ParticleHelper.spawnDirectedParticle(level(), ParticleTypes.ENCHANT,
                                 spawn, new Vec3(0, Math.random() * 0.1 + 0.06, 0));
                     }
                 }
-            
+
             for (int j = 0; j < 4; j++) {
                 double r = (0.8 + random.nextGaussian() * 0.1) * (deathTick < 0 ? 1 : (1 - (double) (tickCount - deathTick) / DEATH_ANIM_LENGTH));
-                
+
                 double x = (0.5 - Math.random()) * r * 2;
                 double z = Math.sqrt(r * r - x * x) * (random.nextBoolean() ? 1 : -1);
                 Vec3 spawn = position().add(x, 0.1, z);
-                
+
                 if (!isOnFire() || random.nextBoolean()) {
                     ParticleHelper.spawnDirectedParticle(level(), ParticleHelper.constructSimpleSpark(HETT_COLOR, 0.2f, 30, 0.93f).withGravity(-0.25f),
                             spawn, new Vec3(0, 0, 0));
@@ -157,67 +196,126 @@ public class RespawnBookEntity extends Mob implements IAnimatedEntity {
                         ParticleHelper.spawnDirectedParticle(level(), ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(BURN_COLOR, random), 0.2f, 30, 0.93f).withGravity(-0.25f),
                                 spawn, new Vec3(0, 0, 0));
                     }
-                
+
             }
         }
-        
+
+        if (!level().isClientSide) {
+            if (attackCooldown > 0)
+                attackCooldown--;
+
+            if (attackCooldown <= 0 && getAttackLevel() > 0) {
+
+                AABB attackBox = getBoundingBox().inflate(ATTACK_RADIUS);
+
+                Monster target = level().getEntitiesOfClass(Monster.class, attackBox,
+                                mob -> mob.isAlive() && mob.distanceToSqr(this) < ATTACK_RADIUS * ATTACK_RADIUS)
+                        .stream()
+                        .min(Comparator.comparingDouble(a -> a.distanceToSqr(this)))
+                        .orElse(null);
+
+                if (target != null) {
+
+                    float damage = 1.5F + getAttackLevel() * 0.7F;
+                    double knockback = 1.8D + getAttackLevel() * 0.35D;
+
+                    target.hurt(damageSources().magic(), damage);
+
+                    Vec3 dir = target.position().subtract(position()).normalize();
+
+                    target.setDeltaMovement(
+                            dir.x * knockback,
+                            0.3D + getAttackLevel() * 0.06D,
+                            dir.z * knockback
+                    );
+
+                    target.hurtMarked = true;
+
+                    level().playSound(
+                            null,
+                            blockPosition(),
+                            SoundEvents.ALLAY_HURT,
+                            SoundSource.HOSTILE,
+                            1F,
+                            0.8F + random.nextFloat() * 0.3F
+                    );
+
+                    if (level() instanceof ServerLevel server) {
+                        server.sendParticles(
+                                ParticleTypes.ENCHANT,
+                                target.getX(),
+                                target.getY() + 1,
+                                target.getZ(),
+                                20,
+                                0.3,
+                                0.3,
+                                0.3,
+                                0.05
+                        );
+                    }
+
+                    attackCooldown = (int) Math.max(8, ATTACK_COOLDOWN - getAttackLevel() * 2);
+                }
+            }
+        }
+
         if (deathTick > 0) {
             if (level().isClientSide && !getPassengers().isEmpty()) {
                 for (int i = 0; i < 5; i++) {
                     double y = random.nextDouble() * 2 + 1;
                     Vec3 center = new Vec3(getX(), getY() + y, getZ());
-                    
+
                     for (int j = 0; j < 3; j++) {
                         double r = 1.4 * ((y - 1) / 2) + 0.3;
-                        
+
                         double x = random.nextGaussian() * r;
                         double z = Math.sqrt(r * r - x * x) * (random.nextBoolean() ? 1 : -1);
                         Vec3 spawn = center.add(x, 0, z);
-                        
+
                         Vec3 radius = spawn.subtract(center);
                         Vec3 move = radius.normalize().yRot((float) (230f * Math.PI / 180f)).add(0, 0.02f, 0);
-                        
+
                         if (!isOnFire() || random.nextBoolean())
                             ParticleHelper.spawnDirectedParticle(level(), ParticleHelper.constructSimpleSpark(HETT_COLOR, 0.13f, 20, 0.91f),
                                     spawn, move.normalize().scale(0.03 * y));
                         else
                             ParticleHelper.spawnDirectedParticle(level(), ParticleHelper.constructSimpleSpark(BURN_COLOR, 0.13f, 20, 0.91f),
                                     spawn, move.normalize().scale(0.03 * y));
-                        
-                        
+
+
                         if (random.nextBoolean() && tickCount % 3 == 0)
                             ParticleHelper.spawnDirectedParticle(level(), ParticleHelper.constructHeal(HETT_COLOR, 0.3f, 20, 0.91f),
                                     spawn, move.normalize().scale(0.03 * y));
                     }
                 }
             }
-            
+
             if (tickCount - deathTick > DEATH_ANIM_LENGTH)
                 close();
         }
     }
-    
+
     @Override
     public void onDamageTaken(@NotNull DamageContainer damageContainer) {
         ParticleHelper.spawnParticleEntity(new FeatherParticle.Options(0.2f, 70, ParticlesRegistry.HETT_FEATHER),
                 this, (int) (damageContainer.getNewDamage() * 7), 0.1f);
         super.onDamageTaken(damageContainer);
     }
-    
+
     @Override
     public Vec3 getPassengerRidingPosition(@NotNull Entity entity) {
         return this.position().add(0, 1.5, 0);
     }
-    
+
     @Override
     protected void positionRider(@NotNull Entity passenger, @NotNull MoveFunction callback) {
         super.positionRider(passenger, callback);
     }
-    
+
     @Override
     public void die(@NotNull DamageSource damageSource) {
         super.die(damageSource);
-        
+
         if (level() instanceof ServerLevel sl) {
             LivingEntity living = (LivingEntity) sl.getEntity(getOwnerUUID());
             if (living != null) {
@@ -227,17 +325,17 @@ public class RespawnBookEntity extends Mob implements IAnimatedEntity {
                     p.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 100));
                     Network.sendTo(p, new PacketPlaySound(p.position(), SoundEvents.WITHER_HURT, SoundSource.MASTER, 1, 1));
                 }
-                
+
                 ParticleHelper.spawnParticleLine(level(), ParticleHelper.constructSimpleSpark(HETT_COLOR, 1f, 20, 0.95f),
                         this.position(), living.position().add(0, 1, 0), (int) (this.position().distanceTo(living.position()) * 4), 0.02f);
             }
         }
-        
+
         if (level().isClientSide) {
             ParticleHelper.spawnParticleEntity(ParticleTypes.CAMPFIRE_COSY_SMOKE, this, 40, 0.1);
         }
     }
-    
+
     @SubscribeEvent
     public void livingDeathEvent(LivingDeathEvent event) {
         if (event.getEntity().getUUID().equals(getOwnerUUID())) {
@@ -249,12 +347,12 @@ public class RespawnBookEntity extends Mob implements IAnimatedEntity {
                 ParticleHelper.spawnParticleEntity(ParticleTypes.CAMPFIRE_COSY_SMOKE, event.getEntity(), 30, 0.1);
                 startDeath();
                 system.startAnimationAt("ANIMATION_2", AnimationsRegistry.RESPAWN_BOOK_RESPAWN_LAYER);
-                
+
                 AABB aabb = this.getBoundingBox().inflate(10, 4, 10).expandTowards(0, 6, 0);
                 for (Mob mob : level().getEntitiesOfClass(Mob.class, aabb)) {
                     if (!mob.isPushable())
                         continue;
-                    
+
                     if (Objects.equals(mob.getUUID(), this.getOwnerUUID())) continue;
                     Vec3 b = mob.position().subtract(this.position());
                     Vec3 sp = b.normalize().multiply(2, 2, 2).add(0, 0.5, 0);
@@ -264,33 +362,33 @@ public class RespawnBookEntity extends Mob implements IAnimatedEntity {
                 close();
         }
     }
-    
+
     @Override
     public boolean isPushable() {
         return false;
     }
-    
+
     @Override
     public void knockback(double strength, double x, double z) {
     }
-    
+
     @Override
     public boolean isPushedByFluid(@NotNull FluidType type) {
         return false;
     }
-    
+
     @Override
     public void onAddedToLevel() {
         super.onAddedToLevel();
         EVENT_BUS.register(this);
     }
-    
+
     @Override
     public void onRemovedFromLevel() {
         super.onRemovedFromLevel();
         EVENT_BUS.unregister(this);
     }
-    
+
     @Override
     protected @NotNull InteractionResult mobInteract(@NotNull Player player, @NotNull InteractionHand hand) {
         if (getDeathTick() < 0 && player.getUUID().equals(this.getOwnerUUID())) {
@@ -299,22 +397,23 @@ public class RespawnBookEntity extends Mob implements IAnimatedEntity {
         }
         return super.mobInteract(player, hand);
     }
-    
+
     @Override
     protected void defineSynchedData(SynchedEntityData.@NotNull Builder builder) {
         super.defineSynchedData(builder);
         builder.define(RADIUS, 0);
         builder.define(START_DEATH_TICK, -1);
+        builder.define(ATTACK_LEVEL, 0f);
     }
-    
+
     public int getRadius() {
         return this.getEntityData().get(RADIUS);
     }
-    
+
     public void setRadius(int radius) {
         this.getEntityData().set(RADIUS, radius);
     }
-    
+
     public void close() {
         this.ejectPassengers();
         this.system.stopAnimation("ANIMATION_2");
@@ -330,27 +429,27 @@ public class RespawnBookEntity extends Mob implements IAnimatedEntity {
                 })
                 .next(AnimationsRegistry.RESPAWN_BOOK_OPEN.configure().important().transitionTime(10000)));
     }
-    
+
     public void startDeath() {
         setDeathTick(tickCount);
     }
-    
+
     public int getDeathTick() {
         return this.getEntityData().get(START_DEATH_TICK);
     }
-    
+
     private void setDeathTick(int tick) {
         this.getEntityData().set(START_DEATH_TICK, tick);
     }
-    
+
     @Override
     public void setupSystem(AnimationSystem.Builder builder) {
         FlamesUtils.setupAnimationSystem(builder);
     }
-    
+
     @Override
     public AnimationSystem getAnimationSystem() {
         return system;
     }
-    
+
 }

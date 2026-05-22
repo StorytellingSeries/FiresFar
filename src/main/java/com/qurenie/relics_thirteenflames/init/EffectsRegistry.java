@@ -22,5 +22,7 @@ public class EffectsRegistry {
     public static final DeferredHolder<MobEffect, MobEffect> SKINT_EFFECT = EFFECTS.register("scint_effect", SkintEffect::new);
     
     public static final DeferredHolder<MobEffect, MobEffect> SKINTONIT_EFFECT = EFFECTS.register("scintonit_effect", AntikintEffect::new);
-    
+
+    public static final DeferredHolder<MobEffect, MobEffect> DOUBLE_SCINT_EFFECT = EFFECTS.register("double_scint_effect", AntikintEffect::new);
+
 }

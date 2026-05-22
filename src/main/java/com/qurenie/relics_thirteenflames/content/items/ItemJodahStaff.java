@@ -100,6 +100,27 @@ public class ItemJodahStaff extends SwordItem implements IActivityContainer, IEx
         return level.noCollision(movedBox);
     }
 
+    @Nullable
+    private static Vec3 getWalkableNearTarget(Level level, Player player, LivingEntity entity) {
+        if (player.isSpectator())
+            return entity.position();
+
+        if (isWalkable(player.level(), player, entity.position()))
+            return entity.position();
+
+        if (isWalkable(player.level(), player, entity.position().subtract(0, 1, 0)))
+            return entity.position().subtract(0, 1, 0);
+
+        Vec3 inFrontOf = player.getLookAngle().multiply(1, 0, 0).normalize();
+        if (isWalkable(player.level(), player, entity.position().subtract(inFrontOf)))
+            return entity.position().subtract(inFrontOf);
+
+        if (isWalkable(player.level(), player, entity.position().add(0, 1, 0)))
+            return entity.position().add(0, 1, 0);
+
+        return null;
+    }
+
     @Override
     public void onPostRegistered(ResourceLocation id) {
         EVENT_BUS.register(this);
@@ -195,9 +216,9 @@ public class ItemJodahStaff extends SwordItem implements IActivityContainer, IEx
                                                 .source("source_3")
                                                 .build())
                                         .stat(AbilityStatTemplate.builder("time_add")
-                                                .initialValue(5, 15)
+                                                .initialValue(3, 10)
                                                 .thresholdValue(15, 100)
-                                                .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 7)
+                                                .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 3)
                                                 .formatValue(d -> MathUtils.round(d, 1))
                                                 .build()
                                         )
@@ -430,12 +451,15 @@ public class ItemJodahStaff extends SwordItem implements IActivityContainer, IEx
                 box,
                 entity -> !entity.isSpectator() && entity.isPickable()
                         && entity instanceof LivingEntity living && IJodahGlowed.of(living).hasJodahGlowEffect()
-                        && living.isAlive() &&
-                        (isWalkable(level, player, living.position()) || isWalkable(level, player, living.position().subtract(0, 1, 0)))
+                        && living.isAlive()
         );
 
         if (entityHit != null) {
             LivingEntity living = (LivingEntity) entityHit.getEntity();
+            var walkablePos = getWalkableNearTarget(level, player, living);
+
+            if (walkablePos == null)
+                return InteractionResultHolder.consume(stack);
 
             var effect = living.getEffect(EffectsRegistry.JODAH_VISION);
             if (effect == null)
@@ -454,8 +478,7 @@ public class ItemJodahStaff extends SwordItem implements IActivityContainer, IEx
             living.hurt(damagesource, damage);
 
             living.addEffect(new MobEffectInstance(EffectsRegistry.DISABILITY_EFFECT, 20, 1, false, false));
-            player.teleportTo(living.position().x,
-                    isWalkable(player.level(), player, living.position()) ? living.position().y : living.position().y - 1, living.position().z);
+            player.teleportTo(walkablePos.x, walkablePos.y, walkablePos.z);
             ParticleHelper.spawnParticleEntity(ParticleHelper.constructSimpleSpark(PURPLE_COLOR, 0.4f,
                     50, 0.96f), player, 40, 0.2);
             ParticleHelper.spawnParticleEntity(ParticleHelper.constructFigure(new OctoColor(0xFFAAAAAA), 0.21f,
@@ -590,7 +613,7 @@ public class ItemJodahStaff extends SwordItem implements IActivityContainer, IEx
                         entity -> !entity.isSpectator() && entity.isPickable()
                                 && entity instanceof LivingEntity living && IJodahGlowed.of(living).hasJodahGlowEffect()
                                 && living.isAlive() &&
-                                (isWalkable(player.level(), player, living.position()) || isWalkable(player.level(), player, living.position().subtract(0, 1, 0)))
+                                (getWalkableNearTarget(player.level(), player, living) != null)
                 );
 
                 if (entityHit != null) {

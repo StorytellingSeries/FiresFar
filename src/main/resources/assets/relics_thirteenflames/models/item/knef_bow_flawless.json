@@ -48,55 +48,55 @@
       "predicate": {
         "alt": 7
       },
-      "model": "relics_thirteenflames:item/knef_bow_base"
+      "model": "relics_thirteenflames:item/knef_bow_base_flawless"
     },
     {
       "predicate": {
         "alt": 6
       },
-      "model": "relics_thirteenflames:item/knef_bow_emissive"
+      "model": "relics_thirteenflames:item/knef_bow_emissive_flawless"
     },
     {
       "predicate": {
         "alt": 5,
         "relics_thirteenflames:pull": 0.1
       },
-      "model": "relics_thirteenflames:item/knef_bow_0"
+      "model": "relics_thirteenflames:item/knef_bow_0_flawless"
     },
     {
       "predicate": {
         "alt": 4,
         "relics_thirteenflames:pull": 0.1
       },
-      "model": "relics_thirteenflames:item/knef_bow_0_emissive"
+      "model": "relics_thirteenflames:item/knef_bow_0_emissive_flawless"
     },
     {
       "predicate": {
         "alt": 3,
         "relics_thirteenflames:pull": 0.65
       },
-      "model": "relics_thirteenflames:item/knef_bow_1"
+      "model": "relics_thirteenflames:item/knef_bow_1_flawless"
     },
     {
       "predicate": {
         "alt": 2,
         "relics_thirteenflames:pull": 0.65
       },
-      "model": "relics_thirteenflames:item/knef_bow_1_emissive"
+      "model": "relics_thirteenflames:item/knef_bow_1_emissive_flawless"
     },
     {
       "predicate": {
         "alt": 1,
         "relics_thirteenflames:pull": 0.9
       },
-      "model": "relics_thirteenflames:item/knef_bow_2"
+      "model": "relics_thirteenflames:item/knef_bow_2_flawless"
     },
     {
       "predicate": {
         "alt": 0,
         "relics_thirteenflames:pull": 0.9
       },
-      "model": "relics_thirteenflames:item/knef_bow_2_emissive"
+      "model": "relics_thirteenflames:item/knef_bow_2_emissive_flawless"
     }
   ]
 }
