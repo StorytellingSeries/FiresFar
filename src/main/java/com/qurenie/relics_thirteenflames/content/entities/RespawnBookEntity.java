@@ -217,16 +217,16 @@ public class RespawnBookEntity extends Mob implements IAnimatedEntity {
                 if (target != null) {
 
                     float damage = 1.5F + getAttackLevel() * 0.7F;
-                    double knockback = 1.8D + getAttackLevel() * 0.35D;
+                    double knockback = 0.5D + getAttackLevel() * 0.14D;
 
                     target.hurt(damageSources().magic(), damage);
 
                     Vec3 dir = target.position().subtract(position()).normalize();
 
                     target.setDeltaMovement(
-                            dir.x * knockback,
-                            0.3D + getAttackLevel() * 0.06D,
-                            dir.z * knockback
+                            new Vec3(dir.x,
+                            0.3f,
+                            dir.z).normalize().scale(knockback)
                     );
 
                     target.hurtMarked = true;
@@ -252,9 +252,11 @@ public class RespawnBookEntity extends Mob implements IAnimatedEntity {
                                 0.3,
                                 0.05
                         );
+
+                                ParticleHelper.spawnParticleEntity(ParticleHelper.constructSimpleSpark(HETT_COLOR, 0.5f, 60, 0.97f).withGravity(1f), target, 40, 0.1);
                     }
 
-                    attackCooldown = (int) Math.max(8, ATTACK_COOLDOWN - getAttackLevel() * 2);
+                    attackCooldown = (int) (ATTACK_COOLDOWN - 17 * (1 - 1 / getAttackLevel()));
                 }
             }
         }
@@ -343,7 +345,7 @@ public class RespawnBookEntity extends Mob implements IAnimatedEntity {
                 event.getEntity().startRiding(this);
                 event.setCanceled(true);
                 event.getEntity().setHealth(1);
-                ParticleHelper.spawnParticleEntity(ParticleHelper.constructSimpleSpark(HETT_COLOR, 0.8f, 60, 0.97f), event.getEntity(), 200, 0.7);
+                ParticleHelper.spawnParticleEntity(ParticleHelper.constructSimpleSpark(HETT_COLOR, 0.6f, 60, 0.97f), event.getEntity(), 200, 0.4);
                 ParticleHelper.spawnParticleEntity(ParticleTypes.CAMPFIRE_COSY_SMOKE, event.getEntity(), 30, 0.1);
                 startDeath();
                 system.startAnimationAt("ANIMATION_2", AnimationsRegistry.RESPAWN_BOOK_RESPAWN_LAYER);

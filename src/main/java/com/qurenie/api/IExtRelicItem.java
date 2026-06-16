@@ -29,7 +29,7 @@ public interface IExtRelicItem extends IRelicItem {
     }
 
     default boolean hasRangModifier(@Nullable LivingEntity entity, ItemStack stack, String abilityName, String rangModifier) {
-        return getRelicData(entity, stack).getAbilitiesData().getAbilityData(abilityName).isRankModifierUnlocked(rangModifier);
+        return getRelicData(entity, stack).getAbilitiesData().getAbilityData(abilityName).getRankModifierData(rangModifier).isEnabled();
     }
 
 }

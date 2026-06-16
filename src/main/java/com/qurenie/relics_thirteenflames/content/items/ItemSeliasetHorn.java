@@ -5,7 +5,6 @@ import com.qurenie.api.IExtRelicItem;
 import com.qurenie.api.SettingsContainer;
 import com.qurenie.relics_thirteenflames.activity.IActivitySetting;
 import com.qurenie.relics_thirteenflames.activity.RelicActivitySetting;
-import com.qurenie.relics_thirteenflames.activity.call.settings.ActivityCallSettings;
 import com.qurenie.relics_thirteenflames.activity.call.settings.ActivityResult;
 import com.qurenie.relics_thirteenflames.activity.call.settings.InventoryType;
 import com.qurenie.relics_thirteenflames.activity.call.settings.RelicsActivityCallSettings;
@@ -340,13 +339,13 @@ public class ItemSeliasetHorn extends RelicItem implements IExtRelicItem, IColor
                                 .stat(AbilityStatTemplate.builder("distance")
                                         .thresholdValue(8, 42)
                                         .initialValue(10, 14)
-                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), 0.25)
+                                        .targetValue(RelicsScalingModels.EXPONENTIAL.get(), 42)
                                         .formatValue(x -> MathUtils.round(x, 1))
                                         .build())
                                 .stat(AbilityStatTemplate.builder("efficiency")
                                         .thresholdValue(2, 5)
                                         .initialValue(2.5, 100)
-                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), 0.13)
+                                        .targetValue(RelicsScalingModels.EXPONENTIAL.get(), 30)
                                         .formatValue(x -> (int) MathUtils.round(x, 0))
                                         .build())
                                 .rankModifier(2, "imbalance")
@@ -355,20 +354,20 @@ public class ItemSeliasetHorn extends RelicItem implements IExtRelicItem, IColor
                                 .initialMaxLevel(5)
                                 .stat(AbilityStatTemplate.builder("wavesCount")
                                         .initialValue(2, 2)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 1)
+                                        .targetValue(RelicsScalingModels.ADDITIVE.get(), 7)
                                         .thresholdValue(2, 7)
                                         .formatValue(x -> (int) Math.round(x))
                                         .build())
                                 .stat(AbilityStatTemplate.builder("recharge")
                                         .initialValue(1200, 800)
                                         .thresholdValue(200, 1200)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), -120)
+                                        .targetValue(RelicsScalingModels.ADDITIVE.get(), 200)
                                         .formatValue(x -> (int) Math.round(x / 20f))
                                         .build())
                                 .stat(AbilityStatTemplate.builder("stunDuration")
                                         .initialValue(0.4, 0.6)
-                                        .thresholdValue(0.5, 4)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 0.3)
+                                        .thresholdValue(0.5, 5)
+                                        .targetValue(RelicsScalingModels.ADDITIVE.get(), 5)
                                         .formatValue(x -> MathUtils.round(x, 1))
                                         .build())
                                 .experienceSources(ExperienceSourcesTemplate.builder()
@@ -385,19 +384,19 @@ public class ItemSeliasetHorn extends RelicItem implements IExtRelicItem, IColor
                                 .stat(AbilityStatTemplate.builder("recharge")
                                         .initialValue(800, 600)
                                         .thresholdValue(100, 1000)
-                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), -0.1)
+                                        .targetValue(RelicsScalingModels.EXPONENTIAL.get(), 100)
                                         .formatValue(x -> MathUtils.round(x / 20f, 1))
                                         .build())
                                 .stat(AbilityStatTemplate.builder("maxAge")
                                         .initialValue(60, 80)
                                         .thresholdValue(50, 1000)
-                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), 0.23)
-                                        .formatValue(Math::floor)
+                                        .targetValue(RelicsScalingModels.EXPONENTIAL.get(), 800)
+                                        .formatValue(x -> MathUtils.round(x / 20f, 1))
                                         .build())
                                 .stat(AbilityStatTemplate.builder("radius")
                                         .initialValue(8, 14)
                                         .thresholdValue(7, 1000)
-                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), 0.22)
+                                        .targetValue(RelicsScalingModels.EXPONENTIAL.get(), 50)
                                         .formatValue(x -> MathUtils.round(x, 1))
                                         .build())
                                 .build())
@@ -405,7 +404,7 @@ public class ItemSeliasetHorn extends RelicItem implements IExtRelicItem, IColor
                 .leveling(LevelingTemplate.builder()
                         .step(100)
                         .initialCost(100)
-                        .maxRank(1)
+                        .maxRank(2)
                         .build())
                 .loot(LootTemplate.builder()
                         .entry(PILLAGE)
@@ -489,17 +488,6 @@ public class ItemSeliasetHorn extends RelicItem implements IExtRelicItem, IColor
         private float fadeDirection;
         private float fade;
 
-
-        public TootSoundInstance(SoundEvent p_119658_) {
-            super(p_119658_, SoundSource.PLAYERS, SoundInstance.createUnseededRandom());
-            this.looping = false;
-            this.delay = 0;
-            this.volume = 1.0F;
-            this.relative = true;
-            this.originPos = null;
-            this.fade = 1;
-            this.fadeDirection = 0;
-        }
 
         public TootSoundInstance(SoundEvent sound, Vec3 pos) {
             super(sound, SoundSource.PLAYERS, SoundInstance.createUnseededRandom());

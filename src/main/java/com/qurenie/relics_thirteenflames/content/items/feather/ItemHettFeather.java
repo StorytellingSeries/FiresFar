@@ -54,6 +54,7 @@ import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.type.inventory.IDynamicStackHandler;
 
 import java.util.List;
+import java.util.Objects;
 
 import static com.qurenie.relics_thirteenflames.init.ComponentRegistry.ENTITY_UUID;
 import static com.qurenie.relics_thirteenflames.style.ColorScheme.HETT_COLOR;
@@ -62,7 +63,7 @@ import static net.neoforged.neoforge.common.NeoForge.EVENT_BUS;
 public class ItemHettFeather extends RelicItem implements IExtRelicItem, IRegisterListener, IActivityContainer {
 
     public static final LootEntry STRONGHOLD = LootEntry.builder().dimension(".*").biome(".*").table("[\\w]+:chests\\/[\\w_\\/]*(stronghold)[\\w_\\/]*").weight(850).build();
-    static final int BOOK_ACTIVE_MAX_LEVEL = 3;
+    static final int BOOK_ACTIVE_MAX_LEVEL = 6;
 
     public ItemHettFeather(Properties properties) {
         super(properties);
@@ -86,7 +87,7 @@ public class ItemHettFeather extends RelicItem implements IExtRelicItem, IRegist
                                 .stat(AbilityStatTemplate.builder("hp_value")
                                         .initialValue(5, 15)
                                         .thresholdValue(0, 65)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 10)
+                                        .targetValue(RelicsScalingModels.ADDITIVE.get(), 65)
                                         .formatValue(d -> MathUtils.round(d / 100, 2))
                                         .build()
                                 )
@@ -103,35 +104,35 @@ public class ItemHettFeather extends RelicItem implements IExtRelicItem, IRegist
                                 .stat(AbilityStatTemplate.builder("level")
                                         .initialValue(1, 1.75)
                                         .thresholdValue(0, 6)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 0.45)
+                                        .targetValue(RelicsScalingModels.ADDITIVE.get(), 6)
                                         .formatValue(Math::floor)
                                         .build()
                                 )
                                 .stat(AbilityStatTemplate.builder("max_health")
                                         .initialValue(1, 6)
                                         .thresholdValue(1, 40)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 3)
+                                        .targetValue(RelicsScalingModels.ADDITIVE.get(), 40)
                                         .formatValue(d -> MathUtils.round(d, 1))
                                         .build()
                                 )
                                 .stat(AbilityStatTemplate.builder("recharge")
-                                        .initialValue(600, 600)
-                                        .thresholdValue(600, 600)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), -15)
+                                        .initialValue(900, 800)
+                                        .thresholdValue(900, 500)
+                                        .targetValue(RelicsScalingModels.ADDITIVE.get(), 500)
                                         .formatValue(d -> MathUtils.round(d / 20, 1))
                                         .build()
                                 )
                                 .stat(AbilityStatTemplate.builder("repairCount")
-                                        .initialValue(10, 20)
-                                        .thresholdValue(10, 600)
-                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), 0.2)
+                                        .initialValue(5, 8)
+                                        .thresholdValue(5, 70)
+                                        .targetValue(RelicsScalingModels.EXPONENTIAL.get(), 70)
                                         .formatValue(Math::floor)
                                         .build()
                                 )
                                 .stat(AbilityStatTemplate.builder("maxSize")
                                         .initialValue(1, 1.5)
                                         .thresholdValue(1, 10)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 0.4)
+                                        .targetValue(RelicsScalingModels.ADDITIVE.get(), 4)
                                         .formatValue(Math::floor)
                                         .build()
                                 )
@@ -150,29 +151,29 @@ public class ItemHettFeather extends RelicItem implements IExtRelicItem, IRegist
                                         .build())
                                 .stat(AbilityStatTemplate.builder("radius")
                                         .initialValue(12, 20)
-                                        .thresholdValue(15, 60)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 15)
+                                        .thresholdValue(15, 70)
+                                        .targetValue(RelicsScalingModels.ADDITIVE.get(), 70)
                                         .formatValue(d -> MathUtils.round(d, 1))
                                         .build()
                                 )
                                 .stat(AbilityStatTemplate.builder("xp_consume")
                                         .initialValue(100, 90)
                                         .thresholdValue(30, 100)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), -15)
+                                        .targetValue(RelicsScalingModels.ADDITIVE.get(), 30)
                                         .formatValue(d -> MathUtils.round(d, 1))
                                         .build()
                                 )
                                 .stat(AbilityStatTemplate.builder("hp_consume")
                                         .initialValue(100, 90)
-                                        .thresholdValue(50, 100)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), -10)
+                                        .thresholdValue(40, 100)
+                                        .targetValue(RelicsScalingModels.ADDITIVE.get(), 40)
                                         .formatValue(d -> MathUtils.round(d, 1))
                                         .build()
                                 )
                                 .stat(AbilityStatTemplate.builder("attackLevel")
                                         .initialValue(1, 2)
                                         .thresholdValue(1, 100)
-                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), 0.22)
+                                        .targetValue(RelicsScalingModels.EXPONENTIAL.get(), 10)
                                         .formatValue(d -> MathUtils.round(d * 0.25f, 1))
                                         .build()
                                 )
@@ -218,7 +219,7 @@ public class ItemHettFeather extends RelicItem implements IExtRelicItem, IRegist
                     return InteractionResult.SUCCESS;
 
                 if (feather.has(ENTITY_UUID)) {
-                    Entity last = ((ServerLevel) level).getEntity(feather.get(ENTITY_UUID));
+                    Entity last = ((ServerLevel) level).getEntity(Objects.requireNonNull(feather.get(ENTITY_UUID)));
 
                     if (last instanceof RespawnBookEntity respawnBook && !respawnBook.isDeadOrDying() && respawnBook.getDeathTick() < 0)
                         respawnBook.close();

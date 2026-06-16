@@ -1,6 +1,7 @@
 package com.qurenie.relics_thirteenflames.content.items;
 
 import com.qurenie.api.IExtRelicItem;
+import com.qurenie.relics_thirteenflames.ThirteenFlames;
 import com.qurenie.relics_thirteenflames.content.effects.PoisonEffectInstance;
 import com.qurenie.relics_thirteenflames.content.entities.FartCloudEntity;
 import com.qurenie.relics_thirteenflames.content.entities.PoisonWaveProjectile;
@@ -10,14 +11,12 @@ import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
 import com.qurenie.relics_thirteenflames.net.RhonasSweepPacket;
 import com.qurenie.relics_thirteenflames.util.FlamesUtils;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
-import it.hurts.sskirillss.relics.api.events.relic.base.RelicEvent;
 import it.hurts.sskirillss.relics.api.relics.abilities.ExperienceSourcesTemplate;
 import it.hurts.sskirillss.relics.items.misc.CreativeContentConstructor;
 import it.hurts.sskirillss.relics.items.relics.base.RelicItem;
 import it.hurts.sskirillss.relics.api.relics.RelicTemplate;
 import it.hurts.sskirillss.relics.api.relics.abilities.AbilitiesTemplate;
 import it.hurts.sskirillss.relics.api.relics.abilities.AbilityTemplate;
-import it.hurts.sskirillss.relics.items.relics.base.data.RelicAttributeModifier;
 import it.hurts.sskirillss.relics.api.relics.abilities.stats.AbilityStatTemplate;
 import it.hurts.sskirillss.relics.init.RelicsScalingModels;
 import it.hurts.sskirillss.relics.items.relics.base.data.leveling.LevelingTemplate;
@@ -25,30 +24,26 @@ import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootTemplate;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootEntry;
 import it.hurts.sskirillss.relics.items.relics.base.data.research.ResearchTemplate;
 import it.hurts.sskirillss.relics.utils.MathUtils;
-import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
-import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.boss.enderdragon.EndCrystal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
-import net.minecraft.world.level.ExplosionDamageCalculator;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BedBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -56,12 +51,12 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.ItemAbilities;
 import net.neoforged.neoforge.common.ItemAbility;
+import net.neoforged.neoforge.event.ItemAttributeModifierEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.zeith.hammerlib.api.items.IColoredFoilItem;
 import org.zeith.hammerlib.net.Network;
 import top.theillusivec4.curios.api.CuriosApi;
@@ -79,14 +74,14 @@ public class ItemRonasSword extends RelicItem implements IExtRelicItem, IColored
 
     private static final Random RNG = new Random();
 
-    @Override
-    public @Nullable RelicAttributeModifier getRelicAttributeModifiers(LivingEntity entity, ItemStack stack) {
-        float atkspd = (float) getStatValue(entity, stack, "anemia", "atkspd");
+    @SubscribeEvent
+    public static void setupAttributeModifiers(ItemAttributeModifierEvent event) {
+        if (event.getItemStack().is(ItemsRegistry.RONAS_SWORD)) {
+            float atkspd = (float) ItemsRegistry.RONAS_SWORD.getStatValue(null, event.getItemStack(), "anemia", "atkspd");
 
-        return RelicAttributeModifier.builder()
-                .attribute(new RelicAttributeModifier.Modifier(Attributes.ATTACK_DAMAGE, 3, AttributeModifier.Operation.ADD_VALUE))
-                .attribute(new RelicAttributeModifier.Modifier(Attributes.ATTACK_SPEED, -2.6F + atkspd, AttributeModifier.Operation.ADD_VALUE))
-                .build();
+            event.addModifier(Attributes.ATTACK_SPEED, new AttributeModifier(ThirteenFlames.rl("ronas_speed"), -2.6F + atkspd, AttributeModifier.Operation.ADD_VALUE), EquipmentSlotGroup.ANY);
+            event.addModifier(Attributes.ATTACK_DAMAGE, new AttributeModifier(ThirteenFlames.rl("ronas_ddamage"), 3, AttributeModifier.Operation.ADD_VALUE), EquipmentSlotGroup.ANY);
+        }
     }
 
     @Override
@@ -107,28 +102,28 @@ public class ItemRonasSword extends RelicItem implements IExtRelicItem, IColored
                                 .stat(AbilityStatTemplate.builder("range")
                                         .initialValue(4, 4.2)
                                         .thresholdValue(4, 8)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 0.76)
+                                        .targetValue(RelicsScalingModels.ADDITIVE.get(), 8)
                                         .formatValue(x -> MathUtils.round(x, 2))
                                         .build()
                                 )
                                 .stat(AbilityStatTemplate.builder("poisondur")
                                         .initialValue(2.0, 2.5)
-                                        .thresholdValue(2.0, 4.5)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 0.4)
+                                        .thresholdValue(2.0, 5.5)
+                                        .targetValue(RelicsScalingModels.ADDITIVE.get(), 5.5)
                                         .formatValue(x -> MathUtils.round(x, 1))
                                         .build()
                                 )
                                 .stat(AbilityStatTemplate.builder("maxstacks")
                                         .initialValue(1.0, 1.0)
                                         .thresholdValue(1.0, 6.0)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 1)
+                                        .targetValue(RelicsScalingModels.ADDITIVE.get(), 6)
                                         .formatValue(x -> (int) MathUtils.round(x, 1))
                                         .build()
                                 )
                                 .stat(AbilityStatTemplate.builder("explosion_damage")
                                         .initialValue(0.75, 1.25)
                                         .thresholdValue(0.75, 40)
-                                        .upgradeModifier(RelicsScalingModels.MULTIPLICATIVE_BASE.get(), 0.25)
+                                        .targetValue(RelicsScalingModels.MULTIPLICATIVE_BASE.get(), 25)
                                         .formatValue(x -> MathUtils.round(x, 1))
                                         .build()
                                 )
@@ -145,22 +140,22 @@ public class ItemRonasSword extends RelicItem implements IExtRelicItem, IColored
                                         .build())
                                 .stat(AbilityStatTemplate.builder("radius")
                                         .initialValue(2.0, 3.5)
-                                        .thresholdValue(2.0, 5.0)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 0.5)
+                                        .thresholdValue(2.0, 6.0)
+                                        .targetValue(RelicsScalingModels.ADDITIVE.get(), 6)
                                         .formatValue(x -> MathUtils.round(x, 1))
                                         .build()
                                 )
                                 .stat(AbilityStatTemplate.builder("duration")
                                         .initialValue(6.0, 10.0)
                                         .thresholdValue(6.0, 20.0)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 3.33)
+                                        .targetValue(RelicsScalingModels.ADDITIVE.get(), 20)
                                         .formatValue(x -> MathUtils.round(x, 1))
                                         .build()
                                 )
                                 .stat(AbilityStatTemplate.builder("recharge")
                                         .initialValue(40, 30)
                                         .thresholdValue(12, 40)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), -6)
+                                        .targetValue(RelicsScalingModels.ADDITIVE.get(), 12)
                                         .formatValue(x -> MathUtils.round(x, 1))
                                         .build()
                                 )
@@ -176,14 +171,14 @@ public class ItemRonasSword extends RelicItem implements IExtRelicItem, IColored
                                 .stat(AbilityStatTemplate.builder("amp")
                                         .initialValue(3, 2)
                                         .thresholdValue(0, 2)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), -1.0)
+                                        .targetValue(RelicsScalingModels.ADDITIVE.get(), 0)
                                         .formatValue(x -> (int) MathUtils.round((1 - 0.8f / (x + 1)) * 100, 0))
                                         .build()
                                 )
                                 .stat(AbilityStatTemplate.builder("atkspd")
                                         .initialValue(0, 0.6)
-                                        .thresholdValue(0, 1.8)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 0.6)
+                                        .thresholdValue(0, 2.2)
+                                        .targetValue(RelicsScalingModels.ADDITIVE.get(), 2.2)
                                         .formatValue(x -> MathUtils.round(4 - 2.6 + x, 2))
                                         .build()
                                 )
@@ -375,7 +370,7 @@ public class ItemRonasSword extends RelicItem implements IExtRelicItem, IColored
             List<LivingEntity> targets = dead.level().getEntitiesOfClass(
                     LivingEntity.class,
                     box,
-                    e -> e != dead
+                    e -> e != dead && e != attacker
             );
             var rng = dead.level().random;
 

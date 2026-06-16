@@ -16,6 +16,7 @@ import com.qurenie.relics_thirteenflames.init.EntityRegistry;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
 import com.qurenie.relics_thirteenflames.net.TravellerCutPacket;
 import com.qurenie.relics_thirteenflames.net.TravellerSweepPacket;
+import com.qurenie.relics_thirteenflames.style.ColorScheme;
 import com.qurenie.relics_thirteenflames.util.FlamesUtils;
 import com.qurenie.relics_thirteenflames.util.MixinHooks;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
@@ -214,8 +215,10 @@ public class ItemTravellerSword extends SwordItem implements IExtRelicItem, IRel
     @Override
     public SettingsContainer<IActivitySetting> constructActivitySettings() {
         return SettingsContainer.<IActivitySetting>builder()
-                .setting(RelicActivitySetting.builderRelic("dash", "recharge").build())
-                .setting(RelicActivitySetting.builderRelic("swordcut", "recharge").build())
+                .setting(RelicActivitySetting.builderRelic("dash", "recharge")
+                        .color(ColorScheme.BAR_BLUE).build())
+                .setting(RelicActivitySetting.builderRelic("swordcut", "recharge")
+                        .color(CYAN_COLOR).build())
                 .build();
     }
 
@@ -233,22 +236,22 @@ public class ItemTravellerSword extends SwordItem implements IExtRelicItem, IRel
                                         .build())
                                 .stat(AbilityStatTemplate.builder("charge")
                                         .initialValue(1, 2)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 0.75)
+                                        .targetValue(RelicsScalingModels.ADDITIVE.get(), 5)
                                         .thresholdValue(1, 5)
                                         .formatValue(d -> MathUtils.round(5d / d, 1))
                                         .build()
                                 )
                                 .stat(AbilityStatTemplate.builder("stride_damage")
                                         .initialValue(10, 15)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 4)
-                                        .thresholdValue(10, 30)
+                                        .targetValue(RelicsScalingModels.ADDITIVE.get(), 40)
+                                        .thresholdValue(10, 40)
                                         .formatValue(d -> MathUtils.round(d, 0))
                                         .build()
                                 )
                                 .stat(AbilityStatTemplate.builder("sweep_damage_multi")
                                         .initialValue(0.5, 1)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 0.5)
-                                        .thresholdValue(0.5, 3)
+                                        .targetValue(RelicsScalingModels.ADDITIVE.get(), 4)
+                                        .thresholdValue(0.5, 4)
                                         .formatValue(d -> MathUtils.round(d * 100, 0))
                                         .build()
                                 )
@@ -265,30 +268,30 @@ public class ItemTravellerSword extends SwordItem implements IExtRelicItem, IRel
                                         .build())
                                 .stat(AbilityStatTemplate.builder("range")
                                         .initialValue(4, 7)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 1)
+                                        .targetValue(RelicsScalingModels.ADDITIVE.get(), 12)
                                         .thresholdValue(4, 12)
                                         .formatValue(d -> MathUtils.round(d, 1))
                                         .build()
                                 )
                                 .stat(AbilityStatTemplate.builder("damage_boost")
                                         .initialValue(0.5, 1)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 0.6)
-                                        .thresholdValue(0.5, 6)
+                                        .targetValue(RelicsScalingModels.ADDITIVE.get(), 7)
+                                        .thresholdValue(0.5, 7)
                                         .formatValue(d -> MathUtils.round(d * 100, 0))
                                         .build()
                                 )
                                 .stat(AbilityStatTemplate.builder("recharge")
                                         .initialValue(400, 300)
                                         .thresholdValue(100, 400)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), -30)
+                                        .targetValue(RelicsScalingModels.ADDITIVE.get(), 100)
                                         .formatValue(d -> MathUtils.round(d / 20f, 1))
                                         .build()
                                 )
                                 .stat(AbilityStatTemplate.builder("speed_boost")
                                         .initialValue(1.1, 1.4)
-                                        .thresholdValue(1, 100)
-                                        .upgradeModifier(RelicsScalingModels.MULTIPLICATIVE_BASE.get(), 0.2)
-                                        .formatValue(d -> MathUtils.round(d, 2))
+                                        .thresholdValue(1, 2.25)
+                                        .targetValue(RelicsScalingModels.MULTIPLICATIVE_BASE.get(), 2.25)
+                                        .formatValue(d -> MathUtils.round(d * 100 - 100, 2))
                                         .build()
                                 )
                                 .research(ResearchTemplate.builder()
@@ -305,22 +308,22 @@ public class ItemTravellerSword extends SwordItem implements IExtRelicItem, IRel
                                 .stat(AbilityStatTemplate.builder("damage")
                                         .initialValue(1.5, 2)
                                         .thresholdValue(1.5, 4)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 0.35)
+                                        .targetValue(RelicsScalingModels.ADDITIVE.get(), 3)
                                         .formatValue(d -> MathUtils.round(d * 100, 0))
                                         .build()
                                 )
                                 .stat(AbilityStatTemplate.builder("recharge")
                                         .initialValue(220, 180)
                                         .thresholdValue(140, 220)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), -20)
+                                        .targetValue(RelicsScalingModels.ADDITIVE.get(), 140)
                                         .formatValue(d -> MathUtils.round(d / 20, 1))
                                         .build()
                                 )
                                 .stat(AbilityStatTemplate.builder("speed")
-                                        .initialValue(0, 0.25)
-                                        .thresholdValue(0, 220)
-                                        .upgradeModifier(RelicsScalingModels.MULTIPLICATIVE_BASE.get(), 0.5)
-                                        .formatValue(d -> MathUtils.round(d, 1))
+                                        .initialValue(0.1, 0.25)
+                                        .thresholdValue(0.1, 220)
+                                        .targetValue(RelicsScalingModels.MULTIPLICATIVE_BASE.get(), 2.5)
+                                        .formatValue(d -> MathUtils.round(d * 100, 1))
                                         .build()
                                 )
                                 .rankModifier(1, "speed")
@@ -332,7 +335,7 @@ public class ItemTravellerSword extends SwordItem implements IExtRelicItem, IRel
                 .leveling(LevelingTemplate.builder()
                         .step(100)
                         .initialCost(100)
-                        .maxRank(3)
+                        .maxRank(2)
                         .build())
 //                .leveling(LevelingData.builder().initialCost(100).initialMaxLevel(13).step(100)
 //                        .sources(LevelingSourcesData.builder()
@@ -566,12 +569,24 @@ public class ItemTravellerSword extends SwordItem implements IExtRelicItem, IRel
             float charge = stack.getOrDefault(ComponentRegistry.SPEED, 0f);
             if (p.isSprinting()) {
                 double chargeAdd = this.getStatValue(living, stack, "travelers_stride", "charge");
+                int fireAspect = stack.getEnchantmentLevel(level.holder(Enchantments.FIRE_ASPECT).get());
+
                 if (charge > MAX_CHARGE) {
-                    charge -= (float) Math.min(MAX_CHARGE - charge, 0.08);
+                    charge -= (float) Math.min(charge - MAX_CHARGE, 0.08);
 
                     if (!level.isClientSide()) {
                         ParticleHelper.spawnParticleEntity(ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(CYAN_COLOR, p.level().random), (float) (0.19f +Math.random() * 0.12), 55, 0.89f).withGravity(1.5f), p,
-                                1, 0.03f);
+                                1, 0.03f);;
+
+                        if (fireAspect == 0)
+                            ParticleHelper.spawnParticles(level, ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(CYAN_COLOR, level.random), 0.43f, 45, 0.93f),
+                                    p.position(), 3, 0.2, 0.2, 0.2, 0);
+                        else {
+                            ParticleHelper.spawnParticles(level, ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(BURN_COLOR, level.random), 0.43f, 45, 0.93f),
+                                    p.position(), 3, 0.2, 0.2, 0.2, 0);
+                            ParticleHelper.spawnParticles(level, ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(CYAN_COLOR, level.random), 0.43f, 45, 0.93f),
+                                    p.position(), 3, 0.2, 0.2, 0.2, 0);
+                        }
                     }
                 } else {
                     charge = (float) Math.min(charge + chargeAdd / 20f, MAX_CHARGE);
@@ -582,7 +597,6 @@ public class ItemTravellerSword extends SwordItem implements IExtRelicItem, IRel
                 DamageSource damagesource = p.damageSources().playerAttack(p);
                 applySpeedModifier(p, charge);
                 if (charge > 2) {
-                    int fireAspect = stack.getEnchantmentLevel(level.holder(Enchantments.FIRE_ASPECT).get());
 
                     AABB aoe = living.getBoundingBox().inflate(0.5);
                     for (LivingEntity target : living.level().getEntitiesOfClass(LivingEntity.class, aoe, e -> !e.getUUID().equals(living.getUUID()))) {
@@ -619,7 +633,7 @@ public class ItemTravellerSword extends SwordItem implements IExtRelicItem, IRel
             return;
 
         float speed = hasRangModifier(player, stack, "swordcut", "speed")
-                ? 1 + (float) getStatValue(player, stack, "swordcut", "speed") : 0;
+                ? 1 + (float) getStatValue(player, stack, "swordcut", "speed") : 1;
         int fireAspect = stack.getEnchantmentLevel(player.level().holder(Enchantments.FIRE_ASPECT).get());
         TravellerCutEntity cutEnt = new TravellerCutEntity(EntityRegistry.TRAVELLER_CUT, player.level(),
                 player, stack, fireAspect, speed);

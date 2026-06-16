@@ -159,21 +159,21 @@ public class ItemJodahMask extends ArmorItem implements IActivityContainer, IExt
                                 .initialMaxLevel(4)
                                 .stat(AbilityStatTemplate.builder("recharge")
                                         .initialValue(1200, 800)
-                                        .upgradeModifier(RelicsScalingModels.MULTIPLICATIVE_BASE.get(), -0.2)
+                                        .targetValue(RelicsScalingModels.MULTIPLICATIVE_BASE.get(), 200)
                                         .thresholdValue(200, 1200)
                                         .formatValue(d -> MathUtils.round(d / 20, 1))
                                         .build()
                                 )
                                 .stat(AbilityStatTemplate.builder("durability")
                                         .initialValue(0.5, 1.5)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 0.5)
+                                        .targetValue(RelicsScalingModels.ADDITIVE.get(), 4)
                                         .thresholdValue(0.5, 4)
                                         .formatValue(d -> MathUtils.round(d, 1))
                                         .build()
                                 )
                                 .stat(AbilityStatTemplate.builder("agrochance")
                                         .initialValue(0.1, 0.2)
-                                        .upgradeModifier(RelicsScalingModels.MULTIPLICATIVE_BASE.get(), 1.6)
+                                        .targetValue(RelicsScalingModels.MULTIPLICATIVE_BASE.get(), 1)
                                         .thresholdValue(0, 1)
                                         .formatValue(d -> MathUtils.round(d * 100, 1))
                                         .build()
@@ -189,14 +189,14 @@ public class ItemJodahMask extends ArmorItem implements IActivityContainer, IExt
                                 .initialMaxLevel(4)
                                 .stat(AbilityStatTemplate.builder("recharge")
                                         .initialValue(900, 700)
-                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), -0.2)
+                                        .targetValue(RelicsScalingModels.EXPONENTIAL.get(), 160)
                                         .thresholdValue(160, 900)
                                         .formatValue(d -> MathUtils.round(d / 20, 0))
                                         .build()
                                 )
                                 .stat(AbilityStatTemplate.builder("range")
                                         .initialValue(10, 18)
-                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), 0.35)
+                                        .targetValue(RelicsScalingModels.EXPONENTIAL.get(), 56)
                                         .thresholdValue(4, 56)
                                         .formatValue(d -> MathUtils.round(d, 0))
                                         .build()
@@ -211,21 +211,21 @@ public class ItemJodahMask extends ArmorItem implements IActivityContainer, IExt
                                 .initialMaxLevel(5)
                                 .stat(AbilityStatTemplate.builder("size")
                                         .initialValue(0.3, 0.8)
-                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), 0.35)
+                                        .targetValue(RelicsScalingModels.EXPONENTIAL.get(), 5)
                                         .thresholdValue(0.4, 3.4)
                                         .formatValue(d -> MathUtils.round(d, 1))
                                         .build()
                                 )
                                 .stat(AbilityStatTemplate.builder("recharge")
                                         .initialValue(2400, 1600)
-                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), -0.15)
+                                        .targetValue(RelicsScalingModels.EXPONENTIAL.get(), 600)
                                         .thresholdValue(600, 2400)
                                         .formatValue(d -> MathUtils.round(d / 20, 1))
                                         .build()
                                 )
                                 .stat(AbilityStatTemplate.builder("time")
                                         .initialValue(12, 22)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 2)
+                                        .targetValue(RelicsScalingModels.ADDITIVE.get(), 100)
                                         .thresholdValue(12, 100)
                                         .formatValue(d -> MathUtils.round(d / 20, 1))
                                         .build()
@@ -244,35 +244,35 @@ public class ItemJodahMask extends ArmorItem implements IActivityContainer, IExt
                                         .build())
                                 .stat(AbilityStatTemplate.builder("damage")
                                         .initialValue(2, 4)
-                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), 0.27)
+                                        .targetValue(RelicsScalingModels.EXPONENTIAL.get(), 10)
                                         .thresholdValue(2, 10)
                                         .formatValue(d -> MathUtils.round(d, 0))
                                         .build()
                                 )
                                 .stat(AbilityStatTemplate.builder("time")
                                         .initialValue(3, 5)
-                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), 0.3)
+                                        .targetValue(RelicsScalingModels.EXPONENTIAL.get(), 14)
                                         .thresholdValue(3, 300)
                                         .formatValue(Math::floor)
                                         .build()
                                 )
                                 .stat(AbilityStatTemplate.builder("shard_count")
                                         .initialValue(1, 1.5)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 0.5)
+                                        .targetValue(RelicsScalingModels.ADDITIVE.get(), 4)
                                         .thresholdValue(1, 3)
                                         .formatValue(Math::floor)
                                         .build()
                                 )
                                 .stat(AbilityStatTemplate.builder("recharge")
                                         .initialValue(3000, 2400)
-                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), -0.23)
+                                        .targetValue(RelicsScalingModels.EXPONENTIAL.get(), 800)
                                         .thresholdValue(800, 3000)
                                         .formatValue(d -> MathUtils.round(d / 20, 1))
                                         .build()
                                 )
                                 .stat(AbilityStatTemplate.builder("scint_bonus")
                                         .initialValue(0.5, 1.2)
-                                        .upgradeModifier(RelicsScalingModels.EXPONENTIAL.get(), 0.3)
+                                        .targetValue(RelicsScalingModels.EXPONENTIAL.get(), 13)
                                         .thresholdValue(0.5, 300)
                                         .formatValue(d -> MathUtils.round(d, 1))
                                         .build()
@@ -288,14 +288,14 @@ public class ItemJodahMask extends ArmorItem implements IActivityContainer, IExt
                                 .requiredLevel(7)
                                 .stat(AbilityStatTemplate.builder("skint_bonus")
                                         .initialValue(1, 2)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), 1.4)
-                                        .thresholdValue(1, 6)
+                                        .targetValue(RelicsScalingModels.ADDITIVE.get(), 8)
+                                        .thresholdValue(1, 8)
                                         .formatValue(Math::floor)
                                         .build()
                                 )
                                 .stat(AbilityStatTemplate.builder("recharge")
-                                        .initialValue(2400, 1800)
-                                        .upgradeModifier(RelicsScalingModels.ADDITIVE.get(), -360)
+                                        .initialValue(2400, 2000)
+                                        .targetValue(RelicsScalingModels.ADDITIVE.get(), 200)
                                         .thresholdValue(200, 2400)
                                         .formatValue(d -> MathUtils.round(d / 20, 1))
                                         .build()
@@ -396,6 +396,46 @@ public class ItemJodahMask extends ArmorItem implements IActivityContainer, IExt
 
 
         FlamesUtils.startPlaneShift(stack, player, true);
+        if (hasRangModifier(living, stack, "planeshift", "friendlyfire")) {
+
+            double chance = getStatValue(living, stack, "planeshift", "agrochance"); // N%
+
+            List<Mob> mobs = player.level().getEntitiesOfClass(
+                    Mob.class,
+                    player.getBoundingBox().inflate(20),
+                    e -> e.isAlive() && e.getTarget() == player
+            );
+
+            for (Mob mob : mobs) {
+
+                if (player.getRandom().nextFloat() > chance)
+                    continue;
+
+                List<LivingEntity> nearby = player.level().getEntitiesOfClass(
+                        LivingEntity.class,
+                        mob.getBoundingBox().inflate(12),
+                        e -> e != player
+                                && e != mob
+                                && e.isAlive()
+                                && !(e instanceof ArmorStand)
+                );
+
+                LivingEntity nearest = nearby.stream()
+                        .min(Comparator.comparingDouble(e -> e.distanceToSqr(mob)))
+                        .orElse(null);
+
+                if (nearest == null)
+                    continue;
+
+                mob.setTarget(nearest);
+
+                if (mob.getBrain().hasMemoryValue(MemoryModuleType.ATTACK_TARGET)) {
+                    redirectAggro(mob, nearest);
+                }
+            }
+        }
+
+
         player.level().getEntitiesOfClass(Mob.class, player.getBoundingBox().inflate(30))
                 .forEach(e -> {
                     if (e.getTarget() == player) {
@@ -436,58 +476,9 @@ public class ItemJodahMask extends ArmorItem implements IActivityContainer, IExt
         );
 
         if (hasRangModifier(living, stack, "planeshift", "antiwarden"))
-            for (Warden warden : wardens) {
-                LivingEntity target = warden.getTarget();
-
-                var attack = warden.getBrain().getMemory(MemoryModuleType.ATTACK_TARGET);
-                var roar = warden.getBrain().getMemory(MemoryModuleType.ROAR_TARGET);
-
+            for (Warden warden : wardens)
                 applyBury(warden);
-            }
 
-        if (hasRangModifier(living, stack, "planeshift", "friendlyfire")) {
-
-            double chance = getStatValue(living, stack, "planeshift", "agrochance"); // N%
-
-            List<Mob> mobs = player.level().getEntitiesOfClass(
-                    Mob.class,
-                    player.getBoundingBox().inflate(20),
-                    e -> e.isAlive() && e.getTarget() == player
-            );
-
-            for (Mob mob : mobs) {
-
-                if (player.getRandom().nextFloat() > chance)
-                    continue;
-
-                List<LivingEntity> nearby = player.level().getEntitiesOfClass(
-                        LivingEntity.class,
-                        mob.getBoundingBox().inflate(12),
-                        e -> e != player
-                                && e != mob
-                                && e.isAlive()
-                                && !(e instanceof ArmorStand)
-                );
-
-                LivingEntity nearest = nearby.stream()
-                        .min(Comparator.comparingDouble(e -> e.distanceToSqr(mob)))
-                        .orElse(null);
-
-                if (nearest == null)
-                    continue;
-
-                mob.setTarget(nearest);
-
-                if (mob.getBrain().hasMemoryValue(MemoryModuleType.ATTACK_TARGET)) {
-                    redirectAggro(mob, nearest);
-                }
-            }
-        }
-
-        if (hasRangModifier(living, stack, "planeshift", "friendlyfire")) {
-            // тут пиши код
-            double agrochance = getStatValue(living, stack, "planeshift", "agrochance");
-        }
 
         addExperience(player, stack, 2);
         stack.set(ComponentRegistry.MASK_STATE, MaskState.NEUTRAL);

@@ -98,8 +98,9 @@ public class JodahWingsLayer <T extends LivingEntity, M extends EntityModel<T>> 
                        @NotNull T livingEntity, float limbSwing, float limbSwingAmount, float partialTick,
                        float ageInTicks, float netHeadYaw, float headPitch) {
         int activeTicks = livingEntity.hasData(WINGS_LAYER_DATA) ? livingEntity.getData(WINGS_LAYER_DATA) : 0;
-        if (activeTicks == 0)
+        if (activeTicks == 0 || livingWrapper == null)
             return;
+
         poseStack.pushPose();
         
         poseStack.scale(1, -1, 1);

@@ -154,7 +154,7 @@ public class TravellerCutEntity extends NonLivingEntity implements IAnimatedEnti
 
         float speed = getCutSpeed();
 
-        if (!this.level().isClientSide && owner == null) {
+        if (!this.level().isClientSide && (owner == null || speed == 0)) {
             discard();
             return;
         }
@@ -168,9 +168,24 @@ public class TravellerCutEntity extends NonLivingEntity implements IAnimatedEnti
             Vec3 movePos = owner.position();
             for (float f = 0; f < SWORD_RANGE + 0.6; f += 0.5f) {
                 Vec3 target = owner.position().add(direction.scale(f));
+
+                // Проверка столкновения с блоками между точками
+                var hit = level().clip(new net.minecraft.world.level.ClipContext(
+                        owner.position().add(0, owner.getBbHeight() * 0.5, 0),
+                        target.add(0, owner.getBbHeight() * 0.5, 0),
+                        net.minecraft.world.level.ClipContext.Block.COLLIDER,
+                        net.minecraft.world.level.ClipContext.Fluid.NONE,
+                        owner
+                ));
+
+                // Если луч упёрся в блок — дальше не идём
+                if (hit.getType() != net.minecraft.world.phys.HitResult.Type.MISS)
+                    break;
+
                 if (!isWalkable(level(), owner, target))
                     break;
-                movePos = target;
+
+                movePos = target.subtract(direction.normalize().scale(0.3));;
             }
             owner.teleportTo(movePos.x, movePos.y, movePos.z);
         }

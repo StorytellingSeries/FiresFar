@@ -35,12 +35,12 @@ public class ItemHettFeatherBook extends Item implements ICurioItem {
     public ItemHettFeatherBook(Properties properties) {
         super(properties);
     }
-    
+
     @Override
-    public <T extends LivingEntity> int damageItem(@NotNull ItemStack stack, int amount, @Nullable T entity, @NotNull Consumer<Item> onBroken) {
-        return BOOK_ACTIVE_MAX_LEVEL / stack.getOrDefault(ComponentRegistry.LEVEL, 1) * amount;
+    public int getMaxDamage(ItemStack stack) {
+        return stack.getOrDefault(ComponentRegistry.LEVEL, 1) * 20;
     }
-    
+
     @SubscribeEvent(priority = EventPriority.LOW)
     public static void damageEvent(LivingDamageEvent.Pre event) {
         Entity e = event.getSource().getEntity();

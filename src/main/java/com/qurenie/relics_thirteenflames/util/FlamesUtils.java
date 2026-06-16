@@ -10,14 +10,19 @@ import com.qurenie.relics_thirteenflames.net.*;
 import it.hurts.octostudios.octolib.util.OctoColor;
 import lombok.experimental.UtilityClass;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -63,6 +68,12 @@ public class FlamesUtils {
     }
 
     public static final UUID UUID_EMPTY = UUID.randomUUID();
+
+    public static void addModifier(ItemStack stack, Holder<Attribute> attribute, AttributeModifier modifier, EquipmentSlotGroup slot) {
+        var default$ = stack.getOrDefault(DataComponents.ATTRIBUTE_MODIFIERS, stack.getItem().getDefaultAttributeModifiers(stack));
+        default$.withModifierAdded(attribute, modifier, slot);
+        stack.set(DataComponents.ATTRIBUTE_MODIFIERS, default$);
+    }
 
     @NotNull
     public static UUID getOrCreateUUID(ItemStack stack) {

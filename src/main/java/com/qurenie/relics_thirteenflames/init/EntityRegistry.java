@@ -46,6 +46,7 @@ public class EntityRegistry {
             .sized(0.1F, 0.1F)
             .setUpdateInterval(1)
             .updateInterval(1)
+            .clientTrackingRange(8)
             .build("traveller_sweep");
     
     @RegistryName("jodah_heal")
@@ -109,6 +110,7 @@ public class EntityRegistry {
             .sized(0.1F, 0.1F)
             .setUpdateInterval(1)
             .updateInterval(1)
+            .clientTrackingRange(8)
             .build("traveller_cut");
     
     @RegistryName("skint_orb")
@@ -202,11 +204,13 @@ public class EntityRegistry {
     @RegistryName("small_ghost")
     public static final EntityType<GhostSmallEntity> SMALL_GHOST = Builder.of(GhostSmallEntity::new, MobCategory.MONSTER)
             .sized(1F, 1F)
+            .clientTrackingRange(8)
             .build("small_ghost");
 
     @RegistryName("big_ghost")
     public static final EntityType<GhostBigEntity> BIG_GHOST = Builder.of(GhostBigEntity::new, MobCategory.MONSTER)
             .sized(1F, 1F)
+            .clientTrackingRange(8)
             .build("big_ghost");
     
     @RegistryName("respawn_book")
