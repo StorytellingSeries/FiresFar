@@ -6,6 +6,7 @@ import com.qurenie.relics_thirteenflames.data.ActivityState;
 import it.hurts.octostudios.octolib.util.OctoColor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -38,13 +39,15 @@ public class ActivityCallGui {
                 .forEach(input -> cards.put(input.getKey(),
                         new CardGuiEntity(input.getKey(), input.getValue().call().getResourceLocation(mc.player, input.getValue().stack()))));
 
-        mc.mouseHandler.releaseMouse();
+        if (!cards.isEmpty()) {
+            mc.mouseHandler.releaseMouse();
 
-        removeSelected();
+            removeSelected();
+        }
     }
 
     public void select(CardGuiEntity card) {
-        // TODO: some selected cards???
+        // TODO: several selected cards???
         var selected = removeSelected();
         // TODO: string set
         ActivityCallLogic.INSTANCE.selectClient(card.getId(),
@@ -94,17 +97,16 @@ public class ActivityCallGui {
                 var card = entry.getValue();
                 var input = entry.getKey();
 
-                boolean selected = card.mouseSelectedAbsolute(mx, my, false);
+                boolean selected = card.isAlive() && card.mouseSelectedAbsolute(mx, my, false);
 
                 if (selected && button == 0 && action == 1) {
-                    ActivityCallLogic.INSTANCE.clientCall(Minecraft.getInstance().player, input);
-
-                    return true;
+                    return ActivityCallLogic.INSTANCE.clientCall(Minecraft.getInstance().player, input);
                 }
 
                 if (button == 1 && action == 1 && selected) {
                     select(card);
 
+                    Minecraft.getInstance().player.playSound(SoundEvents.UI_BUTTON_CLICK.value(), 0.5f, 1.5f);
                     return true;
                 }
             }
@@ -227,6 +229,8 @@ public class ActivityCallGui {
 
     @SubscribeEvent
     public static void tickEvent(ClientTickEvent.Pre event) {
+        if (Minecraft.getInstance().player == null) return;
+
         if (!ActivityCallGui.INSTANCE.cards.isEmpty())
             ActivityCallGui.INSTANCE.tick();
 

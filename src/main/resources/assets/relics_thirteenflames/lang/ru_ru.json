@@ -7,7 +7,7 @@
   "effect.relics_thirteenflames.poisson": "Яд Ронаса",
   "effect.relics_thirteenflames.scint_effect": "Искра Скинта",
   "effect.relics_thirteenflames.scintonit_effect": "Искра Антискинта",
-  "effect.relics_thirteenflames.double_scint_effect": "Оскинтовывание",
+  "effect.relics_thirteenflames.double_scint_effect": "Скинтовая Лихорадка",
   "entity.relics_thirteenflames.living_flesh": "Сгусток плоти",
   "entity.relics_thirteenflames.respawn_book": "Крестраж",
   "entity.relics_thirteenflames.seliaset_sun": "Солнце Селиасет",
@@ -57,6 +57,7 @@
   "relics.description.hett_feather.description": "Один из «Огней», легендарных артефактов, разбросанных по всему миру. Созданное Хэтинтэпом, богом знаний, это перо позволяет записывать опыт, полученный владельцем, используя накопленную библиотеку знаний в битве.",
   "relics.description.hett_feather.ability.savepoint.rank_modifier.attack": "Крестраж теперь восстанавливает %4$s здоровья в секунду, а также даёт слабый отпор атакуюшим его монстрам в небольшой радиусе.",
   "relics.description.hett_feather.ability.book_slap.rank_modifier.imbalance": "Бестиарий стал толще, в одной книге вмещаются до %5$s типов существ. Зажмите Shift при использовании способности: надетая книга обогатится новым типом. Если в книге информация о типе жертвы уже есть, книга восстановит %4$s прочности.",
+  "relics.description.hett_feather.ability.lifegiving_knowledge.rank_modifier.xp": "Знания даруют опыт! Убийства с помощью \"Бестиария\" принесут %2$d% опыта существа.",
 
   "relics.description.jodah_mask.ability.dark_star": "Тёмная звезда",
   "relics.description.jodah_mask.ability.dark_star.description": "Доступна только в §f\u1900§r.\nПревращает игрока в тёмный метеор, который летит вперёд %3$s секунд(ы), постепенно увеличивая скорость. При столкновении с блоком или другим существом метеор взрывается, нанося урон существам в радиусе %1$s бл. и накладывая на них 1 заряд антискинта.\nПерезарядка: %2$s секунд. §f\u1900§r → §f\u1901§r",

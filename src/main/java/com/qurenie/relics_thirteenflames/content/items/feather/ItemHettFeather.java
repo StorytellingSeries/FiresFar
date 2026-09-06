@@ -10,6 +10,7 @@ import com.qurenie.relics_thirteenflames.content.entities.FeatherVortexEntity;
 import com.qurenie.relics_thirteenflames.content.entities.RespawnBookEntity;
 import com.qurenie.relics_thirteenflames.init.ComponentRegistry;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
+import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
 import com.qurenie.relics_thirteenflames.style.ColorScheme;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import it.hurts.sskirillss.relics.api.relics.abilities.ExperienceSourcesTemplate;
@@ -91,9 +92,16 @@ public class ItemHettFeather extends RelicItem implements IExtRelicItem, IRegist
                                         .formatValue(d -> MathUtils.round(d / 100, 2))
                                         .build()
                                 )
+                                .stat(AbilityStatTemplate.builder("book_xp")
+                                        .initialValue(0.5, 1)
+                                        .targetValue(RelicsScalingModels.MULTIPLICATIVE_BASE.get(), 3.25)
+                                        .formatValue(d -> MathUtils.round(d * 100, 0))
+                                        .build()
+                                )
                                 .experienceSources(ExperienceSourcesTemplate.builder()
                                         .source("source_1")
                                         .build())
+                                .rankModifier(1, "xp")
                                 .build()
                         )
                         .ability(AbilityTemplate.builder("book_slap")
@@ -117,7 +125,7 @@ public class ItemHettFeather extends RelicItem implements IExtRelicItem, IRegist
                                 )
                                 .stat(AbilityStatTemplate.builder("recharge")
                                         .initialValue(900, 800)
-                                        .thresholdValue(900, 500)
+                                        .thresholdValue(500, 900)
                                         .targetValue(RelicsScalingModels.ADDITIVE.get(), 500)
                                         .formatValue(d -> MathUtils.round(d / 20, 1))
                                         .build()
@@ -215,13 +223,14 @@ public class ItemHettFeather extends RelicItem implements IExtRelicItem, IRegist
                 if (!ctx.getPlayer().isCreative())
                     it.shrink(1);
 
+                ctx.getPlayer().playSound(SoundsRegistry.BOOK_APPEAR.get(), 1.0F, 1.0F);
                 if (level.isClientSide)
                     return InteractionResult.SUCCESS;
 
                 if (feather.has(ENTITY_UUID)) {
                     Entity last = ((ServerLevel) level).getEntity(Objects.requireNonNull(feather.get(ENTITY_UUID)));
 
-                    if (last instanceof RespawnBookEntity respawnBook && !respawnBook.isDeadOrDying() && respawnBook.getDeathTick() < 0)
+                    if (last instanceof RespawnBookEntity respawnBook && !respawnBook.isDeadOrDying() && respawnBook.getCloseTick() < 0)
                         respawnBook.close();
                 }
 
@@ -282,6 +291,8 @@ public class ItemHettFeather extends RelicItem implements IExtRelicItem, IRegist
                 int maxSize = (int) ItemsRegistry.HETT_FEATHER.getStatValue(player, stack, "book_slap", "maxSize");
                 if (!player.isShiftKeyDown()) {
                     FeatherVortexEntity vortexEntity = new FeatherVortexEntity(living, player.level(), lvl, maxSize);
+                    if (hasRangModifier(player, stack, "lifegiving_knowledge", "xp"))
+                        vortexEntity.setBookXp(getStatValue(player, stack, "lifegiving_knowledge", "book_xp"));
                     player.level().addFreshEntity(vortexEntity);
                 } else if (hasRangModifier(player, stack, "book_slap", "imbalance")) {
                     var book = CuriosApi.getCuriosInventory(player).map((handler) -> {
@@ -310,6 +321,8 @@ public class ItemHettFeather extends RelicItem implements IExtRelicItem, IRegist
                         level.addFreshEntity(orb);
                     } else {
                         FeatherVortexEntity vortexEntity = new FeatherVortexEntity(living, player.level(), lvl, maxSize);
+                        if (hasRangModifier(player, stack, "lifegiving_knowledge", "xp"))
+                            vortexEntity.setBookXp(getStatValue(player, stack, "lifegiving_knowledge", "book_xp"));
                         player.level().addFreshEntity(vortexEntity);
                     }
                 }
@@ -361,7 +374,7 @@ public class ItemHettFeather extends RelicItem implements IExtRelicItem, IRegist
     public SettingsContainer<IActivitySetting> constructActivitySettings() {
         return SettingsContainer.<IActivitySetting>builder()
                 .setting(ActivitySetting.builder("book_slap")
-                        .maxCooldown(0)
+                        .maxCooldown((s, p) -> (int) getStatValue(p, s, "book_slap", "recharge"))
                         .color(ColorScheme.BAR_YELLOW)
                         .build())
                 .build();

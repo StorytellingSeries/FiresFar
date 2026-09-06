@@ -11,6 +11,7 @@ import com.qurenie.relics_thirteenflames.activity.call.settings.RelicsActivityCa
 import com.qurenie.relics_thirteenflames.content.entities.AirVortexEntity;
 import com.qurenie.relics_thirteenflames.content.entities.EntitySeliasetSun;
 import com.qurenie.relics_thirteenflames.content.entities.WaveEntity;
+import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
 import com.qurenie.relics_thirteenflames.net.EntityPacket;
 import com.qurenie.relics_thirteenflames.net.PacketHornSounds;
 import com.qurenie.relics_thirteenflames.util.FlamesUtils;
@@ -45,14 +46,19 @@ import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.boss.wither.WitherBoss;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
@@ -243,24 +249,58 @@ public class ItemSeliasetHorn extends RelicItem implements IExtRelicItem, IColor
         Vec3 initPos = player.getEyePosition().add(0, -0.4, 0);
         double distance = this.getStatValue(player, horn, "air_ray", "distance");
 
+        Vec3 look = player.getLookAngle();
+        Vec3 maxEndPos = initPos.add(look.scale(distance));
 
-        Vec3 endPos = initPos.add(player.getLookAngle().scale(distance / 2.0));
         if (!player.level().isClientSide) {
-            List<Entity> entitiesToAffect = getAffectedEntities(player, initPos, endPos, distance, distance / 6.0);
+            // Проверяем, упирается ли луч в блок
+            BlockHitResult blockHit = player.level().clip(new ClipContext(
+                    initPos,
+                    maxEndPos,
+                    ClipContext.Block.COLLIDER,
+                    ClipContext.Fluid.NONE,
+                    player
+            ));
+
+            // Если попали в блок — конец луча в точке столкновения, иначе на максимальной дистанции
+            Vec3 endPos = blockHit.getType() == HitResult.Type.BLOCK
+                    ? blockHit.getLocation()
+                    : maxEndPos;
+
+            double actualDistance = initPos.distanceTo(endPos);
+
+            List<Entity> entitiesToAffect = getAffectedEntities(
+                    player,
+                    initPos,
+                    endPos,
+                    actualDistance,
+                    actualDistance / 6.0
+            );
+
+
 
             for (Entity e : entitiesToAffect) {
-                if (e instanceof LivingEntity && (!e.isPushable() || e instanceof EntitySeliasetSun))
-                    continue;
+
+                double kResistance = hasRangModifier(player, horn , "air_ray", "imbalance")
+                        ? 0 : !e.isPushable() ? 1
+                        : e instanceof LivingEntity l ? l.getAttributes().getBaseValue(Attributes.KNOCKBACK_RESISTANCE) : 0;
 
                 Vec3 entityPos = e.position().add(0, e.getEyeHeight(), 0);
-                Vec3 b = entityPos.subtract(initPos).add(player.getLookAngle());
-                double efficiency = this.getStatValue(player, horn, "air_ray", "efficiency") / 20;
+                Vec3 b = entityPos.subtract(initPos).add(look);
+                double efficiency = this.getStatValue(player, horn, "air_ray", "efficiency") / 20.0
+                        * Math.max(0, 1 - kResistance);
 
-                if (e instanceof LivingEntity living && living.getMaxHealth() > 50)
-                    efficiency = Mth.clamp(efficiency - (Math.sqrt(living.getMaxHealth()) - 15.0) / 20.0, 0, efficiency);
+                if (e instanceof LivingEntity living && living.getMaxHealth() > 50) {
+                    efficiency = Mth.clamp(
+                            efficiency - (Math.sqrt(living.getMaxHealth()) - 15.0) / 20.0,
+                            0,
+                            efficiency
+                    );
+                }
 
                 efficiency = Math.max(efficiency, 0.008f);
-                Vec3 speed = b.normalize().multiply(efficiency, efficiency, efficiency);
+
+                Vec3 speed = b.normalize().scale(efficiency);
                 if (player.isShiftKeyDown()) {
                     speed = speed.reverse();
                 }
@@ -270,7 +310,12 @@ public class ItemSeliasetHorn extends RelicItem implements IExtRelicItem, IColor
                 int fire = horn.getEnchantmentLevel(player.level().holderOrThrow(Enchantments.FIRE_ASPECT));
                 if (fire > 0) {
                     e.setRemainingFireTicks(fire * 2 * 20);
-                    ParticleHelper.spawnParticleEntity(rng.nextBoolean() ? ParticleTypes.FLAME : ParticleTypes.SMALL_FLAME, e, 3, 0.02);
+                    ParticleHelper.spawnParticleEntity(
+                            rng.nextBoolean() ? ParticleTypes.FLAME : ParticleTypes.SMALL_FLAME,
+                            e,
+                            3,
+                            0.02
+                    );
                 }
             }
         }
@@ -305,8 +350,10 @@ public class ItemSeliasetHorn extends RelicItem implements IExtRelicItem, IColor
         double radius = getStatValue(living, stack, "air_vortex", "radius");
         double maxAge = getStatValue(living, stack, "air_vortex", "maxAge");
 
-        if (living.level().isClientSide)
+        living.playSound(SoundsRegistry.SELIASET_HORN_BALL_LAUNCH.get(), 1, 1);
+        if (living.level().isClientSide) {
             return ActivityResult.SUCCESS;
+        }
 
         AirVortexEntity vortexEntity = new AirVortexEntity(living.level(), living.getEyePosition(),
                 living.getLookAngle().normalize().scale(0.8f), (float) radius, (int) maxAge, living);
@@ -390,7 +437,7 @@ public class ItemSeliasetHorn extends RelicItem implements IExtRelicItem, IColor
                                 .stat(AbilityStatTemplate.builder("maxAge")
                                         .initialValue(60, 80)
                                         .thresholdValue(50, 1000)
-                                        .targetValue(RelicsScalingModels.EXPONENTIAL.get(), 800)
+                                        .targetValue(RelicsScalingModels.EXPONENTIAL.get(), 360)
                                         .formatValue(x -> MathUtils.round(x / 20f, 1))
                                         .build())
                                 .stat(AbilityStatTemplate.builder("radius")

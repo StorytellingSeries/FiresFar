@@ -14,6 +14,7 @@ import com.qurenie.relics_thirteenflames.content.entities.TravellerSweepEntity;
 import com.qurenie.relics_thirteenflames.init.ComponentRegistry;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
+import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
 import com.qurenie.relics_thirteenflames.net.TravellerCutPacket;
 import com.qurenie.relics_thirteenflames.net.TravellerSweepPacket;
 import com.qurenie.relics_thirteenflames.style.ColorScheme;
@@ -374,6 +375,7 @@ public class ItemTravellerSword extends SwordItem implements IExtRelicItem, IRel
                 return super.use(level, player, usedHand);
 
             int fireAspect = stack.getEnchantmentLevel(player.level().holder(Enchantments.FIRE_ASPECT).get());
+            player.playSound(SoundsRegistry.ADVENTURER_SWORD_DASH.get(), 1, 1);
             if (player.level().isClientSide) {
                 Vec3 last = player.position();
                 for (Vec3 pos : pointer) {
@@ -678,6 +680,7 @@ public class ItemTravellerSword extends SwordItem implements IExtRelicItem, IRel
         float charge = click.getItemStack().getOrDefault(ComponentRegistry.SPEED, 0f);
         if (charge >= MAX_CHARGE) {
             Network.sendToServer(new TravellerSweepPacket(click.getItemStack()));
+            onSprintSweep(click.getEntity(), click.getItemStack());
             click.getEntity().setSprinting(false);
             click.getEntity().startUsingItem(click.getHand());
             click.getEntity().setDeltaMovement(click.getEntity().getDeltaMovement().multiply(0, 1, 0));

@@ -3,6 +3,7 @@ package com.qurenie.relics_thirteenflames.content.entities;
 import com.qurenie.relics_thirteenflames.client.AnimationsRegistry;
 import com.qurenie.relics_thirteenflames.content.items.ItemKnefRose;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
+import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
 import com.qurenie.relics_thirteenflames.style.ColorScheme;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import lombok.Getter;
@@ -11,6 +12,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffects;
@@ -25,6 +27,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.zeith.hammeranims.api.animsys.ConfiguredAnimation;
 import org.zeith.hammeranims.core.init.DefaultsHA;
 import org.zeith.hammerlib.HammerLib;
@@ -65,6 +68,16 @@ public class GhostBigEntity extends AnimatedEntity {
     public void upgradeWithSouls(int souls, double damagePer, double lifetimePer) {
         lifetime += (int) (((float) souls) * lifetimePer);
         damageModifier = 1 + souls * damagePer;
+    }
+
+    @Override
+    protected @Nullable SoundEvent getHurtSound(@NotNull DamageSource damageSource) {
+        return SoundsRegistry.KNEFMTITI_ROSE_GHOST_HIT.get();
+    }
+
+    @Override
+    protected @Nullable SoundEvent getDeathSound() {
+        return  SoundsRegistry.KNEFMTITI_ROSE_GHOST_HIT.get();
     }
 
     protected GhostBigEntity createSplit() {

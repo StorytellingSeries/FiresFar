@@ -10,6 +10,7 @@ import com.qurenie.relics_thirteenflames.client.bar.BarSetting;
 import com.qurenie.relics_thirteenflames.client.bar.IBarSetting;
 import com.qurenie.relics_thirteenflames.init.ComponentRegistry;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
+import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
 import com.qurenie.relics_thirteenflames.net.RhonasRebukePacket;
 import com.qurenie.relics_thirteenflames.style.ColorScheme;
 import com.qurenie.relics_thirteenflames.util.FlamesUtils;
@@ -193,10 +194,10 @@ public class ItemRonasShield extends ShieldItem implements IExtRelicItem, IColor
                 level.playSound(
                         null,
                         player.blockPosition(),
-                        SoundEvents.SHIELD_BLOCK,
+                        SoundsRegistry.RONAS_SHIELD_BLOCK.get(),
                         SoundSource.PLAYERS,
                         1f,
-                        0.7f
+                        1f
                 );
 
                 player.getFoodData().setFoodLevel(

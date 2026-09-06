@@ -16,6 +16,7 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -268,6 +269,8 @@ public class KnefProjectile extends ThrowableProjectile {
         }
         else
             this.discard();
+
+        level().playSound(this, blockPosition(), SoundsRegistry.ARROW_REFLECT.get(), SoundSource.HOSTILE, 0.1f, (float) (1f + 0.4 * level().random.nextGaussian()));
     }
 
     @Override

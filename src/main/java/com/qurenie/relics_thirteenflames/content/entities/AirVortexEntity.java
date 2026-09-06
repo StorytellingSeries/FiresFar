@@ -2,6 +2,7 @@ package com.qurenie.relics_thirteenflames.content.entities;
 
 import com.qurenie.relics_thirteenflames.client.particles.RotateSettings;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
+import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import lombok.Getter;
 import lombok.Setter;
@@ -128,6 +129,7 @@ public class AirVortexEntity extends Entity {
              */
             if (getDeltaMovement().length() < 0.00007) {
                 vortexStarted = true;
+                playSound(SoundsRegistry.SELIASET_HORN_BALL_EXPLODE.get());
 
                 RotateSettings settings = RotateSettings.builder().center(position()).relativeAxis(new Vec3(0, 1, 0)).resizeSpeed(0.01).angleSpeed(0.2).build();
 
@@ -146,7 +148,11 @@ public class AirVortexEntity extends Entity {
             Основная механика вихря
          */
 
-        if (!level().isClientSide) suckEntities();
+        if (!level().isClientSide) {
+            suckEntities();
+            if (tickCount % (7 + random.nextInt(3)) == 0)
+                playSound(SoundsRegistry.SELIASET_HORN_WIND.get(), 0.7f, (float) (0.8f + random.nextGaussian() * 0.4));
+        }
         else spawnVortexParticles();
 
         if (!level().isClientSide && age >= getMaxAge()) {
@@ -179,18 +185,17 @@ public class AirVortexEntity extends Entity {
             /*
                 Стягивание
              */
-            Vec3 pull = delta.normalize().scale(0.44 * strength);
+            Vec3 pull = delta.normalize().scale(0.33 * strength);
 
             /*
                 Закрутка
              */
-            Vec3 tangent = new Vec3(-delta.z, 0, delta.x).normalize().scale(0.05 * strength);
+            Vec3 tangent = new Vec3(-delta.z, 0, delta.x).normalize().scale(0.07 * strength);
 
             /*
                 Подъем воздуха
              */
-            Vec3 lift = new Vec3(0, 0.03 * strength, 0);
-
+            Vec3 lift = new Vec3(0, 0.05 * strength, 0);
             entity.setDeltaMovement(entity.getDeltaMovement().add(pull).add(tangent).add(lift));
 
             entity.hurtMarked = true;

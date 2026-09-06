@@ -10,6 +10,7 @@ import com.qurenie.relics_thirteenflames.content.items.ItemSeliasetSun;
 import com.qurenie.relics_thirteenflames.init.BlocksRegistry;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
+import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
 import com.qurenie.relics_thirteenflames.style.ColorScheme;
 import com.qurenie.relics_thirteenflames.util.FlamesUtils;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
@@ -29,6 +30,7 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
@@ -300,6 +302,7 @@ public class EntitySeliasetSun extends LivingEntity implements IAnimatedEntity {
                                             3
                                     );
 
+                                    level().playSound((Entity) null, placePos, SoundsRegistry.SELIASET_SUN_FLAME_SPAWN.get(), SoundSource.BLOCKS, 1F, (float) (0.9 + Math.random() * 0.2));
                                     ParticleHelper.spawnParticles(level(),
                                             ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(BURN_COLOR, level().getRandom()), 0.3f, 60, 0.95f).withGravity(0.3f),
                                             placePos.getCenter(), 20, 0.2, 0.2, 0.2, 0.05);
@@ -346,7 +349,7 @@ public class EntitySeliasetSun extends LivingEntity implements IAnimatedEntity {
                     if (blockHeat.containsKey(pos) || holderOpt.get().isPresent()) {
                         blockLimit--;
                         int heatLevel = blockHeat.getOrDefault(pos, 0) + 1;
-                        if (heatLevel >= limitHeat) {
+                        if (heatLevel >= limitHeat && holderOpt.get().isPresent()) {
                             var result = holderOpt.get().get().value().assemble(new SingleRecipeInput(stack), registryAccess());
                             if (result.getCount() == 1 && result.getItem() instanceof BlockItem block && !BLOCKED_HEAT_BLOCKS.contains(block)) {
                                 ParticleHelper.spawnParticleOutbox(level(), ParticleTypes.FLAME, pos, 5, 0.005);

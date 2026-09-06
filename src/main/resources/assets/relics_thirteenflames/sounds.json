@@ -64,12 +64,308 @@
       }
     ]
   },
+  "knefmtiti_rose_ghost_hit": {
+    "sounds": [
+      {
+        "name": "relics_thirteenflames:knefmtiti_rose_ghost_hit",
+        "attenuation_distance": 100,
+        "stream": true
+      }
+    ]
+  },
+  "jodah_staff_cast_circle": {
+    "sounds": [
+      {
+        "name": "relics_thirteenflames:jodah_staff_cast_circle",
+        "attenuation_distance": 100,
+        "stream": true
+      }
+    ]
+  },
   "seli_horn_wave": {
     "sounds": [
       {
         "name": "relics_thirteenflames:seli_horn_wave",
         "attenuation_distance": 20,
         "stream": false
+      }
+    ]
+  },
+  "adventurer_sword_dash": {
+    "sounds": [
+      {
+        "name": "relics_thirteenflames:adventurer_sword_dash",
+        "attenuation_distance": 100
+      }
+    ]
+  },
+  "adventurer_sword_hit": {
+    "sounds": [
+      {
+        "name": "relics_thirteenflames:adventurer_sword_hit",
+        "attenuation_distance": 100
+      }
+    ]
+  },
+  "adventurer_sword_spin_hit": {
+    "sounds": [
+      {
+        "name": "relics_thirteenflames:adventurer_sword_spin_hit",
+        "attenuation_distance": 100
+      }
+    ]
+  },
+  "adventurer_sword_updown_hit": {
+    "sounds": [
+      {
+        "name": "relics_thirteenflames:adventurer_sword_updown_hit",
+        "attenuation_distance": 100
+      }
+    ]
+  },
+  "arrow_reflect": {
+    "sounds": [
+      {
+        "name": "relics_thirteenflames:arrow_reflect",
+        "attenuation_distance": 100
+      }
+    ]
+  },
+  "book_appear": {
+    "sounds": [
+      {
+        "name": "relics_thirteenflames:book_appear",
+        "attenuation_distance": 100
+      }
+    ]
+  },
+  "book_attack": {
+    "sounds": [
+      {
+        "name": "relics_thirteenflames:book_attack",
+        "attenuation_distance": 100
+      }
+    ]
+  },
+  "book_close": {
+    "sounds": [
+      {
+        "name": "relics_thirteenflames:book_close",
+        "attenuation_distance": 100
+      }
+    ]
+  },
+  "book_mob_capture": {
+    "sounds": [
+      {
+        "name": "relics_thirteenflames:book_mob_capture",
+        "attenuation_distance": 100,
+        "stream": true
+      }
+    ]
+  },
+  "book_respawn": {
+    "sounds": [
+      {
+        "name": "relics_thirteenflames:book_respawn",
+        "attenuation_distance": 100,
+        "stream": true
+      }
+    ]
+  },
+  "crystal_ability_cast": {
+    "sounds": [
+      {
+        "name": "relics_thirteenflames:crystal_ability_cast",
+        "attenuation_distance": 100,
+        "stream": true
+      }
+    ]
+  },
+  "crystal_appear": {
+    "sounds": [
+      {
+        "name": "relics_thirteenflames:crystal_appear",
+        "attenuation_distance": 100
+      }
+    ]
+  },
+  "crystal_dissappear": {
+    "sounds": [
+      {
+        "name": "relics_thirteenflames:crystal_dissappear",
+        "attenuation_distance": 100
+      }
+    ]
+  },
+  "interworld_teleport_in": {
+    "sounds": [
+      {
+        "name": "relics_thirteenflames:interworld_teleport_in",
+        "attenuation_distance": 100
+      }
+    ]
+  },
+  "interworld_teleport_out": {
+    "sounds": [
+      {
+        "name": "relics_thirteenflames:interworld_teleport_out",
+        "attenuation_distance": 100
+      }
+    ]
+  },
+  "jodah_staff_rank_up": {
+    "sounds": [
+      {
+        "name": "relics_thirteenflames:jodah_staff_rank_up",
+        "attenuation_distance": 100
+      }
+    ]
+  },
+  "jodah_staff_teleport": {
+    "sounds": [
+      {
+        "name": "relics_thirteenflames:jodah_staff_teleport",
+        "attenuation_distance": 100
+      }
+    ]
+  },
+  "jodah_wings_appear": {
+    "sounds": [
+      {
+        "name": "relics_thirteenflames:jodah_wings_appear",
+        "attenuation_distance": 100,
+        "stream": true
+      }
+    ]
+  },
+  "knefmtiti_rose_ghost_spawn": {
+    "sounds": [
+      {
+        "name": "relics_thirteenflames:knefmtiti_rose_ghost_spawn",
+        "attenuation_distance": 100
+      }
+    ]
+  },
+  "knefmtiti_rose_orb": {
+    "sounds": [
+      {
+        "name": "relics_thirteenflames:knefmtiti_rose_orb",
+        "attenuation_distance": 100
+      }
+    ]
+  },
+  "knefmtiti_rose_soul_sand": {
+    "sounds": [
+      {
+        "name": "relics_thirteenflames:knefmtiti_rose_soul_sand",
+        "attenuation_distance": 100
+      }
+    ]
+  },
+  "life_orb_get": {
+    "sounds": [
+      {
+        "name": "relics_thirteenflames:life_orb_get",
+        "attenuation_distance": 100
+      }
+    ]
+  },
+  "life_stealing": {
+    "sounds": [
+      {
+        "name": "relics_thirteenflames:life_stealing",
+        "attenuation_distance": 100
+      }
+    ]
+  },
+  "meteorite_fly": {
+    "sounds": [
+      {
+        "name": "relics_thirteenflames:meteorite_fly",
+        "attenuation_distance": 100,
+        "stream": true
+      }
+    ]
+  },
+  "montu_hammer_drill": {
+    "sounds": [
+      {
+        "name": "relics_thirteenflames:montu_hammer_drill",
+        "attenuation_distance": 100
+      }
+    ]
+  },
+  "montu_hammer_gui": {
+    "sounds": [
+      {
+        "name": "relics_thirteenflames:montu_hammer_gui",
+        "attenuation_distance": 100
+      }
+    ]
+  },
+  "reversal_aberration": {
+    "sounds": [
+      {
+        "name": "relics_thirteenflames:reversal_aberration",
+        "attenuation_distance": 100,
+        "stream": true
+      }
+    ]
+  },
+  "ronas_shield_block": {
+    "sounds": [
+      {
+        "name": "relics_thirteenflames:ronas_shield_block",
+        "attenuation_distance": 100
+      }
+    ]
+  },
+  "seliaset_horn_ball_explode": {
+    "sounds": [
+      {
+        "name": "relics_thirteenflames:seliaset_horn_ball_explode",
+        "attenuation_distance": 100
+      }
+    ]
+  },
+  "seliaset_horn_ball_launch": {
+    "sounds": [
+      {
+        "name": "relics_thirteenflames:seliaset_horn_ball_launch",
+        "attenuation_distance": 100
+      }
+    ]
+  },
+  "seliaset_horn_wind": {
+    "sounds": [
+      {
+        "name": "relics_thirteenflames:seliaset_horn_wind",
+        "attenuation_distance": 100
+      }
+    ]
+  },
+  "seliaset_sun_flame_break": {
+    "sounds": [
+      {
+        "name": "relics_thirteenflames:seliaset_sun_flame_break",
+        "attenuation_distance": 100
+      }
+    ]
+  },
+  "seliaset_sun_flame_spawn": {
+    "sounds": [
+      {
+        "name": "relics_thirteenflames:seliaset_sun_flame_spawn",
+        "attenuation_distance": 100
+      }
+    ]
+  },
+  "spark_teleport": {
+    "sounds": [
+      {
+        "name": "relics_thirteenflames:spark_teleport",
+        "attenuation_distance": 100
       }
     ]
   }

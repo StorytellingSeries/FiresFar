@@ -2,6 +2,7 @@ package com.qurenie.relics_thirteenflames.content.entities;
 
 import com.qurenie.relics_thirteenflames.client.particles.RotateSettings;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
+import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import lombok.Getter;
 import lombok.Setter;
@@ -56,6 +57,7 @@ public class MontuDrillEntity extends Entity {
 
     protected Vec3 velocity = Vec3.ZERO;
 
+    private int emptySpace = 100;
     protected float passiveDrain = 0.45f;
 
     public MontuDrillEntity(EntityType<?> type, Level level) {
@@ -95,8 +97,12 @@ public class MontuDrillEntity extends Entity {
     public void tick() {
         super.tick();
 
-        if (level().isClientSide)
+        if (tickCount % (5 + random.nextInt(2)) == 0)
+            playSound(SoundsRegistry.MONTU_HAMMER_DRILL.get(), 1.3f, (float) (0.8f + random.nextGaussian() * 0.4));
+
+        if (level().isClientSide) {
             spawnDrillParticles();
+        }
 
         if (!level().isClientSide && getCapacity() <= 0) {
             destroyDrill();
@@ -113,6 +119,11 @@ public class MontuDrillEntity extends Entity {
             destroyBlocks();
 
             damageEntities();
+
+            emptySpace--;
+            if (emptySpace <= 0)
+                discard();
+
         }
 
     }
@@ -126,8 +137,6 @@ public class MontuDrillEntity extends Entity {
     protected void destroyBlocks() {
 
         if (!(level() instanceof ServerLevel level)) return;
-
-        Vec3 dir = velocity.normalize();
 
         AABB box = getBoundingBox().inflate(0.9);
 
@@ -143,6 +152,7 @@ public class MontuDrillEntity extends Entity {
 
             if (hardness < 0) return;
 
+            emptySpace = 100;
             drainCapacity(Math.max(0.3f, hardness));
 
             ItemStack tool = createTool();
@@ -193,6 +203,7 @@ public class MontuDrillEntity extends Entity {
         setDeltaMovement(getDeltaMovement().scale(0.4));
 
         for (Entity entity : entities) {
+            emptySpace = 100;
 
             if (!(entity instanceof LivingEntity living)) continue;
 
@@ -398,6 +409,7 @@ public class MontuDrillEntity extends Entity {
         setSilkTouch(tag.getBoolean("silk_touch"));
         setStrength(tag.getFloat("strength"));
 
+        emptySpace = tag.getInt("empty");
         velocity = new Vec3(tag.getDouble("vx"), tag.getDouble("vy"), tag.getDouble("vz"));
 
         if (tag.hasUUID("owner")) {
@@ -412,6 +424,7 @@ public class MontuDrillEntity extends Entity {
         tag.putFloat("capacity", getCapacity());
 
         tag.putInt("fortune", getFortune());
+        tag.putInt("empty", emptySpace);
 
         tag.putBoolean("silk_touch", isSilkTouch());
 

@@ -22,6 +22,7 @@ import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -123,7 +124,8 @@ public class JodahMarkEntity extends Entity {
         if (!isCachedStaffValid(player)) {
             updateCache(player);
 
-            if (cachedSlot == -1)
+            // discard только если посох НЕ найден нигде — ни в инвентаре, ни в offhand
+            if (cachedSlot == -1 && !cachedOffhand)
                 discard();
         }
     }
@@ -154,7 +156,7 @@ public class JodahMarkEntity extends Entity {
         ItemStack offhand = player.getOffhandItem();
         if (offhand.getItem() instanceof ItemJodahStaff
                 && offhand.has(ComponentRegistry.JODAH_ACTIVE_TICK)
-                && offhand.get(ComponentRegistry.ENTITY_UUID) == this.uuid) {
+                && Objects.equals(offhand.get(ComponentRegistry.ENTITY_UUID), this.uuid)) {
 
             cachedOffhand = true;
             cachedSlot = -1;
@@ -169,7 +171,7 @@ public class JodahMarkEntity extends Entity {
 
             if (stack.getItem() instanceof ItemJodahStaff
                     && stack.has(ComponentRegistry.JODAH_ACTIVE_TICK)
-                    && stack.get(ComponentRegistry.ENTITY_UUID) == this.uuid) {
+                    && Objects.equals(stack.get(ComponentRegistry.ENTITY_UUID), this.uuid)) {
 
                 cachedSlot = i;
                 cachedOffhand = false;

@@ -1,5 +1,6 @@
 package com.qurenie.relics_thirteenflames.activity.call;
 
+import com.qurenie.api.ActivityCallEvent;
 import com.qurenie.api.IActivityContainer;
 import com.qurenie.relics_thirteenflames.activity.call.settings.ActivityResult;
 import com.qurenie.relics_thirteenflames.activity.call.settings.InventoryType;
@@ -18,6 +19,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
+
+import static net.neoforged.neoforge.common.NeoForge.EVENT_BUS;
 
 public class ActivityCallLogic {
 
@@ -47,40 +50,55 @@ public class ActivityCallLogic {
         call.call().selectionNotify(Minecraft.getInstance().player, call.stack(), selectionContext);
     }
 
-    public void clientCall(Player player, String id) {
+    public boolean clientCall(Player player, String id) {
         var input = getInput(id);
-        switch (tryCast(player, input)) {
-            case FAILURE -> ActivityCallGui.INSTANCE.fail(id);
+        return switch (tryCast(player, input, true)) {
+            case FAILURE -> {
+                ActivityCallGui.INSTANCE.fail(id);
+                yield false;
+            }
             case SUCCESS -> {
                 ActivityCallGui.INSTANCE.removeSelected();
                 ActivityCallGui.startHide(false);
+                Network.sendToServer(new ActivityCastPacket(input.setting().getName(), input));
+                yield true;
             }
-        }
-        Network.sendToServer(new ActivityCastPacket(input.setting().getName(), input));
+        };
     }
 
-    public void serverCall(Player player, CallInput id) {
-        tryCast(player, id);
+    public boolean serverCall(Player player, CallInput id) {
+        return tryCast(player, id, false) != ActivityResult.FAILURE;
     }
 
-    private ActivityResult tryCast(Player player, CallInput input) {
+    private ActivityResult tryCast(Player player, CallInput input, boolean clientSide) {
         var stack = input.stack();
-        if (input.container().canCast(player, stack, input.setting().getName()))
+        ActivityCallEvent.Cast event = new ActivityCallEvent.Cast(player, input.stack(), input.setting(), clientSide,
+                input.container().canCast(player, stack, input.setting().getName()));
+        EVENT_BUS.post(event);
+
+        if (event.isCanCast() && !event.isCanceled())
             return input.call().cast(player, stack);
 
         return ActivityResult.FAILURE;
     }
 
     public boolean validate(Player player, String id) {
-        return getInput(id).validateAndCorrectReference(player);
+        var input = getInput(id);
+        return input.validateAndCorrectReference(player) && isVisible(input, player);
     }
 
     public void cacheActivities(Player player) {
         LinkedHashMap<String, CallInput> map = new LinkedHashMap<>();
         ActivityCallLogic.INSTANCE.getValidItems(player).stream()
-                .filter(c -> c.call().isVisible(player, c.stack()))
+                .filter(c -> isVisible(c, player))
                 .forEach(c -> map.put(c.getId(), c));
         ActivityState.cache(map);
+    }
+
+    private boolean isVisible(CallInput input, Player player) {
+        ActivityCallEvent.Visible event = new ActivityCallEvent.Visible(player, input.stack(), input.setting(), input.call().isVisible(player, input.stack()));
+        EVENT_BUS.post(event);
+        return event.isVisible();
     }
 
     public List<CallInput> getValidItems(Player player) {

@@ -2,6 +2,7 @@ package com.qurenie.relics_thirteenflames.content.entities;
 
 import com.qurenie.api.event.EntityIgnoreExplosionEvent;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
+import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
@@ -76,7 +77,10 @@ public class MeteorEntity extends Entity {
     @Override
     public void tick() {
         super.tick();
-        
+
+        if (tickCount % (4 + random.nextInt(2)) == 0 && !entityData.get(RELEASED))
+            playSound(SoundsRegistry.METEORITE_FLY.get(), 1.3f, (float) (0.8f + random.nextGaussian() * 0.4));
+
         if (!level().isClientSide && (this.getPassengers().isEmpty())) {
             dispel();
             return;

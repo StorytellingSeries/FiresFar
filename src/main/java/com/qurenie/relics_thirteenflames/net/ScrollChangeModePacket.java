@@ -38,7 +38,7 @@ public class ScrollChangeModePacket implements IPacket {
         ServerPlayer sender = ctx.getSender();
         ItemStack item = sender.getMainHandItem();
         if (item.is(ItemsRegistry.SCROLL_OF_TRUTH)){
-            ScrollColorMode colorMode = item.getOrDefault(SCROLL_COLOR_MODE, ScrollColorMode.GRAY);
+            ScrollColorMode colorMode = item.getOrDefault(SCROLL_COLOR_MODE, ScrollColorMode.GREEN);
             ScrollColorMode newMode;
             if (colorMode.id + delta > -1) {
                 newMode = ScrollColorMode.values()[(colorMode.id + delta) % ScrollColorMode.values().length];

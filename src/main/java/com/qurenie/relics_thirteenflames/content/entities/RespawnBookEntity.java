@@ -5,6 +5,7 @@ import com.qurenie.relics_thirteenflames.client.particles.FeatherParticle;
 import com.qurenie.relics_thirteenflames.content.items.feather.ItemHettFeather;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
 import com.qurenie.relics_thirteenflames.init.ParticlesRegistry;
+import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
 import com.qurenie.relics_thirteenflames.net.PacketPlaySound;
 import com.qurenie.relics_thirteenflames.util.FlamesUtils;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
@@ -40,13 +41,9 @@ import net.neoforged.neoforge.fluids.FluidType;
 import org.jetbrains.annotations.NotNull;
 import org.zeith.hammeranims.api.animation.LoopMode;
 import org.zeith.hammeranims.api.animsys.AnimationSystem;
-import org.zeith.hammeranims.api.animsys.actions.AnimationAction;
-import org.zeith.hammeranims.api.animsys.actions.AnimationActionInstance;
-import org.zeith.hammeranims.api.animsys.layer.AnimationLayer;
 import org.zeith.hammeranims.api.tile.IAnimatedEntity;
 import org.zeith.hammerlib.net.Network;
 
-import java.awt.*;
 import java.util.Comparator;
 import java.util.Objects;
 import java.util.UUID;
@@ -76,6 +73,9 @@ public class RespawnBookEntity extends Mob implements IAnimatedEntity {
     private UUID ownerUUID;
     private double xpConsume;
     private double hpConsume;
+    private boolean isClosing;
+
+    private int closeTick;
 
     public RespawnBookEntity(EntityType<RespawnBookEntity> type, Level world) {
         super(type, world);
@@ -106,6 +106,7 @@ public class RespawnBookEntity extends Mob implements IAnimatedEntity {
         super.readAdditionalSaveData(pCompound);
         this.xpConsume = pCompound.getDouble("xp_consume");
         this.hpConsume = pCompound.getDouble("hp_consume");
+        this.closeTick = pCompound.getInt("close_tick");
         setOwnerUUID(pCompound.getUUID("ownerUUID"));
         setRadius(pCompound.getInt("radius"));
 
@@ -119,6 +120,7 @@ public class RespawnBookEntity extends Mob implements IAnimatedEntity {
         pCompound.putDouble("hp_consume", hpConsume);
         pCompound.putUUID("ownerUUID", getOwnerUUID());
         pCompound.putInt("radius", getRadius());
+        pCompound.putInt("close_tick", closeTick);
 
         pCompound.putFloat("attack_level", getAttackLevel());
     }
@@ -165,7 +167,7 @@ public class RespawnBookEntity extends Mob implements IAnimatedEntity {
                 if (e instanceof LivingEntity living)
                     living.heal(1);
 
-        int deathTick = getDeathTick();
+        int deathTick = getCloseTick();
         if (level().isClientSide) {
             if (this.getPassengers().isEmpty())
                 for (int j = 0; j < 2; j++) {
@@ -231,14 +233,13 @@ public class RespawnBookEntity extends Mob implements IAnimatedEntity {
 
                     target.hurtMarked = true;
 
-                    level().playSound(
-                            null,
-                            blockPosition(),
-                            SoundEvents.ALLAY_HURT,
+                    Network.sendToTrackingAndSelf(this, new PacketPlaySound(
+                            position(),
+                            SoundsRegistry.BOOK_ATTACK.get(),
                             SoundSource.HOSTILE,
                             1F,
                             0.8F + random.nextFloat() * 0.3F
-                    );
+                    ));
 
                     if (level() instanceof ServerLevel server) {
                         server.sendParticles(
@@ -294,6 +295,9 @@ public class RespawnBookEntity extends Mob implements IAnimatedEntity {
 
             if (tickCount - deathTick > DEATH_ANIM_LENGTH)
                 close();
+
+            if (closeTick > 0 && --closeTick <= 0)
+                discard();
         }
     }
 
@@ -341,7 +345,7 @@ public class RespawnBookEntity extends Mob implements IAnimatedEntity {
     @SubscribeEvent
     public void livingDeathEvent(LivingDeathEvent event) {
         if (event.getEntity().getUUID().equals(getOwnerUUID())) {
-            if (!this.isDeadOrDying() && event.getEntity().distanceToSqr(this) < getRadius() * getRadius() && this.getDeathTick() < 0) {
+            if (!this.isDeadOrDying() && event.getEntity().distanceToSqr(this) < getRadius() * getRadius() && this.getCloseTick() < 0) {
                 event.getEntity().startRiding(this);
                 event.setCanceled(true);
                 event.getEntity().setHealth(1);
@@ -393,7 +397,7 @@ public class RespawnBookEntity extends Mob implements IAnimatedEntity {
 
     @Override
     protected @NotNull InteractionResult mobInteract(@NotNull Player player, @NotNull InteractionHand hand) {
-        if (getDeathTick() < 0 && player.getUUID().equals(this.getOwnerUUID())) {
+        if (getCloseTick() < 0 && player.getUUID().equals(this.getOwnerUUID())) {
             close();
             return InteractionResult.SUCCESS;
         }
@@ -417,30 +421,30 @@ public class RespawnBookEntity extends Mob implements IAnimatedEntity {
     }
 
     public void close() {
+        if (isClosing)
+            return;
+
+        closeTick = 22;
+        isClosing = true;
+
         this.ejectPassengers();
+        playSound(SoundsRegistry.BOOK_CLOSE.get());
         this.system.stopAnimation("ANIMATION_2");
         this.system.startAnimationAt(LAYER_ACTION, AnimationsRegistry.RESPAWN_BOOK_OPEN.configure().reversed()
-                .loopMode(LoopMode.ONCE)
-                .speed(0.7f)
-                .onFinish(new AnimationAction() {
-                    @Override
-                    public void execute(AnimationActionInstance animationActionInstance, AnimationLayer animationLayer) {
-                        RespawnBookEntity book = (RespawnBookEntity) animationLayer.system.owner;
-                        book.discard();
-                    }
-                })
-                .next(AnimationsRegistry.RESPAWN_BOOK_OPEN.configure().important().transitionTime(10000)));
+                .loopMode(LoopMode.HOLD_ON_LAST_FRAME)
+                .speed(0.7f));
     }
 
     public void startDeath() {
-        setDeathTick(tickCount);
+        setCloseTick(tickCount);
+        playSound(SoundsRegistry.BOOK_RESPAWN.get());
     }
 
-    public int getDeathTick() {
+    public int getCloseTick() {
         return this.getEntityData().get(START_DEATH_TICK);
     }
 
-    private void setDeathTick(int tick) {
+    private void setCloseTick(int tick) {
         this.getEntityData().set(START_DEATH_TICK, tick);
     }
 

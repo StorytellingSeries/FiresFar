@@ -31,7 +31,7 @@ public class ScrollOfTruthItemRenderer
 		var isterModel = ir.getModel(stack, mc.level, mc.player, 0);
 		var overrides = isterModel.getOverrides().getOverrides();
 
-		Color color = stack.getOrDefault(SCROLL_COLOR_MODE, ScrollColorMode.RED).color;
+		Color color = stack.getOrDefault(SCROLL_COLOR_MODE, ScrollColorMode.GREEN).color;
 
 		int lightmap = 15728880;
 

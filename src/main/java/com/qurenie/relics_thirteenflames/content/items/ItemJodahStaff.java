@@ -17,10 +17,7 @@ import com.qurenie.relics_thirteenflames.client.render.misc.JodahStaffRenderUtil
 import com.qurenie.relics_thirteenflames.content.entities.JodahHealEntity;
 import com.qurenie.relics_thirteenflames.content.entities.JodahMarkEntity;
 import com.qurenie.relics_thirteenflames.content.items.misc.JodahTier;
-import com.qurenie.relics_thirteenflames.init.ComponentRegistry;
-import com.qurenie.relics_thirteenflames.init.EffectsRegistry;
-import com.qurenie.relics_thirteenflames.init.EntityRegistry;
-import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
+import com.qurenie.relics_thirteenflames.init.*;
 import com.qurenie.relics_thirteenflames.style.ColorScheme;
 import com.qurenie.relics_thirteenflames.util.FlamesUtils;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
@@ -38,11 +35,14 @@ import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootEntry;
 import it.hurts.sskirillss.relics.items.relics.base.data.research.ResearchTemplate;
 import it.hurts.sskirillss.relics.utils.MathUtils;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.damagesource.DamageSource;
@@ -268,10 +268,12 @@ public class ItemJodahStaff extends SwordItem implements IActivityContainer, IEx
                                 .inventoryType(InventoryType.IN_HAND)
                                 .minVisibilityLevel(1)
                                 .cast((living, stack) -> {
-                                    if (!living.level().isClientSide)
+                                    if (!living.level().isClientSide) {
                                         living.level().getEntitiesOfClass(LivingEntity.class, living.getBoundingBox().inflate(40), e -> e != living && e.isPickable() && !e.isDeadOrDying())
                                                 .forEach(e -> e.addEffect(new MobEffectInstance(EffectsRegistry.JODAH_VISION, getJodahVisionDuration(living, stack),
                                                         stack.getOrDefault(ComponentRegistry.JODAH_TIER, JodahTier.D).oneThousandEyes.targetingCount() - 1)));
+                                        living.level().playSound(null, living.blockPosition(), SoundsRegistry.JODAH_WINGS_APPEAR.get(), SoundSource.PLAYERS, 1, 1);
+                                    }
                                     stack.set(JODAH_ACTIVE_TICK, getJodahVisionDuration(living, stack));
                                     setMaxCooldown(living, stack, "one_thousand_eyes");
 
@@ -300,6 +302,8 @@ public class ItemJodahStaff extends SwordItem implements IActivityContainer, IEx
         JodahMarkEntity mark = new JodahMarkEntity(living.level(), living, living.position());
         living.level().addFreshEntity(mark);
         stack.set(ENTITY_UUID, mark.getUUID());
+
+        living.playSound(SoundsRegistry.JODAH_STAFF_CAST_CIRCLE.get());
 
         return ActivityResult.SUCCESS;
     }
@@ -360,6 +364,7 @@ public class ItemJodahStaff extends SwordItem implements IActivityContainer, IEx
             var heal = new JodahHealEntity(EntityRegistry.JODAH_HEAL, level, Math.min(tier.thief.health(), target.getHealth()), xp, living, target);
             heal.setGainShield(hasRangModifier(living, stack, "health_theft", "shield"));
             level.addFreshEntity(heal);
+            target.playSound(SoundsRegistry.LIFE_STEALING.get(), 0.6F, (float) (target.getRandom().nextGaussian() * 0.4 + 0.8));
             target.hurt(level.damageSources().wither(), tier.thief.health());
         }
     }
@@ -407,6 +412,7 @@ public class ItemJodahStaff extends SwordItem implements IActivityContainer, IEx
 
             if (level + bonus >= tier.hitCount) {
                 stack.set(ComponentRegistry.JODAH_TIER, tier.next());
+                target.level().playSound(null, target.blockPosition(), SoundsRegistry.JODAH_STAFF_RANK_UP.get(), SoundSource.PLAYERS, 1, 1);
                 stack.set(ComponentRegistry.LEVEL, 0);
             } else {
                 stack.set(ComponentRegistry.LEVEL, level);
@@ -479,6 +485,8 @@ public class ItemJodahStaff extends SwordItem implements IActivityContainer, IEx
 
             living.addEffect(new MobEffectInstance(EffectsRegistry.DISABILITY_EFFECT, 20, 1, false, false));
             player.teleportTo(walkablePos.x, walkablePos.y, walkablePos.z);
+            level.playSound(null, new BlockPos((int) walkablePos.x, (int) walkablePos.y, (int) walkablePos.z), SoundsRegistry.JODAH_STAFF_TELEPORT.get(), SoundSource.AMBIENT, 1, 1);
+
             ParticleHelper.spawnParticleEntity(ParticleHelper.constructSimpleSpark(PURPLE_COLOR, 0.4f,
                     50, 0.96f), player, 40, 0.2);
             ParticleHelper.spawnParticleEntity(ParticleHelper.constructFigure(new OctoColor(0xFFAAAAAA), 0.21f,

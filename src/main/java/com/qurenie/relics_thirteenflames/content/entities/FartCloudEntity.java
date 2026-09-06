@@ -7,6 +7,8 @@ import com.qurenie.relics_thirteenflames.util.FlamesUtils;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import it.hurts.sskirillss.relics.api.relics.IRelicItem;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
+import lombok.Getter;
+import lombok.Setter;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -23,12 +25,15 @@ import net.minecraft.world.phys.AABB;
 import java.awt.*;
 import java.util.List;
 import java.util.Random;
+import java.util.UUID;
 
 public class FartCloudEntity extends Projectile {
 
-
     Random rng = new Random();
     int dmgCD = 0;
+    @Getter
+    @Setter
+    private UUID ownerUUID;
 
     public FartCloudEntity(EntityType<? extends Projectile> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -74,15 +79,9 @@ public class FartCloudEntity extends Projectile {
         this.getEntityData().set(RADIUS, radius);
     }
 
+    @Getter
+    @Setter
     private ItemStack sword = ItemStack.EMPTY;
-
-    public void setSword(ItemStack swort) {
-        this.sword = swort;
-    }
-
-    public ItemStack getSword() {
-        return sword;
-    }
 
     @Override
     public boolean isAlwaysTicking() {
@@ -110,6 +109,9 @@ public class FartCloudEntity extends Projectile {
 
             if (dmgCD == 0) {
                 for (LivingEntity e : entities) {
+                    if (e.is(getOwner()))
+                        continue;
+
                     int invulTime = e.invulnerableTime;
                     e.hurt(e.level().damageSources().magic(), 2 + radius);
                     e.invulnerableTime = invulTime;

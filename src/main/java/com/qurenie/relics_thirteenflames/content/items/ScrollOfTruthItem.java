@@ -183,7 +183,7 @@ public class ScrollOfTruthItem extends RelicItem implements IExtRelicItem {
     public void inventoryTick(@NotNull ItemStack stack, @NotNull Level level, @NotNull Entity entity, int slot, boolean isSelected) {
         super.inventoryTick(stack, level, entity, slot, isSelected);
         if (!level.isClientSide && entity instanceof Player player) {
-            ScrollColorMode mode = stack.getOrDefault(SCROLL_COLOR_MODE, ScrollColorMode.GRAY);
+            ScrollColorMode mode = stack.getOrDefault(SCROLL_COLOR_MODE, ScrollColorMode.GREEN);
             int lvl = getEffectLevel(player, stack);
             player.addEffect(new MobEffectInstance(mode.effect, 25, lvl, true, true));
         }

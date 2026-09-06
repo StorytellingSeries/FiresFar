@@ -83,6 +83,8 @@ public class NitorBlock extends Block {
         ParticleHelper.spawnParticles(level,
                 ParticleHelper.constructSmoke(FlamesUtils.spreadColor(color, level.getRandom()), 0.5f, 60, 0f).withGravity(-0.1f),
                 pos.getCenter(), 10, 0.2, 0.2, 0.2, 0.01);
+
+        level.levelEvent(player, 2001, pos, getId(state));
     }
 
 

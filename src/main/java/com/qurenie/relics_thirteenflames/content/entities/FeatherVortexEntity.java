@@ -5,17 +5,17 @@ import com.qurenie.relics_thirteenflames.content.entities.base.NonLivingEntity;
 import com.qurenie.relics_thirteenflames.init.ComponentRegistry;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
+import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
 import com.qurenie.relics_thirteenflames.util.FlamesUtils;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import lombok.Getter;
+import lombok.Setter;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.HumanoidArm;
-import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -42,6 +42,8 @@ public class FeatherVortexEntity extends NonLivingEntity implements IAnimatedEnt
 
     private boolean upgraded;
     private int maxSize;
+    @Setter
+    private double bookXp;
     private int repairCount;
     private @Nullable ItemStack prevBook;
 
@@ -90,6 +92,12 @@ public class FeatherVortexEntity extends NonLivingEntity implements IAnimatedEnt
                 .startTime(0.5f)
                 .loopMode(LoopMode.ONCE)
                 .next(AnimationsRegistry.BOOK_ATTACK.configure().loopMode(LoopMode.ONCE)));
+    }
+
+    @Override
+    public void onAddedToLevel() {
+        super.onAddedToLevel();
+        playSound(SoundsRegistry.BOOK_MOB_CAPTURE.get());
     }
 
     private ItemStack buildResultBook(EntityType<?> newType) {
@@ -190,6 +198,10 @@ public class FeatherVortexEntity extends NonLivingEntity implements IAnimatedEnt
                         0.03
                 );
 
+                if (bookXp > 0 && e instanceof LivingEntity living)
+                    ExperienceOrb.award((ServerLevel) this.level(), e.position(),
+                            (int) Math.ceil(bookXp * living.getExperienceReward((ServerLevel) this.level(), null)));
+
                 e.discard();
             }
 
@@ -228,6 +240,7 @@ public class FeatherVortexEntity extends NonLivingEntity implements IAnimatedEnt
         super.readAdditionalSaveData(compound);
 
         this.lvl = compound.getInt("lvl");
+        this.bookXp = compound.getDouble("bookXp");
 
         this.upgraded = compound.getBoolean("upgraded");
         this.maxSize = compound.getInt("maxSize");
@@ -248,6 +261,7 @@ public class FeatherVortexEntity extends NonLivingEntity implements IAnimatedEnt
         super.addAdditionalSaveData(compound);
 
         compound.putInt("lvl", lvl);
+        compound.putDouble("bookXp", bookXp);
 
         compound.putBoolean("upgraded", upgraded);
         compound.putInt("maxSize", maxSize);

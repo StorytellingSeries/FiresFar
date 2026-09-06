@@ -3,6 +3,7 @@ package com.qurenie.relics_thirteenflames.content.entities;
 import com.qurenie.relics_thirteenflames.client.AnimationsRegistry;
 import com.qurenie.relics_thirteenflames.content.entities.base.NonLivingEntity;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
+import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
 import com.qurenie.relics_thirteenflames.util.FlamesUtils;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import lombok.Getter;
@@ -151,6 +152,10 @@ public class TravellerCutEntity extends NonLivingEntity implements IAnimatedEnti
         system.tick();
         super.tick();
         this.yBodyRot = directionToYBodyRot(this.getSwordDirection());
+
+        if (tickCount == 2) {
+            playSound(getSpeed() > 1.7 ? SoundsRegistry.ADVENTURER_SWORD_UPDOWN_HIT_FAST.get() : SoundsRegistry.ADVENTURER_SWORD_UPDOWN_HIT.get(), 1, 1);
+        }
 
         float speed = getCutSpeed();
 

@@ -5,15 +5,6 @@ import com.qurenie.relics_thirteenflames.content.items.*;
 import com.qurenie.relics_thirteenflames.content.items.feather.ItemHettFeather;
 import com.qurenie.relics_thirteenflames.content.items.feather.ItemHettFeatherBook;
 import com.qurenie.relics_thirteenflames.content.items.misc.AuritekhTier;
-import it.hurts.sskirillss.relics.api.relics.RelicTemplate;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.*;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.misc.GemColor;
-import it.hurts.sskirillss.relics.items.relics.base.data.leveling.misc.GemShape;
-import it.hurts.sskirillss.relics.init.RelicsScalingModels;
-import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootTemplate;
-import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootEntry;
-import it.hurts.sskirillss.relics.items.relics.base.data.loot.misc.LootEntries;
-import it.hurts.sskirillss.relics.utils.MathUtils;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -32,7 +23,7 @@ public interface ItemsRegistry {
     
     @RegistryName("knef_bow")
     ItemKnefBow KNEF_BOW = new ItemKnefBow(props().rarity(Rarity.RARE).stacksTo(1));
-    
+
     @RegistryName("traveller_sword")
     ItemTravellerSword TRAVELLER_SWORD = new ItemTravellerSword(Tiers.DIAMOND, props().rarity(Rarity.RARE).attributes(SwordItem.createAttributes(Tiers.DIAMOND, 3, -2.4F)
             .withModifierAdded(Attributes.STEP_HEIGHT, new AttributeModifier(TRAVELLER_STEP_HEIGHT, 1, AttributeModifier.Operation.ADD_VALUE), EquipmentSlotGroup.HAND)).stacksTo(1));

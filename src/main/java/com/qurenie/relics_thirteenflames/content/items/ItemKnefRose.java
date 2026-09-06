@@ -7,6 +7,8 @@ import com.qurenie.relics_thirteenflames.content.entities.SoulOrbEntity;
 import com.qurenie.relics_thirteenflames.content.entities.SoulSpawnCarrierEntity;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
+import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
+import com.qurenie.relics_thirteenflames.net.PacketPlaySound;
 import com.qurenie.relics_thirteenflames.util.FlamesUtils;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import it.hurts.sskirillss.relics.api.events.utility.ContainerSlotClickEvent;
@@ -39,6 +41,8 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.random.WeightedRandomList;
 import net.minecraft.world.InteractionHand;
@@ -69,6 +73,7 @@ import org.zeith.hammerlib.api.fml.IRegisterListener;
 import org.zeith.hammerlib.api.io.IAutoNBTSerializable;
 import org.zeith.hammerlib.api.io.NBTSerializable;
 import org.zeith.hammerlib.api.items.IColoredFoilItem;
+import org.zeith.hammerlib.net.Network;
 import org.zeith.hammerlib.util.charging.ItemChargeHelper;
 
 import java.util.*;
@@ -293,8 +298,10 @@ public class ItemKnefRose
                     }
                 }
 
-                if (used)
+                if (used) {
                     player.getCooldowns().addCooldown(ItemsRegistry.KNEF_ROSE, SOULSAND_COOLDOWN_TICKS);
+                    level.playSound(null, origin, SoundsRegistry.KNEFMTITI_ROSE_SOUL_SAND.get(),  SoundSource.NEUTRAL, 1, 1);
+                }
 
                 event.setCanceled(true);
             }
@@ -366,7 +373,10 @@ public class ItemKnefRose
                     noGravity
             );
 
+            Network.sendToTrackingAndSelf(player,  new PacketPlaySound(player.position(),
+                    SoundsRegistry.KNEFMTITI_ROSE_GHOST_SPAWN.get(), SoundSource.PLAYERS, 0.7f, (float) (0.75f + player.getRandom().nextGaussian() * 0.5)));
             server.addFreshEntity(carrier);
+
         }
 
         return super.use(level, player, usedHand);
@@ -535,8 +545,7 @@ public class ItemKnefRose
             addSouls(e.getEntity(), stack, toAdd);
             e.getHeldStack().shrink((int) Math.ceil(toAdd / (float) perBone));
 
-            if (!e.getEntity().level().isClientSide)
-                e.setCanceled(true);
+            e.setCanceled(true);
         }
     }
 
@@ -571,6 +580,8 @@ public class ItemKnefRose
                     if (sp.getRandom().nextFloat() < spawnChance) {
                         LivingEntity ent = createLiving(sp.level(), sp, e.getEntity(), it);
 
+                        Network.sendToArea((ServerLevel) sp.level(), null, e.getEntity().position(), 20, new PacketPlaySound(e.getEntity().position(),
+                                SoundsRegistry.KNEFMTITI_ROSE_GHOST_SPAWN.get(), SoundSource.HOSTILE, 1.5f, 1f));
                         HammerLib.PROXY.queueTask(sp.level(), 15, () -> sp.level().addFreshEntity(ent));
                         return;
                     }

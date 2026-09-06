@@ -27,9 +27,15 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.level.Explosion;
+import net.minecraft.world.level.ExplosionDamageCalculator;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec2;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.attachment.AttachmentType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -183,6 +189,29 @@ public class FlamesUtils {
 
     public static int getRGB(OctoColor color) {
         return (color.getARGB() & 0xFFFFFF);
+    }
+
+    public static boolean hasLineOfSight(Level level, Player player, Vec3 target) {
+        Vec3 eyePos = player.getEyePosition();
+        ClipContext ctx = new ClipContext(
+                eyePos,
+                target,
+                ClipContext.Block.COLLIDER,
+                ClipContext.Fluid.NONE,
+                player
+        );
+        BlockHitResult clipResult = level.clip(ctx);
+        return clipResult.getType() == HitResult.Type.MISS;
+    }
+
+    public void explosionSafe(LivingEntity source, Vec3 pos, float radius, Level.ExplosionInteraction explosionInteraction) {
+        source.level().explode(source, Explosion.getDefaultDamageSource(source.level(), source),
+                new ExplosionDamageCalculator() {
+                    @Override
+                    public boolean shouldDamageEntity(@NotNull Explosion explosion, @NotNull Entity entity) {
+                        return source != entity;
+                    }
+                }, pos, radius, false, explosionInteraction);
     }
 
     public static void addAntiskint(Entity entity, int count, int maxBonus) {

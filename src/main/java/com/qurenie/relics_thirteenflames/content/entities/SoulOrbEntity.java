@@ -2,12 +2,15 @@ package com.qurenie.relics_thirteenflames.content.entities;
 
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
+import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import it.hurts.octostudios.octolib.util.OctoColor;
 import lombok.Getter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
@@ -77,6 +80,7 @@ public class SoulOrbEntity extends Entity {
 
         if (target.getBoundingBox().inflate(0.3).contains(this.position())
                 && target instanceof Player player) {
+            level().playSound(this, blockPosition(), SoundsRegistry.KNEFMTITI_ROSE_ORB.get(), SoundSource.NEUTRAL, 1, 1);
             this.kill();
             var itr = ItemChargeHelper.listPlayerInventories(player).iterator();
             while (itr.hasNext()) {

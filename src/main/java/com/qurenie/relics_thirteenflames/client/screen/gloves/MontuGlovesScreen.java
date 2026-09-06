@@ -4,6 +4,8 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.qurenie.relics_thirteenflames.ThirteenFlames;
 import com.qurenie.relics_thirteenflames.client.screen.DefaultMenuScreen;
 import com.qurenie.relics_thirteenflames.content.container.MontuGlovesContainer;
+import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -29,6 +31,7 @@ public class MontuGlovesScreen extends DefaultMenuScreen<MontuGlovesContainer> {
     }
     
     public void onCraftStarted() {
+        Minecraft.getInstance().player.playSound(SoundsRegistry.MONTU_HAMMER_GUI.get(), 1f, 1);
         smithTicker = ANIMATION_LENGTH;
     }
     

@@ -98,7 +98,7 @@ public class UsableFallingBlockEntity extends Entity {
     }
 
     /**
-     * Returns {@code true} if it's possible to attack this entity with an item.
+     * Returns {@code true} if it's possible to attack this entity with an item_.
      */
     @Override
     public boolean isAttackable() {

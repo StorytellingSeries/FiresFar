@@ -1,6 +1,8 @@
 package com.qurenie.relics_thirteenflames.client;
 
 import com.qurenie.relics_thirteenflames.ThirteenFlames;
+import it.hurts.sskirillss.relics.client.style.base.RelicStyle;
+import it.hurts.sskirillss.relics.items.relics.ClotOfTimeItem;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -13,7 +15,7 @@ import org.zeith.hammeranims.api.animation.IAnimationSource;
 import java.util.HashMap;
 import java.util.Map;
 
-@EventBusSubscriber(bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber
 public class AnimationsRegistry
 {
 

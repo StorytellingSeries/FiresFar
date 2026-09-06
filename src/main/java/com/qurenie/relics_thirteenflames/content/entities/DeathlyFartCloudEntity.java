@@ -29,8 +29,6 @@ import java.util.Random;
 
 public class DeathlyFartCloudEntity extends Projectile {
 
-
-
     Random rng = new Random();
     int dmgCD = 0;
     public DeathlyFartCloudEntity(EntityType<? extends Projectile> pEntityType, Level pLevel) {
@@ -81,7 +79,7 @@ public class DeathlyFartCloudEntity extends Projectile {
                     box.getCenter(), Math.round(radius * radius * 1.4f), box.getXsize(), box.getYsize(), box.getZsize(), 0.02, 1.2f, level().random.nextInt(30)+ 20,
                     ColorScheme.GRAY_COLOR, 0.6f);
 
-            List<LivingEntity> entities = this.level().getEntitiesOfClass(LivingEntity.class, box.inflate(box.getYsize() * 0.5f), e -> this.getOwner() != null && !e.getUUID().equals(this.getOwner().getUUID())
+            List<LivingEntity> entities = this.level().getEntitiesOfClass(LivingEntity.class, box.inflate(box.getYsize() * 0.5f), e -> this.getOwner() != null && !this.getOwner().is(e)
                     && !(e instanceof LivingFleshEntity)
                     && !(e instanceof GhostSmallEntity));
 

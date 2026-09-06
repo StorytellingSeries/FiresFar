@@ -123,7 +123,7 @@ public class ScrollOfTruthContainer extends AbstractContainerMenu {
         
         public Provider(ItemStack scroll) {
             if (scroll.getItem() != ItemsRegistry.SCROLL_OF_TRUTH) {
-                throw new IllegalStateException("Are you dumb? You should pass a scroll item!!!");
+                throw new IllegalStateException("Are you dumb? You should pass a scroll item_!!!");
             }
             this.scroll = scroll;
         }

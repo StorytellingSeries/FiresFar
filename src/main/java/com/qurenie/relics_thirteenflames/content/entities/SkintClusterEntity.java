@@ -5,6 +5,7 @@ import com.qurenie.relics_thirteenflames.client.AnimationsRegistry;
 import com.qurenie.relics_thirteenflames.content.entities.base.NonLivingEntity;
 import com.qurenie.relics_thirteenflames.content.items.misc.ScintType;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
+import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
 import com.qurenie.relics_thirteenflames.mixins.EntityAccessor;
 import com.qurenie.relics_thirteenflames.util.FlamesUtils;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
@@ -168,13 +169,15 @@ public class SkintClusterEntity extends NonLivingEntity implements IAnimatedEnti
             return;
         } else if (tickCount == CLUSTER_BORN_TICK) {
             startAnimation(false);
+            playSound(SoundsRegistry.CRYSTAL_APPEAR.get(), 0.7f, (float) (Math.random() * 0.4f + 0.8f));
             spawnBlockParticles(100, 0.3);
         } else if (tickCount == getMaxAge()) {
             startAnimation(true);
+            playSound(SoundsRegistry.CRYSTAL_DISSAPPEAR.get(), 0.7f, (float) (Math.random() * 0.4f + 0.8f));
         } else if (tickCount >= getMaxAge() && !level().isClientSide) {
             if (getAnimCompletion() > 0.7)
                 ParticleHelper.spawnParticleAABB(level(), ParticleHelper.constructSmoke(getSkintType().color, 1.1f,
-                        20).withLightning(getSkintType().lightning), this.getBoundingBox().contract(0, 2, 0), 10, 0.04);
+                        20).withLightning(getSkintType().lightning), this.getBoundingBox().contract(0, 2, 0), 8, 0.02);
             if (!hasAnimation())
                 discard();
             return;
@@ -255,7 +258,7 @@ public class SkintClusterEntity extends NonLivingEntity implements IAnimatedEnti
                     }, position(),
                     (float) (0.5 + Math.sqrt(damage)), false, Level.ExplosionInteraction.TRIGGER);
             ParticleHelper.spawnParticleEntity(ParticleHelper.constructSmoke(getSkintType().color, 0.64f,
-                    40, 0f).withLightning(getSkintType().lightning).withGravity(2f), this, 25, 0.03);
+                    40, 0f).withLightning(getSkintType().lightning).withGravity(2f), this, 13, 0.015);
         }
         remove(RemovalReason.DISCARDED);
     }
@@ -271,7 +274,7 @@ public class SkintClusterEntity extends NonLivingEntity implements IAnimatedEnti
         ParticleHelper.spawnParticleAABB(level(), ParticleHelper.constructSimpleSpark(getSkintType().color, 1f,
                 40, 0.93f).withLightning(getSkintType().lightning).withGravity(2f), this.getBoundingBox().contract(0, 2, 0), 15, 0.1);
         ParticleHelper.spawnParticleAABB(level(), ParticleHelper.constructSmoke(getSkintType().color, 0.8f,
-                40).withLightning(getSkintType().lightning), this.getBoundingBox().contract(0, 2, 0), 15, 0.05);
+                40).withLightning(getSkintType().lightning), this.getBoundingBox().contract(0, 2, 0), 10, 0.03);
         super.remove(reason);
     }
     

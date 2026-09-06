@@ -3,6 +3,7 @@ package com.qurenie.relics_thirteenflames.content.entities;
 import com.qurenie.relics_thirteenflames.client.AnimationsRegistry;
 import com.qurenie.relics_thirteenflames.content.entities.base.NonLivingEntity;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
+import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
 import com.qurenie.relics_thirteenflames.util.FlamesUtils;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import net.minecraft.nbt.CompoundTag;
@@ -175,7 +176,13 @@ public class TravellerSweepEntity extends NonLivingEntity implements IAnimatedEn
         
         setCompletion(getCompletion() + rot);
     }
-    
+
+    @Override
+    public void onAddedToLevel() {
+        super.onAddedToLevel();
+        playSound(SoundsRegistry.ADVENTURER_SWORD_SPIN_HIT.get(), 1, 1);
+    }
+
     private float getPlayerDamage(Player p, Level level, Entity entity, ItemStack stack, DamageSource source) {
         float f = (float) p.getAttributeValue(Attributes.ATTACK_DAMAGE);
         if (level instanceof ServerLevel serverlevel) {

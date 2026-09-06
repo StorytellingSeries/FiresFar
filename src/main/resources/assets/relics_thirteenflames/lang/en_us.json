@@ -6,6 +6,7 @@
     "effect.relics_thirteenflames.scint_effect": "Scint Spark",
     "effect.relics_thirteenflames.scintonit_effect": "Scintonit Spark",
     "effect.relics_thirteenflames.diability_effect": "Disability",
+    "effect.relics_thirteenflames.double_scint_effect": "Scint Rush",
     "item.relics_thirteenflames.knef_bow": "Knephmtyti's Moonbow",
     "item.relics_thirteenflames.knef_rose": "Knephmtyti's Black Rose",
     "item.relics_thirteenflames.ronas_sword": "Rhonas' Fang",
@@ -137,6 +138,7 @@
     "relics.description.hett_feather.ability.savepoint.description": "Clicking Shift + RMB on a block will spawn a Book of Rebirth, consuming 1 book from your inventory. Should you die within %1$d blocks of it, the Book instantly teleports you to itself and heals you back to full HP. Be warned - enemies can destroy the Book of Rebirth, causing you to lose %2$s% of your XP and %3$s% of your health.",
     "relics.description.hett_feather.ability.savepoint.rank_modifier.attack": "The Book of Rebirth now restores %4$s health per second and also provides a weak retaliatory strike against monsters attacking it within a small radius.",
     "relics.description.hett_feather.ability.book_slap.rank_modifier.imbalance": "The Bestiary has grown thicker; a single tome can now hold up to %5$s creature types. Hold Shift to use the existing tome when activating the ability.If the tome already contains information about the victim′s type, it restores %4$s durability.",
+    "relics.description.hett_feather.ability.lifegiving_knowledge.rank_modifier.xp": "Knowledge grants experience! Kills with the \"Thesaurus\" yield %2$d% of the creature's experience.",
 
     "relics.description.traveller_sword.description": "One of the «Flames», legendary artifacts scattered across the world. Being a shard of a Time paradox, this blade allows its wielder to travel vast distances, unbound by laws of time and space.",
     "relics.description.traveller_sword.ability.travelers_stride": "Traveler's stride",

@@ -1,5 +1,6 @@
 package com.qurenie.relics_thirteenflames.content.entities;
 
+import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
 import com.qurenie.relics_thirteenflames.util.FlamesUtils;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import it.hurts.octostudios.octolib.util.OctoColor;
@@ -15,6 +16,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
+import javax.sound.midi.spi.SoundbankReader;
 import java.util.UUID;
 
 public class JodahHealEntity extends Entity {
@@ -104,6 +106,7 @@ public class JodahHealEntity extends Entity {
             else
                 owner.heal(healingPower);
             owner.giveExperiencePoints(xpPower);
+            playSound(SoundsRegistry.LIFE_ORB_GET.get(), 0.6F, (float) (random.nextGaussian() * 0.4 + 0.8));
             kill();
             return;
         }
