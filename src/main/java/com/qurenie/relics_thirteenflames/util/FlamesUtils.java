@@ -44,7 +44,11 @@ import org.zeith.hammeranims.api.animsys.AnimationSystem;
 import org.zeith.hammeranims.api.animsys.layer.ActiveAnimation;
 import org.zeith.hammeranims.api.animsys.layer.AnimationLayer;
 import org.zeith.hammerlib.net.Network;
+import top.theillusivec4.curios.api.CuriosApi;
+import top.theillusivec4.curios.api.type.inventory.ICurioStacksHandler;
+import top.theillusivec4.curios.api.type.inventory.IDynamicStackHandler;
 
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -79,6 +83,11 @@ public class FlamesUtils {
         var default$ = stack.getOrDefault(DataComponents.ATTRIBUTE_MODIFIERS, stack.getItem().getDefaultAttributeModifiers(stack));
         default$.withModifierAdded(attribute, modifier, slot);
         stack.set(DataComponents.ATTRIBUTE_MODIFIERS, default$);
+    }
+
+    public static Optional<IDynamicStackHandler> getStackHandler(LivingEntity entity, String slot) {
+        return CuriosApi.getCuriosInventory(entity).map(handler -> handler.getCurios().get(slot))
+                .map(ICurioStacksHandler::getStacks);
     }
 
     @NotNull

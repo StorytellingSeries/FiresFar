@@ -308,13 +308,16 @@ public class ItemRonasSword extends RelicItem implements IExtRelicItem, IColored
                 
                 float glovesRangeBonus = CuriosApi.getCuriosInventory(p).map(handler -> {
                     float result = 0;
-                    
-                    ItemStack stack = handler.getCurios().get("hands").getStacks().getStackInSlot(0);
+                    var s = handler.getCurios().get("hands");
+                    if (s == null)
+                        return result;
+
+                    ItemStack stack = s.getStacks().getStackInSlot(0);
                     if (stack.is(ItemsRegistry.MONTU_GLOVES))
                         result += (float) ItemsRegistry.MONTU_GLOVES.getStatValue(p, stack, "gloves_range", "range") * 1.2f;
                     
-                    if (handler.getCurios().get("hands").getSlots() > 1) {
-                        stack = handler.getCurios().get("hands").getStacks().getStackInSlot(1);
+                    if (s.getSlots() > 1) {
+                        stack = s.getStacks().getStackInSlot(1);
                         if (stack.is(ItemsRegistry.MONTU_GLOVES))
                             result += (float) ItemsRegistry.MONTU_GLOVES.getStatValue(p, stack, "gloves_range", "range") * 1.2f;
                     }

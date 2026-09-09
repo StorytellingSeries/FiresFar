@@ -17,6 +17,7 @@ import com.qurenie.relics_thirteenflames.content.items.base.IRenderableCurioHand
 import com.qurenie.relics_thirteenflames.content.items.models.MontuGlovesArmorLeft;
 import com.qurenie.relics_thirteenflames.content.items.models.MontuGlovesArmorRight;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
+import com.qurenie.relics_thirteenflames.util.FlamesUtils;
 import it.hurts.sskirillss.relics.api.relics.RelicStatisticTemplate;
 import it.hurts.sskirillss.relics.api.relics.abilities.ExperienceSourcesTemplate;
 import it.hurts.sskirillss.relics.items.misc.CreativeContentConstructor;
@@ -243,9 +244,8 @@ public class ItemMontuGloves extends WearableRelicItem implements IActivityConta
     }
     
     private int modifyItemDamage(int damage, LivingEntity owner) {
-        return CuriosApi.getCuriosInventory(owner).map((handler) -> {
+        return FlamesUtils.getStackHandler(owner, "hands").map((stacks) -> {
             double modified = damage;
-            IDynamicStackHandler stacks = handler.getCurios().get("hands").getStacks();
             for (int i = 0; i < stacks.getSlots(); i++) {
                 ItemStack relic = stacks.getStackInSlot(i);
                 if (relic.is(this)) {
@@ -298,8 +298,11 @@ public class ItemMontuGloves extends WearableRelicItem implements IActivityConta
     public void gloveEquip(CurioChangeEvent changeEvent) {
         if (changeEvent.getTo().is(this)) {
             CuriosApi.getCuriosInventory(changeEvent.getEntity()).ifPresent(handler -> {
-                IDynamicStackHandler stacks = handler.getCurios().get("hands").getStacks();
-                if (stacks.getStackInSlot(0).isEmpty()) {
+                var stacks = handler.getCurios().get("hands");
+                if (stacks == null)
+                    return;
+
+                if (stacks.getStacks().getStackInSlot(0).isEmpty()) {
                     handler.setEquippedCurio("hands", 0, changeEvent.getTo().copy());
                     changeEvent.getTo().shrink(1);
                 }

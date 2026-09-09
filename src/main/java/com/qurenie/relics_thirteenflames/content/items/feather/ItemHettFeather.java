@@ -12,6 +12,7 @@ import com.qurenie.relics_thirteenflames.init.ComponentRegistry;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
 import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
 import com.qurenie.relics_thirteenflames.style.ColorScheme;
+import com.qurenie.relics_thirteenflames.util.FlamesUtils;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import it.hurts.sskirillss.relics.api.relics.abilities.ExperienceSourcesTemplate;
 import it.hurts.sskirillss.relics.items.misc.CreativeContentConstructor;
@@ -295,8 +296,7 @@ public class ItemHettFeather extends RelicItem implements IExtRelicItem, IRegist
                         vortexEntity.setBookXp(getStatValue(player, stack, "lifegiving_knowledge", "book_xp"));
                     player.level().addFreshEntity(vortexEntity);
                 } else if (hasRangModifier(player, stack, "book_slap", "imbalance")) {
-                    var book = CuriosApi.getCuriosInventory(player).map((handler) -> {
-                        IDynamicStackHandler stacks = handler.getCurios().get("charm").getStacks();
+                    var book = FlamesUtils.getStackHandler(player, "charm").map(stacks -> {
                         for (int i = 0; i < stacks.getSlots(); i++) {
                             ItemStack b = stacks.getStackInSlot(i);
                             if (b.getItem() instanceof ItemHettFeatherBook bookItem) {

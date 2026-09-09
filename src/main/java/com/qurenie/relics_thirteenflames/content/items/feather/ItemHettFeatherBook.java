@@ -1,6 +1,7 @@
 package com.qurenie.relics_thirteenflames.content.items.feather;
 
 import com.qurenie.relics_thirteenflames.init.ComponentRegistry;
+import com.qurenie.relics_thirteenflames.util.FlamesUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -47,8 +48,7 @@ public class ItemHettFeatherBook extends Item implements ICurioItem {
         if (e == null)
             return;
         if (event.getEntity() instanceof LivingEntity living)
-            CuriosApi.getCuriosInventory(living).ifPresent((handler) -> {
-                IDynamicStackHandler stacks = handler.getCurios().get("charm").getStacks();
+            FlamesUtils.getStackHandler(living, "charm").ifPresent((stacks) -> {
                 for (int i = 0; i < stacks.getSlots(); i++) {
                     ItemStack stack = stacks.getStackInSlot(i);
                     if (stack.getItem() instanceof ItemHettFeatherBook book) {
@@ -66,8 +66,7 @@ public class ItemHettFeatherBook extends Item implements ICurioItem {
         if (!(event.getSource().getEntity() instanceof LivingEntity living))
             return;
         
-        CuriosApi.getCuriosInventory(living).ifPresent((handler) -> {
-            IDynamicStackHandler stacks = handler.getCurios().get("charm").getStacks();
+        FlamesUtils.getStackHandler(living, "charm").ifPresent((stacks) -> {
             for (int i = 0; i < stacks.getSlots(); i++) {
                 ItemStack stack = stacks.getStackInSlot(0);
                 if (stack.getItem() instanceof ItemHettFeatherBook book) {

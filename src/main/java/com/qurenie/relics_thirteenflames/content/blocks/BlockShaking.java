@@ -38,6 +38,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnknownNullability;
 import org.zeith.hammeranims.api.animation.interp.DoubleInterpolation;
 import org.zeith.hammeranims.api.animation.interp.InterpolatedDouble;
+import org.zeith.hammeranims.api.animation.interp.Query;
 import org.zeith.hammeranims.api.animation.interp.Vec3Animation;
 import org.zeith.hammerlib.api.blocks.INoItemBlock;
 import org.zeith.hammerlib.api.forge.BlockAPI;
@@ -54,12 +55,14 @@ public class BlockShaking extends BaseEntityBlock implements INoItemBlock
 {
     protected static final HashMap<String, ShakeBehavior> REGISTRY = new HashMap<>();
 
+    public static final Query QUERY = new Query();
+
     public static final ShakeBehavior BEHAVIOR_JUMP = register(new ShakeBehavior("jump", 1F,
             new Vec3Animation(new DoubleInterpolation(
                     InterpolatedDouble.constant(0),
                     InterpolatedDouble.parse("math.sin(query.anim_time * 180)"),
                     InterpolatedDouble.constant(0)
-            ))
+            ), QUERY)
     ));
 
     public static final ShakeBehavior BEHAVIOR_RAISE = register(new ShakeBehavior("raise", 1F,
@@ -67,7 +70,7 @@ public class BlockShaking extends BaseEntityBlock implements INoItemBlock
                     InterpolatedDouble.constant(0),
                     InterpolatedDouble.parse("-math.cos(query.anim_time * 90)"),
                     InterpolatedDouble.constant(0)
-            ))
+            ), QUERY)
     ));
     
     public static final MapCodec<BlockShaking> CODEC = simpleCodec(BlockShaking::new);

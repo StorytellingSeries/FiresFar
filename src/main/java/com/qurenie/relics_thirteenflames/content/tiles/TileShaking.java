@@ -19,7 +19,9 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import org.joml.Vector3d;
 import org.zeith.hammeranims.api.animation.interp.Query;
+import org.zeith.hammeranims.api.animation.interp.Vec3Animation;
 import org.zeith.hammerlib.api.io.NBTSerializable;
 import org.zeith.hammerlib.net.Network;
 import org.zeith.hammerlib.net.properties.PropertyBlockState;
@@ -46,8 +48,11 @@ public class TileShaking
 
     @NBTSerializable("Fragile")
     protected boolean _fragile;
-    
+
     protected BlockShaking.ShakeBehavior _behavior = BlockShaking.BEHAVIOR_JUMP;
+
+    // Хранилище переменных для LZ-анимации (query.anim_time, query.anim_length и т.д.)
+    public final Query query = new Query();
 
     // -- Properties for sync --
     protected final PropertyFloat speed = new PropertyFloat(DirectStorage.create(__ -> _speed = __, () -> _speed));
@@ -55,10 +60,12 @@ public class TileShaking
     protected final PropertyBlockState state = new PropertyBlockState(DirectStorage.create(nv -> _state = nv == null ? Blocks.AIR.defaultBlockState() : nv, () -> _state));
     protected final PropertyBool physicallyShift = new PropertyBool(DirectStorage.create(nv -> _physicallyShift = nv, () -> _physicallyShift));
     protected final PropertyBool fragile = new PropertyBool(DirectStorage.create(nv -> _fragile = nv, () -> _fragile));
-    protected final PropertyString behavior = new PropertyString(DirectStorage.create(__ -> _behavior = BlockShaking.getBehavior(__), () -> _behavior.id()));
+    protected final PropertyString behavior = new PropertyString(DirectStorage.create(__ -> {
+        _behavior = BlockShaking.getBehavior(__);
+    }, () -> _behavior.id()));
     // -------------------------
-    
-    
+
+
     @Override
     protected void saveAdditional(CompoundTag nbt, HolderLookup.Provider provider) {
         nbt.putString("behaviour", _behavior.id());
@@ -67,7 +74,7 @@ public class TileShaking
         nbt.putBoolean("fragile", _fragile);
         nbt.putFloat("speed", _speed);
     }
-    
+
     @Override
     public void readNBT(CompoundTag nbt, HolderLookup.Provider provider) {
         _behavior = BlockShaking.getBehavior(nbt.getString("behaviour"));
@@ -76,7 +83,7 @@ public class TileShaking
         _fragile = nbt.getBoolean("fragile");
         _speed = nbt.getFloat("speed");
     }
-    
+
     public TileShaking(BlockEntityType<?> type, BlockPos pos, BlockState state)
     {
         super(type, pos, state);
@@ -96,16 +103,14 @@ public class TileShaking
         this.fragile.setBool(behavior.fragile());
     }
 
-    public final Query query = new Query();
-
     @Override
     public void update()
     {
         Vec3 prevOffset = getOffset(0F);
         VoxelShape prev = getBlock().getShape(level, worldPosition);
 
-        query.anim_duration = query.anim_length = _behavior.duration();
-        query.anim_time = ticksExisted * 0.05F * _speed;
+        BlockShaking.QUERY.anim_length = _behavior.duration();
+        BlockShaking.QUERY.anim_time = ticksExisted * 0.05F * _speed;
 
         Vec3 curOffset = getOffset(1F);
 
@@ -131,7 +136,7 @@ public class TileShaking
             }
         }
 
-        if(query.anim_time >= query.anim_duration)
+        if(BlockShaking.QUERY.anim_time >= BlockShaking.QUERY.anim_length)
         {
             deform();
         }
@@ -139,8 +144,9 @@ public class TileShaking
 
     public Vec3 getOffset(float partialTicks)
     {
-        query.anim_time = Math.min((ticksExisted + partialTicks) * 0.05F * _speed, _behavior.duration());
-        return _behavior.animation().get(query).scale(_intensity);
+        BlockShaking.QUERY.anim_time = Math.min((ticksExisted + partialTicks) * 0.05F * _speed, _behavior.duration());
+        var v = _behavior.animation().get();
+        return new Vec3(v.x, v.y, v.z).scale(_intensity);
     }
 
     public void setBlock(BlockState state)
@@ -160,7 +166,6 @@ public class TileShaking
         Vec3 vec3 = Vec3.atCenterOf(dst).add(getOffset(1F));
         if(_physicallyShift) dst = new BlockPos((int) vec3.x, (int) vec3.y, (int) vec3.z);
 
-        // if fragile, we don't place the block back
         if(_fragile)
         {
             if(level instanceof ServerLevel sl)
@@ -179,10 +184,7 @@ public class TileShaking
 
                 ParticleHelper.spawnParticleAABB(level, fx, prevAABB, 500, 0.01);
                 var sound = st.getBlock().getSoundType(st, level, worldPosition, null);
-//                ScriptUses.playSoundAt(prevAABB.getCenter(), sound.getBreakSound(), SoundSource.BLOCKS, sound.getVolume(), sound.getPitch() * 0.8F)
-//                        .run();
                 Network.sendToAll(new PacketPlaySound(prevAABB.getCenter(), sound.getBreakSound(), SoundSource.BLOCKS, sound.getVolume(), sound.getPitch() * 0.8F));
-                //level.playSound(null, new BlockPos(prevAABB.getCenter()), sound.getBreakSound(), SoundSource.BLOCKS, sound.getVolume(), sound.getPitch() * 0.8F);
             }
 
             level.removeBlock(worldPosition, true);
@@ -197,5 +199,5 @@ public class TileShaking
     {
         return _physicallyShift;
     }
-    
+
 }

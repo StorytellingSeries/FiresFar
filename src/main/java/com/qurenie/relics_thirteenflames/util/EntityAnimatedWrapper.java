@@ -19,11 +19,12 @@ import static net.neoforged.neoforge.common.NeoForge.EVENT_BUS;
 @Getter
 public class EntityAnimatedWrapper implements IAnimatedObject {
     
-    protected final AnimationSystem animationSystem = AnimationSystem.create(this);
+    protected final AnimationSystem animationSystem;
     protected final Entity entity;
     
     public EntityAnimatedWrapper(Entity entity) {
         this.entity = entity;
+        animationSystem = AnimationSystem.create(this);
         if (!entity.isRemoved())
             EVENT_BUS.register(this);
     }

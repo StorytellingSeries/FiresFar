@@ -106,7 +106,7 @@ dependencies {
 //    implementation "maven.modrinth:relics:1.21.1-0.12.7"
     implementation "dev.architectury:architectury-neoforge:13.0.6"
     implementation "curse.maven:hammer-lib-247401:5739162"
-    implementation "curse.maven:hammer-animations-899883:5641254"
+    implementation "curse.maven:hammer-animations-899883:8225337"
     compileOnly("mezz.jei:jei-1.21.1-neoforge-api:19.22.0.315")
     runtimeOnly("mezz.jei:jei-1.21.1-neoforge:19.22.0.315")
 

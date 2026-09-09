@@ -3,19 +3,13 @@ package com.qurenie.relics_thirteenflames.mixins.client;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.qurenie.relics_thirteenflames.client.render.entity.IJodahGlowed;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
-import org.spongepowered.asm.mixin.injection.ModifyVariable;
-
-import javax.annotation.Nullable;
 
 @Mixin(LevelRenderer.class)
 public class LevelRendererMixin {

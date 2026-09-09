@@ -6,12 +6,9 @@ import com.qurenie.relics_thirteenflames.ThirteenFlames;
 import com.qurenie.relics_thirteenflames.client.screen.DefaultMenuScreen;
 import com.qurenie.relics_thirteenflames.content.container.MontuCompositeContainer;
 import com.qurenie.relics_thirteenflames.net.MontuMenuTypePacket;
-import mezz.jei.api.gui.handlers.IGuiContainerHandler;
-import net.minecraft.BlockUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
@@ -23,10 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.zeith.hammerlib.net.Network;
 
-import java.util.List;
-
-public class MontuCompositeScreen extends DefaultMenuScreen<MontuCompositeContainer>
-implements IGuiContainerHandler<MontuCompositeScreen> {
+public class MontuCompositeScreen extends DefaultMenuScreen<MontuCompositeContainer> {
     
     public static final ResourceLocation GLOVES_GUI = ThirteenFlames.rl("textures/gui/gloves/montu_gloves.png");
     private static final int GLOVES_HEIGHT = 184;

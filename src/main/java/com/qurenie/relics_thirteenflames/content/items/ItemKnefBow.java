@@ -332,10 +332,8 @@ public class ItemKnefBow extends RelicItem implements IExtRelicItem, IColoredFoi
     }
 
     private static boolean hasGloves(Entity entity) {
-        return entity instanceof LivingEntity living && CuriosApi.getCuriosInventory(living).map(handler -> {
-            var stacks = handler.getCurios().get("hands").getStacks();
-            return stacks.getStackInSlot(0).is(ItemsRegistry.MONTU_GLOVES) || stacks.getStackInSlot(0).is(ItemsRegistry.MONTU_GLOVES);
-        }).orElse(false);
+        return entity instanceof LivingEntity living && FlamesUtils.getStackHandler(living, "hands").map( stacks ->
+                stacks.getStackInSlot(0).is(ItemsRegistry.MONTU_GLOVES) || stacks.getStackInSlot(0).is(ItemsRegistry.MONTU_GLOVES)).orElse(false);
     }
 
     @Override
