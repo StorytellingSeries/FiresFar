@@ -24,7 +24,8 @@ public class MaskDarkStarPacket implements IPacket {
     
     @Override
     public void read(RegistryFriendlyByteBuf buf) {
-        if (buf.readBoolean())
+        hasTarget = buf.readBoolean();
+        if (hasTarget)
             this.entityId = buf.readInt();
     }
     

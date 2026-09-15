@@ -32,7 +32,6 @@ import it.hurts.sskirillss.relics.items.relics.base.data.research.ResearchTempla
 import it.hurts.sskirillss.relics.utils.MathUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.Particle;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.core.Holder;
@@ -559,7 +558,7 @@ public class ItemSeliasetHorn extends RelicItem implements IExtRelicItem, IColor
             }
             if (this.unconfirmedDuration == 0 && fadeDirection > 0) this.fadeOut();
             fade = Mth.clamp(fade + fadeDirection, 0, 1);
-            LocalPlayer player = Minecraft.getInstance().player;
+            Player player = Minecraft.getInstance().player;
             this.volume = (float) Mth.clamp(player == null ? 0 : 25f / player.distanceToSqr(originPos), 0.0F, 1.0F) * fade;
             this.unconfirmedDuration = Math.max(0, this.unconfirmedDuration - 1);
         }

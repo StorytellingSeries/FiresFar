@@ -11,7 +11,6 @@ import com.qurenie.relics_thirteenflames.activity.RelicActivitySetting;
 import com.qurenie.relics_thirteenflames.activity.call.settings.ActivityResult;
 import com.qurenie.relics_thirteenflames.activity.call.settings.InventoryType;
 import com.qurenie.relics_thirteenflames.activity.call.settings.RelicsActivityCallSettings;
-import com.qurenie.relics_thirteenflames.client.ClientModEvents;
 import com.qurenie.relics_thirteenflames.client.particles.FeatherParticle;
 import com.qurenie.relics_thirteenflames.client.render.entity.IJodahGlowed;
 import com.qurenie.relics_thirteenflames.content.entities.MeteorEntity;
@@ -89,7 +88,6 @@ import org.zeith.hammerlib.net.Network;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.stream.IntStream;
 
 import static com.qurenie.relics_thirteenflames.style.ColorScheme.*;
 import static com.qurenie.relics_thirteenflames.util.FlamesUtils.hasLineOfSight;
@@ -99,6 +97,8 @@ public class ItemJodahMask extends ArmorItem implements IActivityContainer, IExt
     public ItemJodahMask(Holder<ArmorMaterial> material, Type type, Properties properties) {
         super(material, type, properties);
     }
+
+    public static boolean isMeteorTargetActive;
 
     private static boolean isWalkable(Level level, Player player, Vec3 targetPos) {
         if (player.isSpectator())
@@ -355,7 +355,7 @@ public class ItemJodahMask extends ArmorItem implements IActivityContainer, IExt
                                 })
                                 .inventoryType(InventoryType.ARMOR)
                                 .selectionNotify((l, s, c) ->
-                                            ClientModEvents.MeteorOverlay.setActive(hasRangModifier(l, s, "dark_star", "target") && !c.isRemoved()))
+                                        isMeteorTargetActive = hasRangModifier(l, s, "dark_star", "target") && !c.isRemoved())
                                 .build())
                         .showBar((s, p) -> false)
                         .build())
@@ -549,8 +549,14 @@ public class ItemJodahMask extends ArmorItem implements IActivityContainer, IExt
     public ActivityResult castSparkslip(LivingEntity living, ItemStack stack) {
         Level level = living.level();
 
-        if (!level.isClientSide || !(living instanceof Player player))
+        if (!(living instanceof Player player))
             return ActivityResult.FAILURE;
+
+        if (!level.isClientSide && stack.has(ComponentRegistry.TELEPORTING)) {
+            stack.set(ComponentRegistry.TELEPORTING, false);
+            setMaxCooldown(player, stack, "sparkslip");
+            return ActivityResult.SUCCESS;
+        }
 
         double distance = getStatValue(player, stack, "sparkslip", "range");
         HitResult result = getVisibleTarget(player, distance);
@@ -661,7 +667,9 @@ public class ItemJodahMask extends ArmorItem implements IActivityContainer, IExt
         if (ticks <= 0)
             return;
 
-        if (player.isShiftKeyDown()) {
+        stack.set(ComponentRegistry.ACTIVE_TICK, ticks - 1);
+
+        if (player.isShiftKeyDown() || ticks - 1 == 0) {
             onScintGenesisEnd(player, stack);
 
             return;
@@ -909,8 +917,8 @@ public class ItemJodahMask extends ArmorItem implements IActivityContainer, IExt
             player.swing(player.getMainHandItem().getItem() == ItemsRegistry.JODAH_STAFF ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND, true);
         }
 
+        stack.set(ComponentRegistry.TELEPORTING, true);
         addExperience(player, stack, 2);
-        setMaxCooldown(player, stack, "sparkslip");
     }
 
     private float getPlayerDamage(Player p, Level level, Entity entity, ItemStack stack, DamageSource source) {
@@ -1042,6 +1050,15 @@ public class ItemJodahMask extends ArmorItem implements IActivityContainer, IExt
                 event.setCanceled(true);
         }
 
+
+        @SubscribeEvent
+        public static void activityEvent(ActivityCallEvent.Post event) {
+            if (event.getPlayer().hasData(AttachmentsRegistry.PLANESHIFT_TICK)
+                && !event.getSetting().getName().contains("planeshift")) {
+                ItemsRegistry.JODAH_MASK.onPlaneshiftEnd(event.getPlayer());
+            }
+        }
+
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -1079,7 +1096,8 @@ public class ItemJodahMask extends ArmorItem implements IActivityContainer, IExt
         @SubscribeEvent
         public static void activityEvent(ActivityCallEvent.Visible event) {
             Player player = Minecraft.getInstance().player;
-            if (player != null && (player.hasData(AttachmentsRegistry.PLANESHIFT_TICK))) {
+            if (player != null && (player.hasData(AttachmentsRegistry.PLANESHIFT_TICK))
+                && !event.getStack().is(ItemsRegistry.JODAH_MASK)) {
                 event.setVisible(false);
             }
         }

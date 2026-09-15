@@ -282,8 +282,6 @@ public class ItemRonasSword extends RelicItem implements IExtRelicItem, IColored
         super.inventoryTick(stack, level, entity, slot, isSelected);
         if (entity instanceof Player player && stack.is(this)) {
 
-            //if(player instanceof LocalPlayer lp) lp.chatSigned(String.valueOf(lp.getXRot()), null);
-
             if ( !level.isClientSide() && (!player.hasEffect(EffectsRegistry.ANEMIA)
                     || (player.hasEffect(EffectsRegistry.ANEMIA) && player.getEffect(EffectsRegistry.ANEMIA).getDuration() < 21))) {
                 int amp = (int) getStatValue(player, stack, "anemia", "amp");
@@ -473,7 +471,7 @@ public class ItemRonasSword extends RelicItem implements IExtRelicItem, IColored
     @SubscribeEvent
     public static void onHitBlock(PlayerInteractEvent.LeftClickBlock event) {
         if(!event.getItemStack().is(ItemsRegistry.RONAS_SWORD)) return;
-        if (event.getAction() != PlayerInteractEvent.LeftClickBlock.Action.ABORT) return;
+        if (event.getAction() != PlayerInteractEvent.LeftClickBlock.Action.START) return;
 
         if (event.getEntity().level().isClientSide)
             Network.sendToServer(new RhonasSweepPacket(event.getItemStack()));

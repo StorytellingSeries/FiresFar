@@ -11,7 +11,6 @@ import com.qurenie.relics_thirteenflames.net.EntityPacket;
 import com.qurenie.relics_thirteenflames.util.FlamesUtils;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
@@ -23,13 +22,16 @@ import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,7 +46,7 @@ import java.util.function.Supplier;
 
 import static net.neoforged.neoforge.common.NeoForge.EVENT_BUS;
 
-public class AuritekhElytraItem extends ElytraItem implements IRegisterListener, IArmor {
+public class AuritekhElytraItem extends ElytraItem implements IArmor {
     
     protected final ArmorItem.Type type;
     protected final Holder<ArmorMaterial> material;
@@ -106,56 +108,6 @@ public class AuritekhElytraItem extends ElytraItem implements IRegisterListener,
 
         super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
     }
-
-    @SubscribeEvent
-    public void onClientTick(ClientTickEvent.Post event) {
-        Minecraft mc = Minecraft.getInstance();
-        if (mc.player == null) return;
-        
-        LocalPlayer player = mc.player;
-        
-        // Проверяем, летит ли на элитрах
-        ItemStack stack = player.getItemBySlot(EquipmentSlot.CHEST);
-        
-        if (player.isFallFlying() && stack.is(this) && Minecraft.getInstance().screen == null) {
-            long window = mc.getWindow().getWindow();
-            if (InputConstants.isKeyDown(window, GLFW.GLFW_KEY_LEFT_CONTROL)) {
-                Network.sendToServer(new EntityPacket(player.getId()) {
-                    
-                    @Override
-                    public void serverExecute(PacketContext ctx) {
-                        super.serverExecute(ctx);
-                        
-                        if (!(getEntity(ctx.getLevel()) instanceof ServerPlayer p))
-                            return;
-                        
-                        ItemStack stack = p.getItemBySlot(EquipmentSlot.CHEST);
-                        if (!stack.is(ItemsRegistry.AURITEKH_ELYTRA))
-                            return;
-                        
-                        int cooldown = stack.getOrDefault(ComponentRegistry.ACTIVE_TICK, 0);
-                        if (cooldown > 0)
-                            return;
-                        
-                        Vec3 look = p.getLookAngle();
-                        Vec3 boost = look.scale(0.8);
-                        
-                        ParticleHelper.spawnParticles(p.level(), ParticleHelper.constructSimpleSpark(FlamesUtils.fromRGBI(239, 215, 182), 0.4f, 60, 0.97f),
-                                p.getBoundingBox().getCenter(), 20, 0.15, 0.15, 0.15, 0.02);
-                        ParticleHelper.spawnParticles(p.level(), ParticleHelper.constructSimpleSpark(FlamesUtils.fromRGBI(4,136,247), 0.35f, 50, 0.95f).withGravity(1.4f),
-                                p.getBoundingBox().getCenter(), 30, 0.1, 0.1, 0.1, 0.4);
-                        ParticleHelper.spawnParticles(p.level(), ParticleHelper.constructSmoke(FlamesUtils.fromRGBI(4,136,247), 1f, 70, 0f),
-                                p.getBoundingBox().getCenter(), 40, 0.1, 0.1, 0.1, 0.03);
-                        
-                        p.setDeltaMovement(p.getDeltaMovement().add(boost));
-                        p.connection.send(new ClientboundSetEntityMotionPacket(p));
-                        stack.set(ComponentRegistry.ACTIVE_TICK, 70);
-                    }
-                });
-                
-            }
-        }
-    }
     
     @Override
     public @NotNull ItemAttributeModifiers getDefaultAttributeModifiers() {
@@ -196,11 +148,6 @@ public class AuritekhElytraItem extends ElytraItem implements IRegisterListener,
     }
     
     @Override
-    public void onPostRegistered(ResourceLocation id) {
-        EVENT_BUS.register(this);
-    }
-    
-    @Override
     public @NotNull Holder<ArmorMaterial> getMaterial() {
         return ArmorMaterialRegistry.MONTU_SMITH_TYPE;
     }
@@ -214,5 +161,60 @@ public class AuritekhElytraItem extends ElytraItem implements IRegisterListener,
     public @NotNull Item self() {
         return this;
     }
-    
+
+    @EventBusSubscriber(Dist.CLIENT)
+    public static class ClientEventHandler {
+
+        @SubscribeEvent
+        public static void onClientTick(ClientTickEvent.Post event) {
+            Minecraft mc = Minecraft.getInstance();
+            if (mc.player == null) return;
+
+            Player player = mc.player;
+
+            // Проверяем, летит ли на элитрах
+            ItemStack stack = player.getItemBySlot(EquipmentSlot.CHEST);
+
+            if (player.isFallFlying() && stack.is(ItemsRegistry.AURITEKH_ELYTRA) && Minecraft.getInstance().screen == null) {
+                long window = mc.getWindow().getWindow();
+                if (InputConstants.isKeyDown(window, GLFW.GLFW_KEY_LEFT_CONTROL)) {
+                    Network.sendToServer(new EntityPacket(player.getId()) {
+
+                        @Override
+                        public void serverExecute(PacketContext ctx) {
+                            super.serverExecute(ctx);
+
+                            if (!(getEntity(ctx.getLevel()) instanceof ServerPlayer p))
+                                return;
+
+                            ItemStack stack = p.getItemBySlot(EquipmentSlot.CHEST);
+                            if (!stack.is(ItemsRegistry.AURITEKH_ELYTRA))
+                                return;
+
+                            int cooldown = stack.getOrDefault(ComponentRegistry.ACTIVE_TICK, 0);
+                            if (cooldown > 0)
+                                return;
+
+                            Vec3 look = p.getLookAngle();
+                            Vec3 boost = look.scale(0.8);
+
+                            ParticleHelper.spawnParticles(p.level(), ParticleHelper.constructSimpleSpark(FlamesUtils.fromRGBI(239, 215, 182), 0.4f, 60, 0.97f),
+                                    p.getBoundingBox().getCenter(), 20, 0.15, 0.15, 0.15, 0.02);
+                            ParticleHelper.spawnParticles(p.level(), ParticleHelper.constructSimpleSpark(FlamesUtils.fromRGBI(4,136,247), 0.35f, 50, 0.95f).withGravity(1.4f),
+                                    p.getBoundingBox().getCenter(), 30, 0.1, 0.1, 0.1, 0.4);
+                            ParticleHelper.spawnParticles(p.level(), ParticleHelper.constructSmoke(FlamesUtils.fromRGBI(4,136,247), 1f, 70, 0f),
+                                    p.getBoundingBox().getCenter(), 40, 0.1, 0.1, 0.1, 0.03);
+
+                            p.setDeltaMovement(p.getDeltaMovement().add(boost));
+                            p.connection.send(new ClientboundSetEntityMotionPacket(p));
+                            stack.set(ComponentRegistry.ACTIVE_TICK, 70);
+                        }
+                    });
+
+                }
+            }
+        }
+
+    }
+
 }

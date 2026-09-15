@@ -7,21 +7,16 @@ import com.qurenie.api.event.AnvilEnchantmentMergeEvent;
 import com.qurenie.api.event.AnvilRepairPostCountEvent;
 import com.qurenie.api.event.AnvilUpdatePostEvent;
 import com.qurenie.api.event.ItemHurtEvent;
-import com.qurenie.relics_thirteenflames.ThirteenFlames;
 import com.qurenie.relics_thirteenflames.activity.ActivitySetting;
 import com.qurenie.relics_thirteenflames.activity.IActivitySetting;
 import com.qurenie.relics_thirteenflames.activity.call.settings.*;
 import com.qurenie.relics_thirteenflames.content.container.MontuCompositeContainer;
 import com.qurenie.relics_thirteenflames.content.container.MontuGlovesContainer;
-import com.qurenie.relics_thirteenflames.content.items.base.IRenderableCurioHand;
-import com.qurenie.relics_thirteenflames.content.items.models.MontuGlovesArmorLeft;
-import com.qurenie.relics_thirteenflames.content.items.models.MontuGlovesArmorRight;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
 import com.qurenie.relics_thirteenflames.util.FlamesUtils;
 import it.hurts.sskirillss.relics.api.relics.RelicStatisticTemplate;
 import it.hurts.sskirillss.relics.api.relics.abilities.ExperienceSourcesTemplate;
 import it.hurts.sskirillss.relics.items.misc.CreativeContentConstructor;
-import it.hurts.sskirillss.relics.items.relics.base.RelicItem;
 import it.hurts.sskirillss.relics.items.relics.base.WearableRelicItem;
 import it.hurts.sskirillss.relics.items.relics.base.data.RelicAttributeModifier;
 import it.hurts.sskirillss.relics.api.relics.RelicTemplate;
@@ -35,26 +30,18 @@ import it.hurts.sskirillss.relics.items.relics.base.data.loot.LootTemplate;
 import it.hurts.sskirillss.relics.items.relics.base.data.loot.misc.LootEntries;
 import it.hurts.sskirillss.relics.items.relics.base.data.research.ResearchTemplate;
 import it.hurts.sskirillss.relics.utils.MathUtils;
-import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.model.HumanoidModel;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AnvilMenu;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.common.util.TriState;
 import net.neoforged.neoforge.event.entity.player.AnvilRepairEvent;
-import org.apache.logging.log4j.util.Lazy;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.zeith.hammerlib.api.fml.IRegisterListener;
 import org.zeith.hammerlib.util.charging.ItemChargeHelper;
@@ -68,13 +55,8 @@ import java.util.stream.IntStream;
 
 import static net.neoforged.neoforge.common.NeoForge.EVENT_BUS;
 
-public class ItemMontuGloves extends WearableRelicItem implements IActivityContainer, IRegisterListener, IRenderableCurioHand, IExtRelicItem {
+public class ItemMontuGloves extends WearableRelicItem implements IActivityContainer, IRegisterListener, IExtRelicItem {
 
-    private static final Lazy<HumanoidModel<? extends LivingEntity>> RIGHT = Lazy.lazy(() -> new MontuGlovesArmorRight<>(Minecraft.getInstance().getEntityModels().bakeLayer(MontuGlovesArmorRight.LAYER_LOCATION)));
-    private static final Lazy<HumanoidModel<? extends LivingEntity>> RIGHT_FLAWLESS = Lazy.lazy(() -> new MontuGlovesArmorRight.Flawless<>(Minecraft.getInstance().getEntityModels().bakeLayer(MontuGlovesArmorRight.Flawless.LAYER_LOCATION)));
-    private static final Lazy<HumanoidModel<? extends LivingEntity>> LEFT = Lazy.lazy(() -> new MontuGlovesArmorLeft<>(Minecraft.getInstance().getEntityModels().bakeLayer(MontuGlovesArmorLeft.LAYER_LOCATION)));
-    private static final Lazy<HumanoidModel<? extends LivingEntity>> LEFT_FLAWLESS = Lazy.lazy(() -> new MontuGlovesArmorLeft.Flawless<>(Minecraft.getInstance().getEntityModels().bakeLayer(MontuGlovesArmorLeft.Flawless.LAYER_LOCATION)));
-    private static final ResourceLocation TEXTURE = ThirteenFlames.rl("textures/armor/montu_gloves.png");
     //TODO:
     public ItemMontuGloves(Properties properties) {
         super();
@@ -400,22 +382,6 @@ public class ItemMontuGloves extends WearableRelicItem implements IActivityConta
                 break;
             }
         });
-    }
-    
-    @Override
-    public HumanoidModel<? extends LivingEntity> getModel(Player player, ItemStack stack, HumanoidArm arm) {
-        boolean flawless = getRelicData(player, stack).isFlawless();
-        return flawless ? arm == HumanoidArm.LEFT ? LEFT_FLAWLESS.get() : RIGHT_FLAWLESS.get() : arm == HumanoidArm.LEFT ? LEFT.get() : RIGHT.get();
-    }
-    
-    @Override
-    public ResourceLocation getTexture(Player player, ItemStack stack, HumanoidArm arm) {
-        boolean flawless = getRelicData(player, stack).isFlawless();
-        return flawless ? getFlawlessLocation(player.tickCount / 2) : TEXTURE;
-    }
-
-    private ResourceLocation getFlawlessLocation(int tickCount) {
-        return ThirteenFlames.rl(String.format("textures/armor/montu_glove_upgraded%d.png", tickCount % 6 + 1));
     }
 
 }

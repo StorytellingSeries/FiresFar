@@ -11,10 +11,12 @@ import com.qurenie.relics_thirteenflames.init.ComponentRegistry;
 import com.qurenie.relics_thirteenflames.init.EntityModels;
 import com.qurenie.relics_thirteenflames.init.register.RendererFactory;
 import com.qurenie.relics_thirteenflames.mixins.client.BakedOverrideAccessor;
+import it.hurts.sskirillss.relics.api.relics.IRelicItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.ItemOverrides;
+import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
@@ -46,11 +48,11 @@ public class JodahStaffItemRenderer extends ZeithTechISTER {
         if (!isFlawless) {
             int rank = JodahTier.values().length - tier.ordinal();
 
-            ResourceLocation texture = !isFlawless ? ThirteenFlames.rl(String.format("textures/item/jodah_staff_rank%d%s.png",
-                    rank, active ? "_purple" : "")) : getFlawlessTexture(rank, active, false);
+            ResourceLocation texture = ThirteenFlames.rl(String.format("textures/item/jodah_staff_rank%d%s.png",
+                                rank, active ? "_purple" : ""));
 
-            ResourceLocation textureEmissive = !isFlawless ? ThirteenFlames.rl(String.format("textures/item/jodah_staff_rank%d%s_emissive.png",
-                    rank, active ? "_purple" : "")) : getFlawlessTexture(rank, active, true);
+            ResourceLocation textureEmissive = ThirteenFlames.rl(String.format("textures/item/jodah_staff_rank%d%s_emissive.png",
+                                rank, active ? "_purple" : ""));
 
             applyTrasforms(pose, transformType);
 
@@ -61,22 +63,23 @@ public class JodahStaffItemRenderer extends ZeithTechISTER {
             model.renderToBuffer(pose, emissive, uv2, overlay);
         } else {
             var mc = Minecraft.getInstance();
-            var ir = mc.getItemRenderer();
 
-            var isterModel = ir.getModel(stack, mc.level, mc.player, 0);
-            var overrides = isterModel.getOverrides().getOverrides();
+            int rank = Math.min(3, (JodahTier.values().length - 1) - tier.ordinal());
+            String prefix = String.format("item/jodah_staff_%d%s_flawless", rank, active ? "_active" : "");
+            ResourceLocation baseLoc = ThirteenFlames.rl(prefix);
+            ModelResourceLocation modelLoc = ModelResourceLocation.standalone(baseLoc);
 
-            int idx = 7 - (Math.min(3, (JodahTier.values().length - 1) - tier.ordinal()) + (active ? 0 : 4));
-            var current = overrides.get(idx);
+            var resolvedModel = mc.getModelManager().getModel(modelLoc);
+            var currentOverrides = resolvedModel.getOverrides().getOverrides();
 
-            var currentOverrides = ((BakedOverrideAccessor) current).getModel().getOverrides().getOverrides();
+            if (currentOverrides.size() < 2) {
+                ThirteenFlames.LOGGER.warn("Jodah staff: expected base+emissive for {}, got {}", modelLoc, currentOverrides.size());
+                return;
+            }
 
             for (int k = currentOverrides.size() - 1; k >= 0; k--) {
                 var override = currentOverrides.get(k);
-
-                int lightmap = uv2;
-                if (k == 0) lightmap = 16711935;
-
+                int lightmap = (k == 0) ? 16711935 : uv2;
                 pose.pushPose();
 //                pose.translate(-0.5F, 0F, -0.5F);
                 switch (transformType) {

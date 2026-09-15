@@ -11,7 +11,6 @@ import com.qurenie.relics_thirteenflames.init.BlocksRegistry;
 import com.qurenie.relics_thirteenflames.init.EntityRegistry;
 import com.qurenie.relics_thirteenflames.init.ItemsRegistry;
 import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
-import com.qurenie.relics_thirteenflames.style.ColorScheme;
 import com.qurenie.relics_thirteenflames.util.FlamesUtils;
 import com.qurenie.relics_thirteenflames.util.ParticleHelper;
 import it.unimi.dsi.fastutil.ints.Int2IntArrayMap;
@@ -46,10 +45,13 @@ import net.minecraft.world.item.crafting.AbstractCookingRecipe;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -114,6 +116,8 @@ public class EntitySeliasetSun extends LivingEntity implements IAnimatedEntity {
     private final List<ItemStack> fake = new ArrayList<>();
     private Int2IntArrayMap itemsHeat = new Int2IntArrayMap();
     private Object2IntMap<BlockPos> blockHeat = new Object2IntArrayMap<>();
+
+    boolean savedNitor;
 
     public EntitySeliasetSun(EntityType<? extends LivingEntity> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -224,6 +228,85 @@ public class EntitySeliasetSun extends LivingEntity implements IAnimatedEntity {
     private final Supplier<Boolean> hasMercy = Suppliers.memoize(() -> ItemsRegistry.SELIASET_SUN.hasRangModifier(null, getSunItem(), "heat", "mercy"));
     private final Supplier<Boolean> hasParadise = Suppliers.memoize(() -> ItemsRegistry.SELIASET_SUN.hasRangModifier(null, getSunItem(), "blessed_light", "paradise"));
     private final Supplier<Boolean> hasLightning = Suppliers.memoize(() -> ItemsRegistry.SELIASET_SUN.isAbilityUnlocked(null, getSunItem(), "lightning"));
+    private final Supplier<Boolean> hasCaves = Suppliers.memoize(() -> ItemsRegistry.SELIASET_SUN.hasRangModifier(null, getSunItem(), "lightning", "caves"));
+
+    private void placeNitorNear(BlockPos centerPos) {
+        int placementRadius = 4;
+        int fallbackSearchRadius = 2;
+        RandomSource random = level().random;
+
+        for (int attempt = 0; attempt < 2; attempt++) {
+            int offsetX = Mth.nextInt(random, -placementRadius, placementRadius);
+            int offsetZ = Mth.nextInt(random, -placementRadius, placementRadius);
+
+            BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos(
+                    centerPos.getX() + offsetX,
+                    centerPos.getY(),
+                    centerPos.getZ() + offsetZ
+            );
+
+            if (tryPlaceNitorColumn(mutable, centerPos.getY(), placementRadius)) {
+                return;
+            }
+        }
+
+        // Третья попытка — перебор блоков, ближайших к цели
+        BlockPos nearest = findNearestValidNitorPos(centerPos, fallbackSearchRadius);
+        if (nearest != null) {
+            placeNitorAt(nearest);
+        }
+
+    }
+
+    private boolean tryPlaceNitorColumn(BlockPos.MutableBlockPos mutable, int centerY, int placementRadius) {
+        for (int y = 0; y <= placementRadius; y = -y + (y >= 0 ? -1 : 1)) {
+
+            mutable.setY(centerY + y);
+
+            BlockPos floorPos = mutable.immutable();
+            BlockPos placePos = floorPos.above();
+
+            if (level().isEmptyBlock(placePos)) {
+                placeNitorAt(placePos);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private BlockPos findNearestValidNitorPos(BlockPos centerPos, int placementRadius) {
+        BlockPos nearest = null;
+        double nearestDistSqr = Double.MAX_VALUE;
+
+        for (BlockPos pos : BlockPos.betweenClosed(
+                centerPos.offset(-placementRadius, -placementRadius, -placementRadius),
+                centerPos.offset(placementRadius, placementRadius, placementRadius))) {
+
+            if (!level().isEmptyBlock(pos))
+                continue;
+
+            double distSqr = pos.distSqr(centerPos);
+            if (distSqr < nearestDistSqr) {
+                nearestDistSqr = distSqr;
+                nearest = pos.immutable();
+            }
+        }
+
+        return nearest;
+    }
+
+    private void placeNitorAt(BlockPos placePos) {
+        level().setBlock(
+                placePos,
+                BlocksRegistry.NITOR.defaultBlockState(),
+                3
+        );
+
+        level().playSound((Entity) null, placePos, SoundsRegistry.SELIASET_SUN_FLAME_SPAWN.get(), SoundSource.BLOCKS, 1F, (float) (0.9 + Math.random() * 0.2));
+        ParticleHelper.spawnParticles(level(),
+                ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(BURN_COLOR, level().getRandom()), 0.3f, 60, 0.95f).withGravity(0.3f),
+                placePos.getCenter(), 20, 0.2, 0.2, 0.2, 0.05);
+    }
 
     @Override
     public void tick() {
@@ -259,7 +342,12 @@ public class EntitySeliasetSun extends LivingEntity implements IAnimatedEntity {
             int heatStat = getHeatStatLevel();
             int lightningRadius = getLightningRadius();
 
-            if (hasLightning.get() && tickCount % frequency == 0) {
+            boolean isBelow = hasCaves.get() && this.position().y < this.level().getSeaLevel();
+
+            if (isBelow)
+                frequency /= 3;
+
+            if (hasLightning.get() && (savedNitor || tickCount % frequency == 0)) {
 
                 LivingEntity owner = getOwner();
 
@@ -270,47 +358,40 @@ public class EntitySeliasetSun extends LivingEntity implements IAnimatedEntity {
                         BlockPos playerPos = player.blockPosition();
 
                         int blockLight = level().getBrightness(net.minecraft.world.level.LightLayer.BLOCK, playerPos);
-                        // Темно
+                        // Темно у игрока — ставим свет рядом с ним
                         if (blockLight <= 6) {
+                            placeNitorNear(playerPos);
+                            savedNitor = false;
+                        } else if (isBelow) {
+                            // Точка, в которую смотрит игрок (не дальше 13 блоков)
+                            double maxLookDistance = 13.0;
+                            Vec3 eyePos = player.getEyePosition();
+                            Vec3 lookVec = player.getLookAngle();
+                            Vec3 lookEnd = eyePos.add(lookVec.scale(maxLookDistance));
 
-                            int placementRadius = 4;
-                            RandomSource random = level().random;
+                            BlockHitResult hitResult = level().clip(new ClipContext(
+                                    eyePos,
+                                    lookEnd,
+                                    ClipContext.Block.COLLIDER,
+                                    ClipContext.Fluid.NONE,
+                                    player
+                            ));
 
-                            // Случайная позиция вокруг игрока
-                            int offsetX = Mth.nextInt(random, -placementRadius, placementRadius);
-                            int offsetZ = Mth.nextInt(random, -placementRadius, placementRadius);
+                            Vec3 lookTarget = hitResult.getType() == HitResult.Type.MISS
+                                    ? lookEnd
+                                    : hitResult.getLocation();
 
-                            BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos(
-                                    playerPos.getX() + offsetX,
-                                    playerPos.getY(),
-                                    playerPos.getZ() + offsetZ
-                            );
+                            BlockPos lookPos = BlockPos.containing(lookTarget);
 
-                            // Ищем поверхность
-                            for (int y = 0; y <= placementRadius; y = -y + (y >= 0 ? -1 : 1)) {
-
-                                mutable.setY(playerPos.getY() + y);
-
-                                BlockPos floorPos = mutable.immutable();
-                                BlockPos placePos = floorPos.above();
-
-                                if (level().isEmptyBlock(placePos)) {
-
-                                    level().setBlock(
-                                            placePos,
-                                            BlocksRegistry.NITOR.defaultBlockState(),
-                                            3
-                                    );
-
-                                    level().playSound((Entity) null, placePos, SoundsRegistry.SELIASET_SUN_FLAME_SPAWN.get(), SoundSource.BLOCKS, 1F, (float) (0.9 + Math.random() * 0.2));
-                                    ParticleHelper.spawnParticles(level(),
-                                            ParticleHelper.constructSimpleSpark(FlamesUtils.spreadColor(BURN_COLOR, level().getRandom()), 0.3f, 60, 0.95f).withGravity(0.3f),
-                                            placePos.getCenter(), 20, 0.2, 0.2, 0.2, 0.05);
-
-                                    break;
-                                }
-                            }
-                        }
+                            int lookBlockLight = level().getBrightness(net.minecraft.world.level.LightLayer.BLOCK, lookPos);
+                            // Темно у точки взгляда — ставим свет и там
+                            if (lookBlockLight <= 6) {
+                                placeNitorNear(lookPos);
+                                savedNitor = false;
+                            } else
+                                savedNitor = true;
+                        } else
+                            savedNitor = true;
                     }
                 }
             }
@@ -362,7 +443,7 @@ public class EntitySeliasetSun extends LivingEntity implements IAnimatedEntity {
                                 level().addFreshEntity(item);
                             }
                             if (getSunItem().getItem() instanceof ItemSeliasetSun relic &&
-                                    level() instanceof ServerLevel sl)
+                                    level() instanceof ServerLevel)
                                 relic.addExperience(getOwner(), getSunItem(), 1);
                         } else {
                             ParticleHelper.spawnParticleOutbox(level(), ParticleTypes.FLAME, pos, 2, 0.005);
@@ -516,7 +597,7 @@ public class EntitySeliasetSun extends LivingEntity implements IAnimatedEntity {
         ItemStack item = this.getSunItem();
         ItemSeliasetSun relic = (ItemSeliasetSun) item.getItem();
         return relic.isAbilityUnlocked(getOwner(), item, "heat") ?
-                relic.getAbilityLevel(getOwner(), item, "heat")  : -1;
+                relic.getAbilityLevel(getOwner(), item, "heat") : -1;
     }
 
     @Override
@@ -563,6 +644,7 @@ public class EntitySeliasetSun extends LivingEntity implements IAnimatedEntity {
         tag.putBoolean("isActive", isActive());
         tag.putInt("seliaset_ticker", ticker);
         tag.putInt("seliaset_growCooldown", growCooldown);
+        tag.putBoolean("nitor", savedNitor);
         tag.putInt("seliaset_burnUndeadCooldown", burnUndeadCooldown);
         tag.putInt("seliaset_burnMonstersCooldown", burnMonstersCooldown);
 
@@ -588,6 +670,7 @@ public class EntitySeliasetSun extends LivingEntity implements IAnimatedEntity {
         this.growCooldown = tag.getInt("seliaset_growCooldown");
         this.burnUndeadCooldown = tag.getInt("seliaset_burnUndeadCooldown");
         this.burnMonstersCooldown = tag.getInt("seliaset_burnMonstersCooldown");
+        this.savedNitor = tag.getBoolean("nitor");
 
         CompoundTag heat = tag.getCompound("heat");
         Int2IntArrayMap map = new Int2IntArrayMap();

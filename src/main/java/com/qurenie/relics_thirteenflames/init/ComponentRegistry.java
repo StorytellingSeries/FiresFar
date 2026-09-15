@@ -164,6 +164,11 @@ public class ComponentRegistry {
             .persistent(Codec.BOOL)
             .networkSynchronized(ByteBufCodecs.BOOL).cacheEncoding());
 
+    @RegistryName("teleporting")
+    public static final Registrar<DataComponentType<Boolean>> TELEPORTING = Registrar.dataComponentType(DataComponentType.<Boolean>builder()
+            .persistent(Codec.BOOL)
+            .networkSynchronized(ByteBufCodecs.BOOL).cacheEncoding());
+
     @RegistryName("shifting")
     public static final Registrar<DataComponentType<Boolean>> SHIFTING = Registrar.dataComponentType(DataComponentType.<Boolean>builder()
             .persistent(Codec.BOOL)

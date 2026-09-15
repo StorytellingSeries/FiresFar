@@ -2,6 +2,7 @@ package com.qurenie.relics_thirteenflames.client.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.qurenie.relics_thirteenflames.ThirteenFlames;
+import com.qurenie.relics_thirteenflames.activity.call.settings.InventoryType;
 import it.hurts.octostudios.octolib.util.OctoColor;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,6 +19,7 @@ import java.util.List;
 public class CardGuiEntity {
 
     final String id;
+    final InventoryType type;
     final ResourceLocation loc;
     CardPosition position;
     CardPosition prevPos;
@@ -47,9 +49,10 @@ public class CardGuiEntity {
     private static final float COLOR_CHANGE = 0.1f;
     private static final float RESIZE_SPEED = 0.2f;
 
-    public CardGuiEntity(String id, ResourceLocation loc) {
+    public CardGuiEntity(String id, InventoryType type, ResourceLocation loc) {
         this.loc = loc;
         this.id = id;
+        this.type = type;
 
         this.target = this.prevTarget = new CardTarget(new CardPosition(0, 0), 0.0f);
         this.position = this.prevPos = new CardPosition(0, 0);

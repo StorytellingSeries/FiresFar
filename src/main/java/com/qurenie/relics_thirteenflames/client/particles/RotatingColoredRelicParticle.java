@@ -11,6 +11,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.client.particle.SpriteSet;
+import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -19,6 +20,7 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
 import java.util.function.Supplier;
 
 public class RotatingColoredRelicParticle extends ColoredRelicParticle {
@@ -196,7 +198,13 @@ public class RotatingColoredRelicParticle extends ColoredRelicParticle {
     }
 
     @Getter
-    public static class Options extends ColoredRelicParticle.Options {
+    public static class Options implements ParticleOptions {
+
+        private final Constructor data;
+        private RotationType rotationType = RotationType.PLANE;
+        float gravity;
+        boolean lightningEffect = true;
+        private Supplier<? extends ParticleType<? extends Options>> type =  ParticlesRegistry.ROTATIVE_RELIC_PARTICLE::get;
 
         private final RotateSettings rotateSettings;
 
@@ -204,19 +212,18 @@ public class RotatingColoredRelicParticle extends ColoredRelicParticle {
                 Constructor data,
                 RotateSettings rotateSettings
         ) {
-            super(ParticlesRegistry.ROTATIVE_RELIC_PARTICLE, data);
-
+            this.data = data;
             this.rotateSettings = rotateSettings;
         }
 
         public Options(
-                Supplier<? extends ParticleType<Options>> type,
+                Supplier<? extends ParticleType<? extends Options>> type,
                 Constructor data,
                 RotateSettings rotateSettings
         ) {
-            super(type, data);
+            this(data, rotateSettings);
 
-            this.rotateSettings = rotateSettings;
+            this.type = type;
         }
 
         private Options(
@@ -224,30 +231,31 @@ public class RotatingColoredRelicParticle extends ColoredRelicParticle {
                 Constructor data,
                 RotateSettings rotateSettings
         ) {
-            super(type, data);
-
-            this.rotateSettings = rotateSettings;
+            this(() -> type, data, rotateSettings);
         }
 
-        @Override
         public Options withGravity(float gravity) {
-            super.withGravity(gravity);
+            this.gravity = gravity;
             return this;
         }
 
-        @Override
         public Options withLightning(boolean lightning) {
-            super.withLightning(lightning);
+            this.lightningEffect = lightning;
             return this;
         }
 
-        @Override
         public Options withRotType(RotationType type) {
-            super.withRotType(type);
+            this.rotationType = type;
             return this;
         }
 
-        private static MapCodec<Options> codec(ParticleType<Options> type) {
+        @Nonnull
+        @Override
+        public ParticleType<? extends Options> getType() {
+            return type.get();
+        }
+
+        public static MapCodec<Options> codec(ParticleType<Options> type) {
             return RecordCodecBuilder.mapCodec(instance -> instance.group(
                     ConstructorCodecs.CONSTRUCTOR
                             .fieldOf("data")
@@ -277,7 +285,7 @@ public class RotatingColoredRelicParticle extends ColoredRelicParticle {
             ));
         }
 
-        private static StreamCodec<ByteBuf, Options> streamCodec(ParticleType<Options> type) {
+        public static StreamCodec<? super RegistryFriendlyByteBuf, Options> streamCodec(ParticleType<Options> type) {
             return StreamCodec.composite(
                     ConstructorCodecs.STREAM_CODEC,
                     Options::getData,

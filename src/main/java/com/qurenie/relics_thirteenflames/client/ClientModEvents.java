@@ -5,7 +5,8 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.qurenie.api.IBarContainer;
 import com.qurenie.relics_thirteenflames.ThirteenFlames;
 import com.qurenie.relics_thirteenflames.client.bar.BarDecorator;
-import com.qurenie.relics_thirteenflames.client.gui.ActivityCallGui;
+import com.qurenie.relics_thirteenflames.client.hand.GlovesHandRenderFactory;
+import com.qurenie.relics_thirteenflames.client.hand.RenderableHandRegistry;
 import com.qurenie.relics_thirteenflames.client.render.entity.*;
 import com.qurenie.relics_thirteenflames.client.render.item.MontuGlovesRenderer;
 import com.qurenie.relics_thirteenflames.client.render.misc.AuritekhElytraLayer;
@@ -26,8 +27,6 @@ import com.qurenie.relics_thirteenflames.content.items.models.MontuGlovesArmorRi
 import com.qurenie.relics_thirteenflames.init.*;
 import com.qurenie.relics_thirteenflames.init.register.RendererFactory;
 import it.hurts.sskirillss.relics.client.renderer.entities.NullRenderer;
-import lombok.Getter;
-import lombok.Setter;
 import net.minecraft.Util;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
@@ -42,7 +41,6 @@ import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.resources.PlayerSkin;
-import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -57,6 +55,7 @@ import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.EntityHitResult;
 import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
@@ -66,12 +65,10 @@ import org.zeith.hammeranims.api.geometry.IGeometryContainer;
 import org.zeith.hammeranims.api.tile.IAnimatedEntity;
 import top.theillusivec4.curios.api.client.CuriosRendererRegistry;
 
-import java.util.Map;
-
 import static com.qurenie.relics_thirteenflames.init.ItemsRegistry.JODAH_MASK;
 import static com.qurenie.relics_thirteenflames.init.ItemsRegistry.JODAH_STAFF;
 
-
+@OnlyIn(Dist.CLIENT)
 @EventBusSubscriber(modid = ThirteenFlames.MODID, value = Dist.CLIENT)
 public class ClientModEvents {
 
@@ -94,6 +91,17 @@ public class ClientModEvents {
         event.register(MenuRegistry.AURITEKH_BEACON_MENU.get(), BeaconScreen::new);
         event.register(MenuRegistry.MONTU_COMPOSIT_MENU.get(), MontuCompositeScreen::new);
         CuriosRendererRegistry.register(ItemsRegistry.MONTU_GLOVES, MontuGlovesRenderer::new);
+        RenderableHandRegistry.register(ItemsRegistry.MONTU_GLOVES, GlovesHandRenderFactory.INSTANCE, GlovesHandRenderFactory.INSTANCE);
+    }
+
+    @SubscribeEvent
+    public static void onRegisterAdditional(ModelEvent.RegisterAdditional event) {
+        for (int rank = 0; rank <= 3; rank++) {
+            event.register(ModelResourceLocation.standalone(
+                    ThirteenFlames.rl(String.format("item/jodah_staff_%d_flawless", rank))));
+            event.register(ModelResourceLocation.standalone(
+                    ThirteenFlames.rl(String.format("item/jodah_staff_%d_active_flawless", rank))));
+        }
     }
 
     @SubscribeEvent
@@ -234,13 +242,6 @@ public class ClientModEvents {
     }
 
     @SubscribeEvent
-    public static void onModelBake(ModelEvent.ModifyBakingResult event) {
-        Map<ModelResourceLocation, BakedModel> models = event.getModels();
-
-
-    }
-
-    @SubscribeEvent
     public static void registerOverlays(RegisterGuiLayersEvent event) {
         event.registerBelow(ResourceLocation.fromNamespaceAndPath("minecraft", "title"),
                 ResourceLocation.fromNamespaceAndPath(ThirteenFlames.MODID, "poison_overlay"), new PoisonOverlay());
@@ -274,22 +275,18 @@ public class ClientModEvents {
 
     public static class MeteorOverlay implements LayeredDraw.Layer {
 
-        @Getter
-        @Setter
-        private static boolean isActive = false;
-
         @Override
         public void render(@NotNull GuiGraphics guiGraphics, @NotNull DeltaTracker tracker) {
 
             Minecraft MC = Minecraft.getInstance();
             LocalPlayer player = MC.player;
 
-            isActive &= player != null;
+            ItemJodahMask.isMeteorTargetActive &= player != null;
 
             if (player == null || player.isSpectator() || MC.options.hideGui)
                 return;
 
-            if (!isActive)
+            if (!ItemJodahMask.isMeteorTargetActive)
                 return;
 
             EntityHitResult entityResult = ProjectileUtil.getEntityHitResult(
@@ -299,7 +296,8 @@ public class ClientModEvents {
                     player.getEyePosition().add(player.getLookAngle().scale(140)),
                     player.getBoundingBox().inflate(2).expandTowards(player.getLookAngle().scale(140)),
                     entity -> !entity.isSpectator() && entity.isPickable()
-                            && entity instanceof LivingEntity living && living.isAlive()
+                            && entity instanceof LivingEntity living && living.isAlive(),
+                    0.7f
             );
 
             if (entityResult == null) {

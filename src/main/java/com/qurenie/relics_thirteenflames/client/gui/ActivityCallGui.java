@@ -1,23 +1,26 @@
 package com.qurenie.relics_thirteenflames.client.gui;
 
+import com.qurenie.api.ActivityCallEvent;
 import com.qurenie.relics_thirteenflames.activity.call.ActivityCallLogic;
 import com.qurenie.relics_thirteenflames.activity.call.ActivityInputHandler;
 import com.qurenie.relics_thirteenflames.data.ActivityState;
+import com.qurenie.relics_thirteenflames.net.ActivityCastPacket;
 import it.hurts.octostudios.octolib.util.OctoColor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Player;
+import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.neoforge.client.event.RenderGuiEvent;
-import org.apache.commons.compress.utils.Sets;
+import org.zeith.hammerlib.net.Network;
 
 import java.util.*;
 
-@EventBusSubscriber
+@EventBusSubscriber(Dist.CLIENT)
 public class ActivityCallGui {
 
     LinkedHashMap<String, CardGuiEntity> cards = new LinkedHashMap<>();
@@ -30,14 +33,14 @@ public class ActivityCallGui {
 
     public void open() {
         Minecraft mc = Minecraft.getInstance();
-        ActivityCallLogic.INSTANCE.cacheActivities(mc.player);
+        ActivityState.INSTANCE.cacheActivities(mc.player);
 
         cards.keySet().retainAll(ActivityState.getKeys());
 
         ActivityState.getState().entrySet().stream()
                 .filter(entry -> !cards.containsKey(entry.getKey()))
                 .forEach(input -> cards.put(input.getKey(),
-                        new CardGuiEntity(input.getKey(), input.getValue().call().getResourceLocation(mc.player, input.getValue().stack()))));
+                        new CardGuiEntity(input.getKey(), input.getValue().call().getInventoryType(), input.getValue().call().getResourceLocation(mc.player, input.getValue().stack()))));
 
         if (!cards.isEmpty()) {
             mc.mouseHandler.releaseMouse();
@@ -100,7 +103,7 @@ public class ActivityCallGui {
                 boolean selected = card.isAlive() && card.mouseSelectedAbsolute(mx, my, false);
 
                 if (selected && button == 0 && action == 1) {
-                    return ActivityCallLogic.INSTANCE.clientCall(Minecraft.getInstance().player, input);
+                    return !clientCall(Minecraft.getInstance().player, input);
                 }
 
                 if (button == 1 && action == 1 && selected) {
@@ -119,7 +122,7 @@ public class ActivityCallGui {
             if (!shuffled.containsKey(CardBehaviour.SELECTED.getName()))
                 return false;
 
-            ActivityCallLogic.INSTANCE.clientCall(Minecraft.getInstance().player,
+            clientCall(Minecraft.getInstance().player,
                     shuffled.get(CardBehaviour.SELECTED.getName()).getFirst().getId());
             return true;
         }
@@ -127,8 +130,22 @@ public class ActivityCallGui {
         return false;
     }
 
+    public boolean clientCall(Player player, String id) {
+        var input = ActivityState.INSTANCE.getInput(id);
+        return switch (ActivityCallLogic.INSTANCE.tryCast(player, input, true)) {
+            case FAILURE -> {
+                ActivityCallGui.INSTANCE.fail(id);
+                yield false;
+            }
+            case SUCCESS -> {
+                Network.sendToServer(new ActivityCastPacket(input.setting().getName(), input));
+                yield true;
+            }
+        };
+    }
+
     private void validateOrDestroy(Player player, String input, CardGuiEntity card) {
-        if (!ActivityCallLogic.INSTANCE.validate(player, input))
+        if (!ActivityState.INSTANCE.validate(player, input))
             setBehaviour(card, CardBehaviour.DYING);
     }
 
@@ -192,9 +209,14 @@ public class ActivityCallGui {
             if (card.unconnected())
                 return !card.isAlive();
 
-            card.setCooldown(ActivityCallLogic.INSTANCE.getCooldown(key));
+            card.setCooldown(ActivityState.INSTANCE.getCooldown(key));
             return !card.isAlive();
         });
+    }
+
+    public void onActivityCast() {
+        ActivityCallGui.INSTANCE.removeSelected();
+        ActivityCallGui.startHide(false);
     }
 
     public static boolean isOpened() {
@@ -225,6 +247,11 @@ public class ActivityCallGui {
 
         if (mc.screen == null && ActivityCallGui.INSTANCE.onMouseClick(mx, my, event.getButton(), event.getAction()))
             event.setCanceled(true);
+    }
+
+    @SubscribeEvent
+    public static void onCast(ActivityCallEvent.Post event) {
+        ActivityCallGui.INSTANCE.onActivityCast();
     }
 
     @SubscribeEvent

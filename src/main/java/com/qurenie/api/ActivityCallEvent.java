@@ -22,6 +22,17 @@ public abstract class ActivityCallEvent extends Event {
         this.setting = setting;
     }
 
+    public static class Post extends ActivityCallEvent {
+
+        @Getter
+        boolean clientSide;
+
+        public Post(Player player, ItemStack stack, IActivitySetting setting, boolean clientSide) {
+            super(player, stack, setting);
+            this.clientSide = clientSide;
+        }
+    }
+
     public static class Cast extends ActivityCallEvent implements ICancellableEvent {
 
         @Getter

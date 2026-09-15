@@ -39,6 +39,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.EnchantmentInstance;
 import net.minecraft.world.level.Level;
+import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.InputEvent;
@@ -240,6 +241,11 @@ public class ScrollOfTruthItem extends RelicItem implements IExtRelicItem {
             player.addEffect(effect);
         }
         
+    }
+
+    @EventBusSubscriber(Dist.CLIENT)
+    public static class ClientEventHandler {
+
         @SubscribeEvent
         public static void mouseScrolled(InputEvent.MouseScrollingEvent event) {
             Player player = Minecraft.getInstance().player;
@@ -251,7 +257,7 @@ public class ScrollOfTruthItem extends RelicItem implements IExtRelicItem {
                 }
             }
         }
-        
+
     }
     
 }

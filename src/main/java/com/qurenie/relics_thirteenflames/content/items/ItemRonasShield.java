@@ -34,7 +34,6 @@ import it.hurts.sskirillss.relics.utils.MathUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.Holder;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
@@ -191,12 +190,15 @@ public class ItemRonasShield extends ShieldItem implements IExtRelicItem, IColor
 
                 }
 
+                int maxCharge = (int) shield.getStatValue(player, stack, "rebuke", "maxcharge");
+                stack.set(RHONAS_CHARGES, maxCharge);
+
                 level.playSound(
                         null,
                         player.blockPosition(),
                         SoundsRegistry.RONAS_SHIELD_BLOCK.get(),
                         SoundSource.PLAYERS,
-                        1f,
+                        2f,
                         1f
                 );
 
@@ -332,7 +334,7 @@ public class ItemRonasShield extends ShieldItem implements IExtRelicItem, IColor
                                 .stat(AbilityStatTemplate.builder("dur")
                                         .initialValue(10, 20)
                                         .thresholdValue(1, 120)
-                                        .targetValue(RelicsScalingModels.ADDITIVE.get(), 120)
+                                        .targetValue(RelicsScalingModels.ADDITIVE.get(), 80)
                                         .formatValue(x -> MathUtils.round(x / 20, 1))
                                         .build()
                                 )
@@ -406,7 +408,7 @@ public class ItemRonasShield extends ShieldItem implements IExtRelicItem, IColor
             if (flight) {
 
                 player.setDeltaMovement(
-                        player.getDeltaMovement().add(push)
+                        player.getDeltaMovement().add(push).scale(0.88f)
                 );
 
             } else {
@@ -581,14 +583,13 @@ public class ItemRonasShield extends ShieldItem implements IExtRelicItem, IColor
         return "relics";
     }
 
-    @OnlyIn(Dist.CLIENT)
-    @EventBusSubscriber
+    @EventBusSubscriber(Dist.CLIENT)
     public static class ClientEventHandler {
 
         @SubscribeEvent(priority = EventPriority.LOWEST)
         public static void onClick(InputEvent.MouseButton.Post event) {
 
-            LocalPlayer player = Minecraft.getInstance().player;
+            Player player = Minecraft.getInstance().player;
             if (player != null
                     && player.getUseItem().getItem() instanceof ItemRonasShield
                     && event.getButton() == 0
@@ -603,6 +604,9 @@ public class ItemRonasShield extends ShieldItem implements IExtRelicItem, IColor
 
         @SubscribeEvent(priority = EventPriority.HIGHEST)
         public static void onKeyInput(InputEvent.Key event) {
+            Minecraft mc = Minecraft.getInstance();
+            if (mc.getConnection() == null || mc.player == null)
+                return;
 
             int key = event.getKey();
 

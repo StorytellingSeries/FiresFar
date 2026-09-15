@@ -21,6 +21,7 @@ public class EntityAnimatedWrapper implements IAnimatedObject {
     
     protected final AnimationSystem animationSystem;
     protected final Entity entity;
+    private boolean closed = false;
     
     public EntityAnimatedWrapper(Entity entity) {
         this.entity = entity;
@@ -78,7 +79,13 @@ public class EntityAnimatedWrapper implements IAnimatedObject {
     @SubscribeEvent
     public void onEntityTick(EntityTickEvent.Post event) {
         if (event.getEntity() == entity)
-            animationSystem.tick();
+            close();
+    }
+
+    public void close() {
+        if (closed) return;
+        closed = true;
+        EVENT_BUS.unregister(this);
     }
     
 }

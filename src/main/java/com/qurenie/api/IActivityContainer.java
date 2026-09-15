@@ -11,7 +11,6 @@ import com.qurenie.relics_thirteenflames.init.ComponentRegistry;
 import com.qurenie.relics_thirteenflames.init.KeyBindRegistry;
 import it.hurts.sskirillss.relics.client.screen.description.misc.TextJustificator;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
@@ -127,7 +126,7 @@ public interface IActivityContainer extends IBarContainer, IRelicDescriptor {
     }
 
     @Override
-    default void modifyDescription(LocalPlayer player, ItemStack stack, String ability, List<TextJustificator.LineEntry> rawLines, List<MutableComponent> dynamicComponents) {
+    default void modifyDescription(Player player, ItemStack stack, String ability, List<TextJustificator.LineEntry> rawLines, List<MutableComponent> dynamicComponents) {
         if (stack.getItem() instanceof IActivityContainer container) {
             var activity = container.getActivitySettings().get(ability);
             if (activity == null || !(activity.getCallSettings() instanceof RelicsActivityCallSettings))

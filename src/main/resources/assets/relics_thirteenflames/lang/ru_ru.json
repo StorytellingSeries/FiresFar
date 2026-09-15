@@ -204,6 +204,7 @@
   "relics.description.seliaset_sun.ability.heat.rank_modifier.mercy": "Когда вы стоите под солнцем, оно не наносит вам урон.",
   "relics.description.seliaset_sun.ability.lightning": "Корональные петли",
   "relics.description.seliaset_sun.ability.lightning.description": "Если игрок находится в тёмном месте в радиусе %2$s блоков от Солнца, каждые %1$s секунд оно будет выбрасывать освещающий сгусток энергии в случайное место поблизости.",
+  "relics.description.seliaset_sun.ability.lightning.rank_modifier.caves": "Все больше погружаясь в обитель Монту, Солнце Селиасэт становится ярче. Находясь под уровнем моря сгустки энергии появляются трижды чаще.",
   "relics.description.seliaset_sun.description": "Один из «Огней», легендарных артефактов, разбросанных по всему миру. Созданное Селиасэт, богиней плодородия, Солнце способствует росту животных и растений. Но знайте - подобравшиеся слишком близко к светилу рискуют не оставить после себя ничего кроме горстки пепла.",
 
   "relics.description.traveller_sword.ability.dash": "Дрейф сновидений",

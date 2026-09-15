@@ -1,13 +1,11 @@
 package com.qurenie.relics_thirteenflames.client.particles;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.qurenie.relics_thirteenflames.client.particles.misc.RotationType;
 import com.qurenie.relics_thirteenflames.init.ParticlesRegistry;
-import io.netty.buffer.ByteBuf;
 import it.hurts.sskirillss.relics.client.particles.BasicColoredParticle;
 import lombok.Getter;
 import net.minecraft.client.Camera;
@@ -80,7 +78,7 @@ public class ColoredRelicParticle extends BasicColoredParticle {
             return type.get();
         }
         
-        private static MapCodec<Options> codec(ParticleType<Options> type) {
+        public static MapCodec<Options> codec(ParticleType<Options> type) {
             return RecordCodecBuilder.mapCodec(instance -> instance
                     .group(ConstructorCodecs.CONSTRUCTOR.fieldOf("data").forGetter(Options::getData),
                             Codec.FLOAT.fieldOf("gravity").forGetter(Options::getGravity),
@@ -91,12 +89,17 @@ public class ColoredRelicParticle extends BasicColoredParticle {
             );
         }
 
-        private static StreamCodec<ByteBuf, Options> streamCodec(ParticleType<Options> type) {
+        public static StreamCodec<RegistryFriendlyByteBuf, Options> streamCodec(ParticleType<Options> type) {
             return StreamCodec.composite(
                     ConstructorCodecs.STREAM_CODEC, Options::getData,
                     ByteBufCodecs.FLOAT, Options::getGravity,
                     ByteBufCodecs.BOOL, Options::isLightningEffect,
-                    (data, gravity, l) -> new Options(type, data).withGravity(gravity).withLightning(l)
+                    ByteBufCodecs.VAR_INT.map(
+                            i -> RotationType.values()[i],
+                            RotationType::ordinal
+                    ),
+                    Options::getRotationType,
+                    (data, gravity, l, rotationType) -> new Options(type, data).withGravity(gravity).withLightning(l).withRotType(rotationType)
             );
         }
         
@@ -198,8 +201,7 @@ public class ColoredRelicParticle extends BasicColoredParticle {
         public Type() {
             super(false);
         }
-        
-        
+
         @Override
         public @NotNull MapCodec<Options> codec() {
             return Options.codec(this);

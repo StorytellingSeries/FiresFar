@@ -7,8 +7,8 @@ import it.hurts.sskirillss.relics.client.screen.description.misc.TextJustificato
 import it.hurts.sskirillss.relics.client.screen.description.relic.widgets.AbilityDescriptionContainerWidget;
 import it.hurts.sskirillss.relics.client.screen.description.relic.widgets.DescriptionContainerWidget;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -39,7 +39,7 @@ public abstract class DescriptionMixin extends DescriptionContainerWidget {
 
         Minecraft mc = Minecraft.getInstance();
 
-        LocalPlayer player = mc.player;
+        Player player = mc.player;
         AbilityDescriptionScreen screen = (AbilityDescriptionScreen) getScreen();
         ItemStack stack = screen.getStack();
 

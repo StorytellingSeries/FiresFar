@@ -3,8 +3,8 @@ package com.qurenie.relics_thirteenflames.net;
 import com.qurenie.relics_thirteenflames.content.items.ItemSeliasetHorn;
 import com.qurenie.relics_thirteenflames.init.SoundsRegistry;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
@@ -63,7 +63,7 @@ public class PacketHornSounds
 
 
         var w = Minecraft.getInstance().level;
-        LocalPlayer player = Minecraft.getInstance().player;
+        Player player = Minecraft.getInstance().player;
         if(w != null && player != null) {
             if(tootMap.containsKey(originUUID)) {
                 ItemSeliasetHorn.TootSoundInstance toot = tootMap.get(originUUID);

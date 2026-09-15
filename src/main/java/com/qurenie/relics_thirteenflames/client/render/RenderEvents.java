@@ -2,8 +2,7 @@ package com.qurenie.relics_thirteenflames.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import com.qurenie.relics_thirteenflames.content.items.base.IRenderableCurioHand;
-import net.minecraft.client.model.HumanoidModel;
+import com.qurenie.relics_thirteenflames.client.hand.RenderableHandRegistry;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -32,9 +31,7 @@ public class RenderEvents {
                 for (int i = 0; i < stackHandler.getSlots(); ++i) {
                     if (curioHandler.getRenders().get(i)) {
                         ItemStack stack = stackHandler.getStackInSlot(i);
-                        if (stack.getItem() instanceof IRenderableCurioHand renderable) {
-                            HumanoidModel<?> model = renderable.getModel(event.getPlayer(), stack, arm);
-
+                        RenderableHandRegistry.calculateIfPresent(event.getPlayer(), stack, arm, (model, texture) -> {
                             poseStack.pushPose();
                             float scale = 1F;
 
@@ -48,9 +45,9 @@ public class RenderEvents {
                                 poseStack.translate(0.2, -0.1, 0.0);
                             }
 
-                            model.renderToBuffer(poseStack, ItemRenderer.getArmorFoilBuffer(event.getMultiBufferSource(), RenderType.armorCutoutNoCull(renderable.getTexture(event.getPlayer(), stack, arm)), stack.hasFoil()), event.getPackedLight(), OverlayTexture.NO_OVERLAY);
+                            model.renderToBuffer(poseStack, ItemRenderer.getArmorFoilBuffer(event.getMultiBufferSource(), RenderType.armorCutoutNoCull(texture), stack.hasFoil()), event.getPackedLight(), OverlayTexture.NO_OVERLAY);
                             poseStack.popPose();
-                        }
+                        });
                     }
                 }
             }

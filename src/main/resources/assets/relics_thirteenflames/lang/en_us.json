@@ -97,6 +97,7 @@
     "relics.description.seliaset_sun.ability.heat.description": "The Sun burns nearby undead in a radius of %3$s blocks, dealing %2$s damage each 0.5 seconds. Items and blocks that stay under the Sun for longer than %1$s seconds are smelted as if they were in a Furnace.",
     "relics.description.seliaset_sun.ability.lightning.description": "If the player is in a dark place within %2$s blocks of the Sun, every %1$s seconds it will hurl a luminous energy clot at a random nearby location",
     "relics.description.seliaset_sun.ability.blessed_light.rank_modifier.paradise": "The growth acceleration effect also applies to sugar cane and nether wart. Animals grow faster.",
+    "relics.description.seliaset_sun.ability.lightning.rank_modifier.caves": "The deeper it descends into Montu's abode, the more light the Sun of Seliaset radiates. Below sea level, energy clusters appear three times as often.",
 
     "relics.description.ronas_shield.ability.block.rank_modifier.blastproof": "With at least %4$s saturation points, the shield can block all effects of an explosion. ",
     "relics.description.ronas_shield.ability.charge.rank_modifier.flight": "Now you can dash into the air! Almost flight! On budget-friendly rage fuel.",
@@ -113,7 +114,7 @@
     "tooltip.relics_thirteenflames.scroll_of_truth.gui.enchant": "Enchant",
     "relics.description.scroll_of_truth.description": "One of the «Flames», legendary artifacts scattered across the world. Created by Khatinthep, the god of Knowledge, this scroll can elevate the user’s consciousness, imparting ancient secrets of the arcane.",
     "relics.description.scroll_of_truth.ability.enchant": "Arcane Library",
-    "relics.description.scroll_of_truth.ability.enchant.description": "Using the Scroll will open an Enchantment menu, allowing you to select specific enchantments to put on any. Experience cost modifier: %1$s. Max enchantment level: %2$s.",
+    "relics.description.scroll_of_truth.ability.enchant.description": "Using the Scroll will open an Enchantment menu, allowing you to select specific enchantments to put on any. Experience cost modifier: %1$s%. Max enchantment level: %2$s.",
     "relics.description.scroll_of_truth.ability.passive_effect": "Khatinthep's Techniques",
     "relics.description.scroll_of_truth.ability.passive_effect.description": "The Scroll's arcane powers grant you permanent level %1$s potion effects, indicated by the color of the scroll's seal. Use Shift + Mouse Wheel to change the applied effect.",
     "relics.description.scroll_of_truth.ability.enchant.rank_modifier.maxup": "It turns out the scroll contains hidden texts on the mastery of enchanting. Now you can enchant items 1 level above the maximum.",

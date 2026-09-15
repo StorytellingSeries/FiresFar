@@ -3,6 +3,7 @@ package com.qurenie.relics_thirteenflames.content.items;
 import com.qurenie.api.IActivityContainer;
 import com.qurenie.api.IExtRelicItem;
 import com.qurenie.api.SettingsContainer;
+import com.qurenie.relics_thirteenflames.ThirteenFlames;
 import com.qurenie.relics_thirteenflames.activity.IActivitySetting;
 import com.qurenie.relics_thirteenflames.activity.RelicActivitySetting;
 import com.qurenie.relics_thirteenflames.content.blocks.BlockShaking;
@@ -64,6 +65,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.common.ItemAbilities;
 import net.neoforged.neoforge.common.ItemAbility;
@@ -651,7 +653,7 @@ public class ItemMontuHammer
         }
     }
 
-    @EventBusSubscriber
+    @EventBusSubscriber(modid = ThirteenFlames.MODID, value = Dist.CLIENT)
     public static class EventHandler {
         
         @SubscribeEvent

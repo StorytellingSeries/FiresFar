@@ -65,12 +65,12 @@ public class RonasShieldItemRenderer
         boolean isFlawless = ItemsRegistry.RONAS_SHIELD.getRelicData(null, stack).isFlawless();
 
         pose.pushPose();
-        renderOverrride(overrides.get(isFlawless ? 7 - charges : 7 - charges), transformType, pose, stack, bufferSource, RenderType.cutout(), uv2, overlay);
+        renderOverrride(overrides.get(isFlawless ? Math.max(7 - charges, 4) : Math.max(7 - charges, 4)), transformType, pose, stack, bufferSource, RenderType.cutout(), uv2, overlay);
 
 //        renderOverrride(overrides.get(3), transformType, pose, stack, bufferSource, null, lightmap, overlay);
         pose.popPose();
         pose.pushPose();
-        if(charges > 0 || isFlawless) renderOverrride(overrides.get(isFlawless ?3 - charges : 3 - charges), transformType, pose, stack, bufferSource, null, lightmap, overlay);
+        if(charges > 0 || isFlawless) renderOverrride(overrides.get(isFlawless ? Math.max(3 - charges, 0) : Math.max(3 - charges, 0)), transformType, pose, stack, bufferSource, null, lightmap, overlay);
         pose.popPose();
     }
 
